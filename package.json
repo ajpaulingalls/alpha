@@ -1,0 +1,15 @@
+{
+  "name": "alpha",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run --watch --bun --watch-all --watch-extensions ts ./apps/server/src/index.ts"
+  },
+  "devDependencies": {
+    "prettier": "3.5.3",
+    "typescript": "5.8.2"
+  }
+}

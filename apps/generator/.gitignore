@@ -1,0 +1,4 @@
+# Ignore all subdirectories in pods/cache
+pods/cache/*/
+pods/*.wav
+

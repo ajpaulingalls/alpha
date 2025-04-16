@@ -1,0 +1,17 @@
+{
+  "name": "@alpha/socket",
+  "version": "0.0.1",
+  "type": "module",
+  "exports": {
+    "./SocketInterfaces": "./src/SocketInterfaces.ts"
+  },
+  "devDependencies": {
+    "@types/bun": "1.2.9"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "openai-realtime-socket-client": "1.0.3"
+  }
+}

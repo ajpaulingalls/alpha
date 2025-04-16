@@ -1,0 +1,28 @@
+{
+  "name": "generator",
+  "module": "src/index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "tsc && bun run src/index.ts",
+    "dev": "tsc && bun run --watch src/index.ts"
+  },
+  "dependencies": {
+    "@ts-flow/ai": "2.0.3",
+    "@ts-flow/api": "2.0.3",
+    "@ts-flow/core": "2.0.3",
+    "@ts-flow/cron": "2.0.3",
+    "@ts-flow/db": "2.0.3",
+    "express": "5.1.0",
+    "multer": "1.4.5-lts.2",
+    "openai": "4.91.1"
+  },
+  "devDependencies": {
+    "@types/bun": "1.2.9",
+    "@types/express": "5.0.1",
+    "@types/multer": "1.4.12"
+  },
+  "peerDependencies": {
+    "typescript": "5.8.2"
+  }
+}

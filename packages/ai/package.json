@@ -1,0 +1,17 @@
+{
+  "name": "@alpha/ai",
+  "version": "0.0.1",
+  "type": "module",
+  "exports": {
+    "./AudioGenerator": "./src/AudioGenerator.ts"
+  },
+  "dependencies": {
+    "openai": "4.91.1"
+  },
+  "devDependencies": {
+    "@types/bun": "1.2.9"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

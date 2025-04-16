@@ -1,0 +1,24 @@
+{
+  "name": "@alpha/data",
+  "version": "0.0.1",
+  "type": "module",
+  "exports": {
+    "./crud/users": "./src/crud/users.ts",
+    "./schema/users": "./src/schema/users.ts",
+    "./schema/podcast_topics": "./src/schema/podcast_topics.ts",
+    "./client": "./src/client.ts"
+  },
+  "scripts": {
+    "generate": "drizzle-kit generate",
+    "migrate": "bun src/migrate.ts",
+    "studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "drizzle-orm": "0.41.0",
+    "postgres": "3.4.5"
+  },
+  "devDependencies": {
+    "@types/bun": "1.2.9",
+    "drizzle-kit": "0.30.6"
+  }
+}

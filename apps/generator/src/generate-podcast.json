@@ -1,0 +1,192 @@
+{
+  "id": "create-latest-news-podcast",
+  "type": "Workflow",
+  "config": {
+    "name": "Create a latest news podcast",
+    "description": "Generate a podcast from the latest news on the aljazeera website",
+    "nodes": [
+      {
+        "id": "create-latest-news-podcast-trigger",
+        "type": "Trigger",
+        "config": {
+          "triggerType": "CronTrigger",
+          "triggerId": "create-latest-news-podcast-cron",
+          "triggerConfig": {
+            "cron": "0 9 * * *",
+            "payload": {},
+            "triggerOnStart": "true",
+            "outputEventName": "findLatestNews"
+          }
+        }
+      },
+      {
+        "id": "create-latest-news-podcast-find-latest-news",
+        "type": "QueryEngine",
+        "config": {
+          "inputEventName": "findLatestNews",
+          "engineType": "HttpGetQueryEngine",
+          "engineId": "get-latest-news",
+          "engineConfig": {
+            "urlTemplate": "https://www.aljazeera.com/graphql?wp-site=aje&operationName=HomePageQuery&variables=%7B%22preview%22%3A%22%22%2C%22isAtf%22%3Atrue%2C%22atfLength%22%3A2%7D&extensions=%7B%7D",
+            "headerSchema": {
+              "accept": "application/json",
+              "wp-site": "mobile-aje"
+            },
+            "outputEventName": "latestNewsFound",
+            "outputProperty": "homepage"
+          }
+        }
+      },
+      {
+        "id": "create-latest-news-podcast-get-article",
+        "type": "QueryEngine",
+        "config": {
+          "inputEventName": "latestNewsFound",
+          "engineType": "HttpGetQueryEngine",
+          "engineId": "get-article-content",
+          "engineDataRoot": "homepage.data.homepage.featuredPosts",
+          "engineConfig": {
+            "urlTemplate": "https://www.aljazeera.com/graphql?wp-site=aje&operationName=ArchipelagoSingleArticleQuery&variables=%7B%22name%22%3A%22${slug}%22%2C%22postType%22%3A%22${postType}%22%2C%22preview%22%3A%22%22%7D&extensions=%7B%7D",
+            "headerSchema": {
+              "accept": "application/json",
+              "wp-site": "aje"
+            },
+            "outputProperty": "article",
+            "outputEventName": "articlesLoaded"
+          }
+        }
+      },
+      {
+        "id": "create-latest-news-podcast-generate-summary",
+        "type": "QueryEngine",
+        "config": {
+          "inputEventName": "articlesLoaded",
+          "engineType": "OpenAIChatEngine",
+          "engineId": "open-ai-article-generate-summary",
+          "engineDataRoot": "homepage.data.homepage.featuredPosts",
+          "engineConfig": {
+            "modelName": "gpt-4o-mini",
+            "systemPrompt": "You are an expoert editor at Al Jazeera. You are given a story and you need to create a summary of the story.  The summary should cover all the important information in the story, but should be written in a way that is easy to understand.  The summary should be no more than 200 words.",
+            "userPrompt": "Create a summary of the following article.  Make sure the summary includes all the important information from the article:\n${article.data.article.content}",
+            "outputProperty": "summary",
+            "outputEventName": "summaryReady"
+          }
+        }
+      },
+      {
+        "id": "create-latest-news-podcast-get-embeddings",
+        "type": "QueryEngine",
+        "config": {
+          "inputEventName": "summaryReady",
+          "engineType": "OpenAIEmbeddingEngine",
+          "engineId": "open-ai-get-embedding",
+          "engineDataRoot": "homepage.data.homepage.featuredPosts",
+          "engineConfig": {
+            "modelName": "text-embedding-3-small",
+            "keyToEmbed": "summary",
+            "outputProperty": "embedding",
+            "outputEventName": "embeddingsReady"
+          }
+        }
+      },
+      {
+        "id": "create-latest-news-podcast-generate-script",
+        "type": "QueryEngine",
+        "config": {
+          "inputEventName": "embeddingsReady",
+          "engineType": "OpenAIChatEngine",
+          "engineId": "open-ai-article-generate-script",
+          "engineDataRoot": "homepage.data.homepage.featuredPosts",
+          "engineConfig": {
+            "modelName": "gpt-4o-mini",
+            "systemPrompt": "You are an expert podcast script writer who works for Al Jazeera. You work hard to provide thoughtful information when provided a story, summarizing it in an easily understood way for your listeners. Your goal is to provide a podcast script that is informative and engaging, while being true to the Al Jazeera brand and the story presented to you. The script you write should include two narrators, one male named 'Blair' and one female named 'Betty'. The script should be in the form of a conversation between the two narrators, with each line being a single line of dialogue between the two narrators.  For each line, you should include the name of the podcaster speaking, the line of dialogue that the podcaster is speaking, and the instructions for the podcasters to follow while speaking.  Each script you write will be part of a larger podcast, so you don't need to introduce yourself at the beginning of the script or thank people at the end.  Just start the script by introducing the topic leveraging the article title.",
+            "userPrompt": "Create a script for a podcast segment about the following article.  Make sure the script includes all the important information from the article:\n${article.data.article.content}",
+            "outputProperty": "script",
+            "outputEventName": "scriptReady",
+            "responseFormat": {
+              "type": "json_schema",
+              "json_schema": {
+                "name": "podcastScript",
+                "description": "A Conversation between 2 podcasters, Blair and Betty, discussing the information in an article.  Each line is a single line of dialogue between the 2 podcasters. The name is the name of the podcaster speaking. The line is the line of dialogue that the podcaster is speaking. The instructions are the instructions for the podcasters to follow while speaking.",
+                "strict": true,
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "script": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "line": {
+                            "type": "string"
+                          },
+                          "instructions": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "line",
+                          "instructions"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "script"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": "create-latest-news-podcast-generate-podcast",
+        "type": "QueryEngine",
+        "config": {
+          "inputEventName": "scriptReady",
+          "engineType": "PodGenEngine",
+          "engineId": "open-ai-article-generate-podcast",
+          "engineDataRoot": "homepage.data.homepage.featuredPosts",
+          "engineConfig": {
+            "modelName": "gpt-4o-mini-tts",
+            "text": "${script}",
+            "voice": "alloy",
+            "audioFormat": "mp3",
+            "instructions": "You are a professional podcast narrator. Your have been given a script and you need to read it in a way that is engaging and interesting.  You should sound like a news anchor.  You should be able to speak in a neutral tone, but also be able to speak in a more engaging way when needed.",
+            "outputDirectory": "./pods",
+            "outputProperty": "podcastFilename",
+            "outputEventName": "podcastReady"
+          }
+        }
+      },
+      {
+        "id": "create-latest-news-podcast-insert-data",
+        "type": "QueryEngine",
+        "config": {
+          "inputEventName": "podcastReady",
+          "engineType": "PGInsertQueryEngine",
+          "engineId": "postgres-save-embeddings",
+          "engineDataRoot": "homepage.data.homepage.featuredPosts",
+          "engineConfig": {
+            "connectionString": "${POSTGRES_CONNECTION_STRING}",
+            "sqlInsertTemplate": "insert into podcast_topics (title, summary, filename, embedding) values ($1, $2, $3, $4)",
+            "sqlValuesTemplate": [
+              "title",
+              "summary",
+              "podcastFilename",
+              "embedding"
+            ],
+            "outputEventName": "dataInserted"
+          }
+        }
+      }
+    ]
+  }
+}
