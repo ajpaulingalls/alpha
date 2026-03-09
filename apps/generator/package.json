@@ -14,7 +14,7 @@
     "@ts-flow/cron": "2.0.3",
     "@ts-flow/db": "2.0.3",
     "express": "5.1.0",
-    "openai": "4.95.1"
+    "openai": "6.27.0"
   },
   "devDependencies": {
     "@types/bun": "1.2.9",
