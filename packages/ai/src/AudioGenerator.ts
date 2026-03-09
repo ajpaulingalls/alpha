@@ -23,7 +23,7 @@ export async function generateAudioFromTextToFile(
   openai: OpenAI,
   text: string,
   outputFilePath: string,
-  voice: OpenAIVoice = "alloy",
+  voice: OpenAIVoice = "alloy"
 ) {
   try {
     const audioResponse = await openai.audio.speech.create({
@@ -41,7 +41,9 @@ export async function generateAudioFromTextToFile(
     await fs.promises.writeFile(outputFilePath, buffer);
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(`Failed to generate audio: ${error.message}`);
+      throw new Error(`Failed to generate audio: ${error.message}`, {
+        cause: error,
+      });
     }
     throw error;
   }

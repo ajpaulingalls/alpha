@@ -4,15 +4,14 @@ import { parseArgs } from "util";
 import path from "node:path";
 
 const main = async () => {
-
   const { values } = parseArgs({
     args: Bun.argv,
     options: {
       filename: {
-        type: 'string',
+        type: "string",
       },
       text: {
-        type: 'string',
+        type: "string",
       },
     },
     strict: true,
@@ -20,7 +19,9 @@ const main = async () => {
   });
 
   if (!values.filename || !values.text) {
-    console.error("Usage: bun createAudioFromText.ts --filename output.wav --text \"text to convert\"");
+    console.error(
+      'Usage: bun createAudioFromText.ts --filename output.wav --text "text to convert"'
+    );
     process.exit(1);
   }
 
@@ -30,7 +31,11 @@ const main = async () => {
   });
 
   try {
-    await generateAudioFromTextToFile(openai, values.text, path.join(process.cwd(), values.filename));
+    await generateAudioFromTextToFile(
+      openai,
+      values.text,
+      path.join(process.cwd(), values.filename)
+    );
     console.log(`Successfully created audio file: ${values.filename}`);
   } catch (error) {
     console.error("Error generating audio:", error);
@@ -41,4 +46,4 @@ const main = async () => {
 main().catch((error) => {
   console.error("Unhandled error:", error);
   process.exit(1);
-}); 
+});

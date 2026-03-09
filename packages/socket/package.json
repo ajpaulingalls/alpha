@@ -5,6 +5,9 @@
   "exports": {
     "./SocketInterfaces": "./src/SocketInterfaces.ts"
   },
+  "scripts": {
+    "test": "bun test"
+  },
   "devDependencies": {
     "@types/bun": "1.2.9"
   },

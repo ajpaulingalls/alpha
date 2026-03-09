@@ -11,7 +11,8 @@
   "scripts": {
     "generate": "drizzle-kit generate",
     "migrate": "bun src/migrate.ts",
-    "studio": "drizzle-kit studio"
+    "studio": "drizzle-kit studio",
+    "test": "bun test"
   },
   "dependencies": {
     "drizzle-orm": "0.41.0",

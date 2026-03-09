@@ -127,18 +127,12 @@
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "name",
-                          "line",
-                          "instructions"
-                        ],
+                        "required": ["name", "line", "instructions"],
                         "additionalProperties": false
                       }
                     }
                   },
-                  "required": [
-                    "script"
-                  ],
+                  "required": ["script"],
                   "additionalProperties": false
                 }
               }

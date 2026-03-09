@@ -1,11 +1,11 @@
 import type { RealtimeItem } from "openai-realtime-socket-client";
 
-export type DeltaType = {
+export interface DeltaType {
   transcript?: string;
   audio?: string;
   text?: string;
   arguments?: string;
-};
+}
 
 export interface ServerToClientEvents {
   error: (message: string) => void;

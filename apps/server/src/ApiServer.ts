@@ -1,13 +1,11 @@
-import {Hono} from "hono";
-import {cors} from 'hono/cors';
+import { Hono } from "hono";
+import { cors } from "hono/cors";
 
 export class ApiServer {
-  private readonly apiKey: string;
   private readonly app: Hono;
   private readonly corsHosts: string;
 
-  constructor(apiKey: string, corsHosts: string) {
-    this.apiKey = apiKey;
+  constructor(_apiKey: string, corsHosts: string) {
     this.app = new Hono();
     this.corsHosts = corsHosts;
   }
@@ -18,15 +16,15 @@ export class ApiServer {
 
   initServer() {
     this.app.use(
-      '/api/*',
+      "/api/*",
       cors({
         origin: this.corsHosts,
       })
-    )
-    this.app.get('/api/health', (c) => {
-      return c.json({status: 'ok'});
+    );
+    this.app.get("/api/health", (c) => {
+      return c.json({ status: "ok" });
     });
-    this.app.post('/api/echo', (c) => {
+    this.app.post("/api/echo", (c) => {
       return c.json(c.body);
     });
   }

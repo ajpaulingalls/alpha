@@ -14,6 +14,7 @@ import { PodcastHandler } from "./handlers/PodcastHandler";
 import jwt, { type JwtPayload } from "jsonwebtoken";
 import { findUserById } from "@alpha/data/crud/users";
 
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface InterServerEvents {}
 
 export interface SocketData {
@@ -63,15 +64,15 @@ export class SocketServer {
       ServerToClientEvents,
       InterServerEvents,
       SocketData
-    >,
+    >
   ) {
     logger.log(`Client connected: ${socket.id}`);
 
     const userToken = socket.handshake.query["token"] as string;
     if (userToken) {
       console.log("User token found");
-      const decoded = jwt.verify(userToken, process.env['JWT_SECRET']!);
-      socket.data.userId = (decoded as JwtPayload)['userId'];
+      const decoded = jwt.verify(userToken, process.env["JWT_SECRET"]!);
+      socket.data.userId = (decoded as JwtPayload)["userId"];
       const user = await findUserById(socket.data.userId);
       if (user) {
         console.log("User found");

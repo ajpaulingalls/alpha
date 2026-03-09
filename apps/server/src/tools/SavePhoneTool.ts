@@ -1,4 +1,7 @@
-import type { ResponseFunctionCallArgumentsDoneEvent, ToolDefinition } from "openai-realtime-socket-client";
+import type {
+  ResponseFunctionCallArgumentsDoneEvent,
+  ToolDefinition,
+} from "openai-realtime-socket-client";
 import type { IToolHandler } from "./ToolHandler";
 import { z } from "zod";
 
@@ -11,7 +14,7 @@ const SavePhoneParams = z.object({
 type SavePhoneParams = z.infer<typeof SavePhoneParams>;
 
 export class SavePhoneTool implements IToolHandler {
-  private savedPhone: string = "";
+  private savedPhone = "";
 
   getName(): string {
     return "save_phone";
@@ -32,15 +35,15 @@ export class SavePhoneTool implements IToolHandler {
 
   executeCall(event: ResponseFunctionCallArgumentsDoneEvent): Promise<void> {
     console.log("SavePhoneTool.executeCall", event);
-    
+
     try {
       // Parse and validate the input using Zod
       const params = SavePhoneParams.parse(JSON.parse(event.arguments));
-      
+
       // Now we have type-safe access to the validated parameters
       console.log("Saving phone:", params.phone);
       this.savedPhone = params.phone;
-      
+
       return Promise.resolve();
     } catch (error) {
       if (error instanceof z.ZodError) {

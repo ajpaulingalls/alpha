@@ -1,0 +1,17 @@
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      glob: "*.{ts,tsx}"
+      run: bunx eslint {staged_files} --no-warn-ignored
+    format:
+      glob: "*.{ts,tsx,json,md,yml,yaml}"
+      run: bunx prettier --check {staged_files}
+
+pre-push:
+  parallel: true
+  commands:
+    typecheck:
+      run: bun run typecheck
+    test:
+      run: bun test

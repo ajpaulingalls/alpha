@@ -5,7 +5,8 @@
   "private": true,
   "scripts": {
     "start": "tsc && bun run src/index.ts",
-    "dev": "tsc && bun run --watch src/index.ts"
+    "dev": "tsc && bun run --watch src/index.ts",
+    "test": "bun test"
   },
   "dependencies": {
     "@ts-flow/ai": "2.0.3",

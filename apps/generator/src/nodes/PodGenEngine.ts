@@ -3,11 +3,8 @@ import {
   type IContainer,
   type IQueryEngine,
   type JSONObject,
-  keywordReplacement,
   NodeBase,
-  injectDataIntoJSONObject,
 } from "@ts-flow/core";
-import axios, { AxiosHeaders } from "axios";
 import fs from "fs";
 import { WriteStream } from "fs";
 import OpenAI from "openai";
@@ -29,7 +26,7 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
 
   protected async addSilenceToFile(file: WriteStream): Promise<void> {
     const silence = Buffer.alloc(96000); // 2 seconds at 24kHz, 16-bit mono
-    await new Promise<void>((resolve, reject) => {
+    await new Promise<void>((resolve, _reject) => {
       if (!file.write(silence)) {
         file.once("drain", resolve);
       } else {
@@ -40,7 +37,7 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
 
   async execute(
     payload: JSONObject,
-    completeCallback: (completeEventName: string, result: JSONObject) => void,
+    completeCallback: (completeEventName: string, result: JSONObject) => void
   ): Promise<void> {
     const file = await this.createWavFile();
     if (Array.isArray(payload)) {
@@ -57,7 +54,7 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
         if (fs.existsSync(cachePath)) {
           console.log("\n\n\nUsing cached segment for:", item.title);
           const cachedData = fs.readFileSync(cachePath);
-          await new Promise<void>((resolve, reject) => {
+          await new Promise<void>((resolve, _reject) => {
             if (!file.write(cachedData)) {
               file.once("drain", resolve);
             } else {
@@ -69,7 +66,7 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
           await this.generatePodcastSegmentToWav(
             item.script as JSONObject,
             file,
-            slug,
+            slug
           );
         }
 
@@ -89,7 +86,7 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
       await this.generatePodcastSegmentToWav(
         payload.script as JSONObject,
         file,
-        payload.slug as string,
+        payload.slug as string
       );
       file.close();
 
@@ -139,7 +136,7 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
 
   protected async generatePodcastIntro(
     articles: JSONObject[],
-    file: WriteStream,
+    file: WriteStream
   ) {
     const articleTitles = articles.map((article) => article.title).join(", ");
 
@@ -153,7 +150,14 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
         },
         {
           role: "user",
-          content: `Today is ${new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })} and the time is ${new Date().toLocaleTimeString("en-US")}. Here are the article titles that will be discussed in the podcast, please write an intro for the podcast that will discuss each of them: ${articleTitles}`,
+          content: `Today is ${new Date().toLocaleDateString("en-US", {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })} and the time is ${new Date().toLocaleTimeString(
+            "en-US"
+          )}. Here are the article titles that will be discussed in the podcast, please write an intro for the podcast that will discuss each of them: ${articleTitles}`,
         },
       ],
       response_format: {
@@ -194,7 +198,7 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
     });
 
     const introScript = JSON.parse(
-      introScriptResponse.choices[0].message.content as string,
+      introScriptResponse.choices[0].message.content as string
     );
     console.log("\n\n\nGenerating Intro for podcast");
     await this.generatePodcastSegmentToWav(introScript, file);
@@ -203,7 +207,7 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
   protected async generatePodcastSegmentToWav(
     script: JSONObject,
     file: WriteStream,
-    slug?: string,
+    slug?: string
   ) {
     const lines = script.script as JSONObject[];
     let allPcmData = Buffer.alloc(0);
@@ -249,7 +253,7 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
     }
 
     // Write the accumulated PCM data to the output file
-    await new Promise<void>((resolve, reject) => {
+    await new Promise<void>((resolve, _reject) => {
       if (!file.write(allPcmData)) {
         file.once("drain", resolve);
       } else {
@@ -285,13 +289,13 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
     fs.closeSync(fd);
 
     console.log(
-      `WAV header updated: file size ${fileSize} bytes, data size ${dataSize} bytes`,
+      `WAV header updated: file size ${fileSize} bytes, data size ${dataSize} bytes`
     );
   }
 
   protected async appendWavData(
     inputWavPath: string,
-    outputStream: WriteStream,
+    outputStream: WriteStream
   ): Promise<void> {
     // Open the input file
     const inputFd = fs.openSync(inputWavPath, "r");
@@ -309,7 +313,7 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
       while (
         (bytesRead = fs.readSync(inputFd, buffer, 0, chunkSize, null)) > 0
       ) {
-        await new Promise<void>((resolve, reject) => {
+        await new Promise<void>((resolve, _reject) => {
           if (!outputStream.write(buffer.slice(0, bytesRead))) {
             outputStream.once("drain", resolve);
           } else {

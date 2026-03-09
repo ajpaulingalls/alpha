@@ -23,7 +23,7 @@ export interface ICommunicationsHandler {
       InterServerEvents,
       SocketData
     >,
-    audioRootDir: string,
+    audioRootDir: string
   ): void;
   voiceStarted(): void;
   voiceStopped(): void;
@@ -42,7 +42,7 @@ export abstract class CommunicationsHandler
     InterServerEvents,
     SocketData
   > | null = null;
-  protected audioRootDir: string = "";
+  protected audioRootDir = "";
   protected client: RealtimeVoiceClient;
 
   constructor(apiKey: string, instructions: string, tools: ToolDefinition[]) {
@@ -85,7 +85,7 @@ export abstract class CommunicationsHandler
       InterServerEvents,
       SocketData
     >,
-    audioRootDir: string,
+    audioRootDir: string
   ): void {
     this.socket = socket;
     this.audioRootDir = audioRootDir;
@@ -157,14 +157,14 @@ export abstract class CommunicationsHandler
 
         stream.on("end", () => {
           logger.log(
-            `Audio streaming completed for client: ${this.socket?.id}`,
+            `Audio streaming completed for client: ${this.socket?.id}`
           );
           resolve();
         });
 
         stream.on("error", (error) => {
           logger.error(
-            `Stream error for client ${this.socket?.id}: ${error.message}`,
+            `Stream error for client ${this.socket?.id}: ${error.message}`
           );
           this.socket?.emit("error", `Error streaming audio: ${error.message}`);
           reject(error);
@@ -173,11 +173,11 @@ export abstract class CommunicationsHandler
         const errorMessage =
           error instanceof Error ? error.message : "Unknown error";
         logger.error(
-          `Failed to start audio stream for client ${this.socket?.id}: ${errorMessage}`,
+          `Failed to start audio stream for client ${this.socket?.id}: ${errorMessage}`
         );
         this.socket?.emit(
           "error",
-          `Failed to start audio stream: ${errorMessage}`,
+          `Failed to start audio stream: ${errorMessage}`
         );
         reject(error);
       }

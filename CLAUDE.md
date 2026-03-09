@@ -40,7 +40,31 @@ bun run migrate      # apply migrations
 bun run studio       # drizzle-kit studio UI
 ```
 
-No test framework or linter is configured.
+## Code Quality
+
+```bash
+# Lint (ESLint with typescript-eslint strict + stylistic)
+bun run lint
+bun run lint:fix
+
+# Format (Prettier)
+bun run format
+bun run format:check
+
+# Type check all workspaces
+bun run typecheck
+
+# Run tests (Bun test runner)
+bun test
+
+# Run all checks (lint + format:check + typecheck)
+bun run check
+```
+
+Git hooks are managed by **lefthook** (`lefthook.yml`):
+
+- **pre-commit**: runs ESLint and Prettier on staged files
+- **pre-push**: runs typecheck and tests
 
 ## Architecture
 
@@ -55,6 +79,7 @@ The server uses Socket.io for client connections with JWT authentication. Handle
 ### Database
 
 PostgreSQL with Drizzle ORM. The `@alpha/data` package exports via subpath exports:
+
 - `@alpha/data/crud/users` — user CRUD operations
 - `@alpha/data/schema/users` — user table schema
 - `@alpha/data/schema/podcast_topics` — podcast topics with 1536-dim vector embeddings (HNSW index)
@@ -71,3 +96,5 @@ PostgreSQL with Drizzle ORM. The `@alpha/data` package exports via subpath expor
 - Workspace packages referenced as `workspace:*` in dependencies
 - Environment variables loaded from `.env` files per app (DATABASE_URL, OPENAI_API_KEY, JWT_SECRET, etc.)
 - Prettier for formatting (default config)
+- ESLint flat config (`eslint.config.mjs`) with typescript-eslint strict mode
+- Lefthook git hooks enforce lint, format, typecheck, and tests

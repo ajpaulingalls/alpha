@@ -1,7 +1,7 @@
 import { StatusBar } from "expo-status-bar";
 import { useRef, useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
-import AsyncStorage, { useAsyncStorage } from '@react-native-async-storage/async-storage';
+import { useAsyncStorage } from "@react-native-async-storage/async-storage";
 import {
   AudioEncoding,
   RealtimeAudioModule,
@@ -50,7 +50,8 @@ export default function App() {
 
   useEffect(() => {
     const checkPermissions = async () => {
-      const result = await RealtimeAudioModule.checkAndRequestAudioPermissions();
+      const result =
+        await RealtimeAudioModule.checkAndRequestAudioPermissions();
       console.log("Permission result", result);
       if (!result) {
         console.log("Permission not granted");
@@ -113,7 +114,7 @@ export default function App() {
         if (delta.audio) {
           playerRef.current?.addBuffer(delta.audio);
         }
-      },
+      }
     );
 
     // Store socket instance

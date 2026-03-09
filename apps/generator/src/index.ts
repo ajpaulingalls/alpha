@@ -1,24 +1,43 @@
-import { bootstrap, type IContainer, type JSONObject, WebServer } from "@ts-flow/core";
+import {
+  bootstrap,
+  type IContainer,
+  type JSONObject,
+  WebServer,
+} from "@ts-flow/core";
 import path from "path";
 import generatePodcast from "./generate-podcast.json";
 import type { Request, Response } from "express";
 
 const paths: string[] = [];
 paths.push(
-  path.join(process.cwd(), "..", "..", "node_modules", "@ts-flow", "ai", "dist"),
+  path.join(process.cwd(), "..", "..", "node_modules", "@ts-flow", "ai", "dist")
 );
 paths.push(
-    path.join(process.cwd(), "..", "..", "node_modules", "@ts-flow", "cron", "dist"),
-  );
-paths.push(
-  path.join(process.cwd(), "..", "..", "node_modules", "@ts-flow", "api", "dist"),
+  path.join(
+    process.cwd(),
+    "..",
+    "..",
+    "node_modules",
+    "@ts-flow",
+    "cron",
+    "dist"
+  )
 );
 paths.push(
-  path.join(process.cwd(), "..", "..", "node_modules", "@ts-flow", "db", "dist"),
+  path.join(
+    process.cwd(),
+    "..",
+    "..",
+    "node_modules",
+    "@ts-flow",
+    "api",
+    "dist"
+  )
 );
 paths.push(
-  path.join(process.cwd(), "dist"),
+  path.join(process.cwd(), "..", "..", "node_modules", "@ts-flow", "db", "dist")
 );
+paths.push(path.join(process.cwd(), "dist"));
 
 void bootstrap(paths, (container: IContainer) => {
   const webServer = container.getInstance("WebServer") as WebServer;
@@ -27,13 +46,13 @@ void bootstrap(paths, (container: IContainer) => {
       container
         .getInstances()
         .map((instance) => instance.getId())
-        .reduce((prev, cur) => prev + "\n" + cur),
+        .reduce((prev, cur) => prev + "\n" + cur)
     );
   });
   container.createInstance(
     generatePodcast.id,
     generatePodcast.type,
-    generatePodcast.config as unknown as JSONObject,
+    generatePodcast.config as unknown as JSONObject
   );
 
   webServer.startServer();

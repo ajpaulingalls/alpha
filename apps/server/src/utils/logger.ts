@@ -1,42 +1,42 @@
-const isProduction = process.env.NODE_ENV === 'production';
+const isProduction = process.env.NODE_ENV === "production";
 let isLoggingEnabled = !isProduction;
 
 export const logger = {
   enable: () => {
     isLoggingEnabled = true;
   },
-  
+
   disable: () => {
     isLoggingEnabled = false;
   },
 
-  log: (...args: any[]) => {
+  log: (...args: unknown[]) => {
     if (isLoggingEnabled) {
       console.log(...args);
     }
   },
 
   // Additional logging levels if needed
-  debug: (...args: any[]) => {
+  debug: (...args: unknown[]) => {
     if (isLoggingEnabled) {
       console.debug(...args);
     }
   },
 
-  error: (...args: any[]) => {
+  error: (...args: unknown[]) => {
     // Always log errors, even in production
     console.error(...args);
   },
 
-  warn: (...args: any[]) => {
+  warn: (...args: unknown[]) => {
     if (isLoggingEnabled) {
       console.warn(...args);
     }
   },
 
-  info: (...args: any[]) => {
+  info: (...args: unknown[]) => {
     if (isLoggingEnabled) {
       console.info(...args);
     }
-  }
-}; 
+  },
+};

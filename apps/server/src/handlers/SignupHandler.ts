@@ -12,13 +12,12 @@ import {
 import { type User } from "@alpha/data/schema/users";
 import jwt from "jsonwebtoken";
 
-
 export default class SignupHandler extends CommunicationsHandler {
   private saveNameTool: SaveNameTool;
   private savePhoneTool: SavePhoneTool;
   private checkCodeTool: CheckCodeTool;
   private user: User | null = null;
-  private completed: boolean = false;
+  private completed = false;
 
   constructor(apiKey: string) {
     const saveNameTool = new SaveNameTool();
@@ -36,7 +35,7 @@ export default class SignupHandler extends CommunicationsHandler {
         saveNameTool.getToolDefinition(),
         savePhoneTool.getToolDefinition(),
         checkCodeTool.getToolDefinition(),
-      ],
+      ]
     );
     this.saveNameTool = saveNameTool;
     this.savePhoneTool = savePhoneTool;
@@ -48,10 +47,13 @@ export default class SignupHandler extends CommunicationsHandler {
 
     this.client.on("response.audio.delta", ({ item_id, delta }) => {
       const item = this.client.getItem(item_id);
-      item && this.socket?.emit("conversationUpdated", item, { audio: delta });
+      if (item) {
+        this.socket?.emit("conversationUpdated", item, { audio: delta });
+      }
     });
 
     // Set up event handlers for the client
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.client.on("response.function_call_arguments.done", (event: any) => {
       console.log("Function call arguments done", event);
       if (event.name === this.saveNameTool.getName()) {
@@ -69,7 +71,7 @@ export default class SignupHandler extends CommunicationsHandler {
             console.error("Error executing save name tool:", error);
             this.socket?.emit(
               "error",
-              error instanceof Error ? error.message : String(error),
+              error instanceof Error ? error.message : String(error)
             );
           });
       } else if (event.name === this.savePhoneTool.getName()) {
@@ -91,7 +93,7 @@ export default class SignupHandler extends CommunicationsHandler {
 
             // Generate new verification code
             const verificationCode = Math.floor(
-              100000 + Math.random() * 900000,
+              100000 + Math.random() * 900000
             ).toString();
             const validationTimeout = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
 
@@ -100,7 +102,7 @@ export default class SignupHandler extends CommunicationsHandler {
               this.user = await updateUserVerificationCode(
                 phone,
                 verificationCode,
-                validationTimeout,
+                validationTimeout
               );
               this.client.createResponse({
                 instructions:
@@ -113,7 +115,7 @@ export default class SignupHandler extends CommunicationsHandler {
                 name,
                 phone,
                 verificationCode,
-                validationTimeout,
+                validationTimeout
               );
               this.client.createResponse({
                 instructions:
@@ -125,7 +127,7 @@ export default class SignupHandler extends CommunicationsHandler {
             console.error("Error executing save phone tool:", error);
             this.socket?.emit(
               "error",
-              error instanceof Error ? error.message : String(error),
+              error instanceof Error ? error.message : String(error)
             );
           });
       } else if (event.name === this.checkCodeTool.getName()) {
@@ -152,7 +154,7 @@ export default class SignupHandler extends CommunicationsHandler {
             });
             this.socket?.emit(
               "error",
-              error instanceof Error ? error.message : String(error),
+              error instanceof Error ? error.message : String(error)
             );
           });
       }

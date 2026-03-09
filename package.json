@@ -6,10 +6,24 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "bun run --watch --bun --watch-all --watch-extensions ts ./apps/server/src/index.ts"
+    "dev": "bun run --watch --bun --watch-all --watch-extensions ts ./apps/server/src/index.ts",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit -p apps/server/tsconfig.json && tsc --noEmit -p apps/importer/tsconfig.json && tsc -p apps/generator/tsconfig.json && tsc --noEmit -p packages/ai/tsconfig.json && tsc --noEmit -p packages/data/tsconfig.json && tsc --noEmit -p packages/socket/tsconfig.json",
+    "test": "bun test",
+    "check": "bun run lint && bun run format:check && bun run typecheck"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^9",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5",
+    "lefthook": "^2.1.3",
     "prettier": "3.5.3",
-    "typescript": "5.8.2"
+    "typescript": "5.8.2",
+    "typescript-eslint": "^8.57.0"
   }
 }

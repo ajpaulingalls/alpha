@@ -5,6 +5,9 @@
   "exports": {
     "./AudioGenerator": "./src/AudioGenerator.ts"
   },
+  "scripts": {
+    "test": "bun test"
+  },
   "dependencies": {
     "openai": "6.27.0"
   },

@@ -23,7 +23,7 @@ export class PodcastHandler extends CommunicationsHandler {
       InterServerEvents,
       SocketData
     >,
-    audioRootDir: string,
+    audioRootDir: string
   ): Promise<void> {
     super.init(socket, audioRootDir);
 
