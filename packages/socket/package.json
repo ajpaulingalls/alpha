@@ -12,6 +12,6 @@
     "typescript": "^5"
   },
   "dependencies": {
-    "openai-realtime-socket-client": "1.0.3"
+    "openai-realtime-socket-client": "2.0.0"
   }
 }
