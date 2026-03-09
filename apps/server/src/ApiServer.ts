@@ -1,6 +1,5 @@
 import {Hono} from "hono";
 import {cors} from 'hono/cors';
-import {serveStatic} from '@hono/node-server/serve-static';
 
 export class ApiServer {
   private readonly apiKey: string;

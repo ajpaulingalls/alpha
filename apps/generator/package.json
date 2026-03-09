@@ -14,13 +14,11 @@
     "@ts-flow/cron": "2.0.3",
     "@ts-flow/db": "2.0.3",
     "express": "5.1.0",
-    "multer": "1.4.5-lts.2",
     "openai": "4.95.1"
   },
   "devDependencies": {
     "@types/bun": "1.2.9",
-    "@types/express": "5.0.1",
-    "@types/multer": "1.4.12"
+    "@types/express": "5.0.1"
   },
   "peerDependencies": {
     "typescript": "5.8.2"
