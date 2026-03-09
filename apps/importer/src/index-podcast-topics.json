@@ -1,186 +1,202 @@
 {
-    "id": "index-podcast-topics",
-    "type": "Workflow",
-    "config": {
-      "name": "Create a RAG index from podcast topics",
-      "description": "Break a podcast into topics and index their embeddings for later RAG use",
-      "nodes": [
-        {
-          "id": "index-podcast-topics-get-podcasts",
-          "type": "QueryEngine",
-          "config": {
-            "inputEventName": "loadProgram",
-            "engineType": "HttpGetQueryEngine",
-            "engineId": "get-program-podcasts",
-            "engineDataRoot": "",
-            "engineConfig": {
-              "urlTemplate": "https://api.omnystudio.com/v0/clips?sortBy=DateNewest&pageSize=10&programIds=${programId}",
-              "headerSchema": {
-                "accept": "application/json",
-                "Authorization": "Bearer ${OMNY_STUDIO_API_KEY}"
-              },
-              "outputEventName": "podcastsFound",
-              "outputProperty": "podcasts"
-            }
+  "id": "index-podcast-topics",
+  "type": "Workflow",
+  "config": {
+    "name": "Create a RAG index from podcast topics",
+    "description": "Break a podcast into topics and index their embeddings for later RAG use",
+    "nodes": [
+      {
+        "id": "index-podcast-topics-get-podcasts",
+        "type": "QueryEngine",
+        "config": {
+          "inputEventName": "loadProgram",
+          "engineType": "HttpGetQueryEngine",
+          "engineId": "get-program-podcasts",
+          "engineDataRoot": "",
+          "engineConfig": {
+            "urlTemplate": "https://api.omnystudio.com/v0/clips?sortBy=DateNewest&pageSize=10&visibilityFilter=Public&programIds=${programId}",
+            "headerSchema": {
+              "accept": "application/json",
+              "Authorization": "Bearer ${OMNY_STUDIO_API_KEY}"
+            },
+            "outputEventName": "podcastsFound",
+            "outputProperty": "podcasts"
           }
-        },  
-        {
-          "id": "index-podcast-topics-get-vtt",
-          "type": "QueryEngine",
-          "config": {
-            "inputEventName": "podcastUploaded",
-            "engineType": "OpenAIWhisperEngine",
-            "engineId": "open-ai-get-vtt",
-            "engineDataRoot": "",
-            "engineConfig": {
-              "modelName": "whisper-1",
-              "audioPrompt": "Please, will you kindly transcribe this podcast into vtt?",
-              "responseFormat": "vtt",
-              "inputProperty": "filePath",
-              "outputProperty": "podcastVTT",
-              "outputEventName": "vttReady"
-            }
+        }
+      },
+      {
+        "id": "index-podcast-topics-get-files",
+        "type": "QueryEngine",
+        "config": {
+          "inputEventName": "podcastsFound",
+          "engineType": "HttpGetFileQueryEngine",
+          "engineId": "get-program-files",
+          "engineDataRoot": "podcasts.Clips",
+          "engineConfig": {
+            "urlTemplate": "${AdFreeAudioUrl}",
+            "outputPathTemplate": "./public/pods/original/${Id}/${Slug}.mp3",
+            "headerSchema": {
+              "Authorization": "Bearer ${OMNY_STUDIO_API_KEY}"
+            },
+            "outputEventName": "podcastFilesDownloaded",
+            "outputProperty": "filePath"
           }
-        },
-        {
-          "id": "index-podcast-topics-get-topics",
-          "type": "QueryEngine",
-          "config": {
-            "inputEventName": "vttReady",
-            "engineType": "OpenAIChatEngine",
-            "engineId": "open-ai-get-topics",
-            "engineDataRoot": "",
-            "engineConfig": {
-              "modelName": "gpt-4o-mini",
-              "systemPrompt": "You are a podcast editor.  You are expert at taking a VTT file of a podcast and using the given phrases to break the podcast into topics, each with a start and end time within the podcast.  You generate a json file with entries like the following:\n{ \"topics\": [{\"topic\":\"title of the topic\", \"summary\": \"a multi-paragraph summary of the topic\", \"start\":\"00:00:52.520\", \"end\":\"00:03:12.923\"}] }\nThe contents of a VTT file will be given, generate the correct JSON for it.",
-              "userPrompt": "${podcastVTT}",
-              "outputProperty": "podcastTopics",
-              "outputEventName": "topicsReady",
-              "responseFormat": {
-                "type": "json_schema",
-                "json_schema": {
-                  "name": "podcastTopics",
-                  "description": "A list of topics in a podcast, each with a start and end time",
-                  "strict": true,
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "topics": {
-                        "type": "array",
-                        "items": {
-                          "type": "object",
-                          "properties": {
-                            "topic": {
-                              "type": "string"
-                            },
-                            "summary": {
-                              "type": "string"
-                            },
-                            "start": {
-                              "type": "string"
-                            },
-                            "end": {
-                              "type": "string"
-                            }
+        }
+      },
+      {
+        "id": "index-podcast-topics-get-vtt",
+        "type": "QueryEngine",
+        "config": {
+          "inputEventName": "podcastFilesDownloaded",
+          "engineType": "OpenAIWhisperEngine",
+          "engineId": "open-ai-get-vtt",
+          "engineDataRoot": "podcasts.Clips",
+          "engineConfig": {
+            "modelName": "whisper-1",
+            "audioPrompt": "Please, will you kindly transcribe this podcast into vtt?",
+            "responseFormat": "vtt",
+            "inputProperty": "filePath",
+            "outputProperty": "podcastVTT",
+            "outputEventName": "vttReady"
+          }
+        }
+      },
+      {
+        "id": "index-podcast-topics-get-topics",
+        "type": "QueryEngine",
+        "config": {
+          "inputEventName": "vttReady",
+          "engineType": "OpenAIChatEngine",
+          "engineId": "open-ai-get-topics",
+          "engineDataRoot": "podcasts.Clips",
+          "engineConfig": {
+            "modelName": "gpt-4o-mini",
+            "systemPrompt": "You are a podcast editor.  You are expert at taking a VTT file of a podcast and using the given phrases to break the podcast into topics, each with a start and end time within the podcast.  You generate a json file with entries like the following:\n{ \"topics\": [{\"topic\":\"title of the topic\", \"summary\": \"a multi-paragraph summary of the topic\", \"start\":\"00:00:52.520\", \"end\":\"00:03:12.923\"}] }\nThe contents of a VTT file will be given, generate the correct JSON for it.",
+            "userPrompt": "${podcastVTT}",
+            "outputProperty": "podcastTopics",
+            "outputEventName": "topicsReady",
+            "responseFormat": {
+              "type": "json_schema",
+              "json_schema": {
+                "name": "podcastTopics",
+                "description": "A list of topics in a podcast, each with a start and end time",
+                "strict": true,
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "topics": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "topic": {
+                            "type": "string"
                           },
-                          "required": [
-                            "topic",
-                            "summary",
-                            "start",
-                            "end"
-                          ],
-                          "additionalProperties": false
-                        }
+                          "summary": {
+                            "type": "string"
+                          },
+                          "start": {
+                            "type": "string"
+                          },
+                          "end": {
+                            "type": "string"
+                          }
+                        },
+                        "required": ["topic", "summary", "start", "end"],
+                        "additionalProperties": false
                       }
-                    },
-                    "required": [
-                      "topics"
-                    ],
-                    "additionalProperties": false
-                  }
+                    }
+                  },
+                  "required": ["topics"],
+                  "additionalProperties": false
                 }
               }
             }
           }
-        },
-        {
-          "id": "index-podcast-topics-trim-audio",
-          "type": "QueryEngine",
-          "config": {
-            "inputEventName": "topicsReady",
-            "engineType": "AudioTrimQueryEngine",
-            "engineId": "ffmpeg-trim-audio",
-            "engineDataRoot": "",
-            "engineConfig": {
-              "inputProperty": "filePath",
-              "fileFolderName": "public/pods",
-              "trimRoot": "podcastTopics.topics",
-              "trimStartProperty": "start",
-              "trimStopProperty": "end",
-              "trimmedFilenameProperty": "trimmedFilename",
-              "outputProperty": "filePaths",
-              "outputEventName": "trimmedAudioReady",
-              "keepOriginalFile": false
-            }
-          }
-        },
-        {
-          "id": "index-podcast-topics-resample-audio",
-          "type": "QueryEngine",
-          "config": {
-            "inputEventName": "trimmedAudioReady",
-            "engineType": "ResampleAudioQueryEngine",
-            "engineId": "ffmpeg-resample-audio",
-            "engineDataRoot": "podcastTopics.topics",
-            "engineConfig": {
-              "inputProperty": "trimmedFilename",
-              "audioSampleRate": 24000,
-              "audioChannels": 1,
-              "audioCodec": "pcm_s16le",
-              "audioFileFormat": "wav",
-              "outputEventName": "resampledAudioReady",
-              "outputProperty": "filename",
-              "keepInputFiles": true
-            }
-          }
-        },
-        {
-          "id": "index-podcast-topics-get-embeddings",
-          "type": "QueryEngine",
-          "config": {
-            "inputEventName": "resampledAudioReady",
-            "engineType": "OpenAIEmbeddingEngine",
-            "engineId": "open-ai-get-embedding",
-            "engineDataRoot": "podcastTopics.topics",
-            "engineConfig": {
-              "modelName": "text-embedding-3-small",
-              "keyToEmbed": "summary",
-              "outputProperty": "embedding",
-              "outputEventName": "embeddingsReady"
-            }
-          }
-        },
-        {
-          "id": "index-podcast-topics-insert-data",
-          "type": "QueryEngine",
-          "config": {
-            "inputEventName": "embeddingsReady",
-            "engineType": "PGInsertQueryEngine",
-            "engineId": "postgres-save-embeddings",
-            "engineDataRoot": "podcastTopics.topics",
-            "engineConfig": {
-              "connectionString": "${POSTGRES_CONNECTION_STRING}",
-              "sqlInsertTemplate": "insert into podcast_topics (title, summary, filename, embedding) values ($1, $2, $3, $4)",
-              "sqlValuesTemplate": [
-                "topic",
-                "summary",
-                "filename",
-                "embedding"
-              ],
-              "outputEventName": "dataInserted"
-            }
+        }
+      },
+      {
+        "id": "index-podcast-topics-trim-audio",
+        "type": "QueryEngine",
+        "config": {
+          "inputEventName": "topicsReady",
+          "engineType": "AudioTrimQueryEngine",
+          "engineId": "ffmpeg-trim-audio",
+          "engineDataRoot": "podcasts.Clips",
+          "engineConfig": {
+            "inputProperty": "filePath",
+            "fileFolderName": "public/pods",
+            "trimRoot": "podcastTopics.topics",
+            "trimStartProperty": "start",
+            "trimStopProperty": "end",
+            "trimmedFilenameProperty": "trimmedFilename",
+            "outputProperty": "filePaths",
+            "outputEventName": "trimmedAudioReady",
+            "keepOriginalFile": false
           }
         }
-      ]
-    }
+      },
+      {
+        "id": "index-podcast-topics-loop-clips",
+        "type": "LoopTransform",
+        "config": {
+          "inputEventName": "trimmedAudioReady",
+          "outputEventName": "trimAudio",
+          "dataTarget": "podcasts.Clips"
+        }
+      },
+      {
+        "id": "index-podcast-topics-resample-audio",
+        "type": "QueryEngine",
+        "config": {
+          "inputEventName": "trimAudio",
+          "engineType": "ResampleAudioQueryEngine",
+          "engineId": "ffmpeg-resample-audio",
+          "engineDataRoot": "podcastTopics.topics",
+          "engineConfig": {
+            "inputProperty": "trimmedFilename",
+            "audioSampleRate": 24000,
+            "audioChannels": 1,
+            "audioCodec": "pcm_s16le",
+            "audioFileFormat": "wav",
+            "outputEventName": "resampledAudioReady",
+            "outputProperty": "filename",
+            "keepInputFiles": true
+          }
+        }
+      },
+      {
+        "id": "index-podcast-topics-get-embeddings",
+        "type": "QueryEngine",
+        "config": {
+          "inputEventName": "resampledAudioReady",
+          "engineType": "OpenAIEmbeddingEngine",
+          "engineId": "open-ai-get-embedding",
+          "engineDataRoot": "podcastTopics.topics",
+          "engineConfig": {
+            "modelName": "text-embedding-3-small",
+            "keyToEmbed": "summary",
+            "outputProperty": "embedding",
+            "outputEventName": "embeddingsReady"
+          }
+        }
+      },
+      {
+        "id": "index-podcast-topics-insert-data",
+        "type": "QueryEngine",
+        "config": {
+          "inputEventName": "embeddingsReady",
+          "engineType": "PGInsertQueryEngine",
+          "engineId": "postgres-save-embeddings",
+          "engineDataRoot": "podcastTopics.topics",
+          "engineConfig": {
+            "connectionString": "${POSTGRES_CONNECTION_STRING}",
+            "sqlInsertTemplate": "insert into podcast_topics (title, summary, filename, embedding) values ($1, $2, $3, $4)",
+            "sqlValuesTemplate": ["topic", "summary", "filename", "embedding"],
+            "outputEventName": "dataInserted"
+          }
+        }
+      }
+    ]
   }
+}

@@ -66,7 +66,7 @@
           "engineDataRoot": "homepage.data.homepage.featuredPosts",
           "engineConfig": {
             "modelName": "gpt-4o-mini",
-            "systemPrompt": "You are an expoert editor at Al Jazeera. You are given a story and you need to create a summary of the story.  The summary should cover all the important information in the story, but should be written in a way that is easy to understand.  The summary should be no more than 200 words.",
+            "systemPrompt": "You are an expert editor at Al Jazeera. You are given a story and you need to create a summary of the story.  The summary should cover all the important information in the story, but should be written in a way that is easy to understand.  The summary should be no more than 200 words.",
             "userPrompt": "Create a summary of the following article.  Make sure the summary includes all the important information from the article:\n${article.data.article.content}",
             "outputProperty": "summary",
             "outputEventName": "summaryReady"

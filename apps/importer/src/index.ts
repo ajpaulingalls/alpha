@@ -6,27 +6,27 @@ import {
     WebServer,
   } from "@ts-flow/core";
   import express, { type Express, type Request, type Response } from "express";
-  import multer from "multer";
   import path from "path";
   import podIndexer from "./index-podcast-topics.json";
   import dotenv from "dotenv";
-  import { promises as fs } from "fs";
-  import { nanoid } from "nanoid";
   
   dotenv.config();
   
-  // Configure Multer to handle file uploads
-  const storage = multer.memoryStorage(); // Store the uploaded file in memory as a Buffer
-  const upload = multer({ storage });
   const paths: string[] = [];
   paths.push(
     path.join(process.cwd(), "..", "..", "node_modules", "@ts-flow", "ai", "dist"),
+  );
+  paths.push(
+    path.join(process.cwd(), "..", "..", "node_modules", "@ts-flow", "api", "dist"),
   );
   paths.push(
     path.join(process.cwd(), "..", "..", "node_modules", "@ts-flow", "db", "dist"),
   );
   paths.push(
     path.join(process.cwd(), "..", "..", "node_modules", "@ts-flow", "ffmpeg", "dist"),
+  );
+  paths.push(
+    path.join(process.cwd(), "..", "..", "node_modules", "@ts-flow", "transforms", "dist"),
   );
   
   void bootstrap(paths, (container: IContainer) => {
@@ -35,31 +35,21 @@ import {
     const app: Express | null = webServer.getApp();
     if (app) {
       app.use(express.static("public"));
+      app.use(express.json());
   
       app.post(
         "/start",
-        upload.single("file"),
         async (req: Request, res: Response) => {
-          if (!req.file) {
-            res.status(400).json({ error: "No file uploaded" });
+          const { programId } = req.body;
+          
+          if (!programId) {
+            res.status(400).json({ error: "Program ID is required" });
             return;
           }
   
-          const fileBuffer: Buffer = req.file.buffer;
-          const extension = path.extname(req.file.originalname);
-          const localPath = path.join(
-            process.cwd(),
-            "uploads",
-            `${nanoid()}${extension}`,
-          );
-  
           try {
-            await fs.writeFile(localPath, fileBuffer);
-            console.log("wrote file", localPath);
-            eventBus.sendEvent("podcastUploaded", { filePath: localPath });
-            res
-              .status(200)
-              .json({ message: "File data loaded into Buffer successfully" });
+            eventBus.sendEvent("loadProgram", { programId });
+            res.status(200).json({ message: "Program processing started" });
           } catch (e) {
             console.log("error", e);
             res.status(500).json({ message: e });

@@ -31,7 +31,7 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
     const silence = Buffer.alloc(96000); // 2 seconds at 24kHz, 16-bit mono
     await new Promise<void>((resolve, reject) => {
       if (!file.write(silence)) {
-        file.once('drain', resolve);
+        file.once("drain", resolve);
       } else {
         resolve();
       }
@@ -44,10 +44,13 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
   ): Promise<void> {
     const file = await this.createWavFile();
     if (Array.isArray(payload)) {
+      // Add intro.wav at the beginning
+      await this.appendWavData("./pods/music/intro.wav", file);
       await this.generatePodcastIntro(payload, file);
+      await this.appendWavData("./pods/music/trans.wav", file);
       for (const item of payload) {
         await this.addSilenceToFile(file);
-        
+
         // Check if we have cached data for this segment
         const slug = item.slug as string;
         const cachePath = `./pods/cache/${slug}/segment.pcm`;
@@ -56,15 +59,23 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
           const cachedData = fs.readFileSync(cachePath);
           await new Promise<void>((resolve, reject) => {
             if (!file.write(cachedData)) {
-              file.once('drain', resolve);
+              file.once("drain", resolve);
             } else {
               resolve();
             }
           });
         } else {
           console.log("\n\n\nGenerating podcast segment for:", item.title);
-          await this.generatePodcastSegmentToWav(item.script as JSONObject, file, slug);
+          await this.generatePodcastSegmentToWav(
+            item.script as JSONObject,
+            file,
+            slug,
+          );
         }
+
+        // Add transition WAV and silence between segments
+        await this.appendWavData("./pods/music/trans.wav", file);
+
         item[this.outputProperty] = cachePath;
         console.log("Podcast segment generated for:", item.title);
       }
@@ -78,7 +89,7 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
       await this.generatePodcastSegmentToWav(
         payload.script as JSONObject,
         file,
-        payload.slug as string
+        payload.slug as string,
       );
       file.close();
 
@@ -126,58 +137,65 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
     return file;
   }
 
-  protected async generatePodcastIntro(articles: JSONObject[], file: WriteStream) {
+  protected async generatePodcastIntro(
+    articles: JSONObject[],
+    file: WriteStream,
+  ) {
     const articleTitles = articles.map((article) => article.title).join(", ");
 
     const introScriptResponse = await this.openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-4.1-mini",
       messages: [
-        { role: "system", content: "You are an expert podcast writer for Al Jazeera's podcast, Under the Headlines. You are given a list of articles and you need to write an intro for a podcast episode that will discuss each of them.  There are two hosts, Blair and Betty.  The intro should start with a welcome and the name of the podcast, which is 'Under the Headlines', a brief intro of each host, Blair and Betty, and today's date, and the time. It should be relatively short, but still cover all the topics of the given article titles.  The intro should be engaging and interesting to the listener." },
-        { role: "user", content: `Today is ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} and the time is ${new Date().toLocaleTimeString('en-US')}. Here are the article titles that will be discussed in the podcast, please write an intro for the podcast that will discuss each of them: ${articleTitles}` },
+        {
+          role: "system",
+          content:
+            "You are an expert podcast writer for Al Jazeera's podcast, Under the Headlines. You are given a list of articles and you need to write an intro for a podcast episode that will discuss each of them.  There are two hosts, Blair and Betty.  The intro should start with a welcome and the name of the podcast, which is 'Under the Headlines', a brief intro of each host, Blair and Betty, and today's date, and the time. It should be relatively short, but still cover all the topics of the given article titles.  The intro should be engaging and interesting to the listener.",
+        },
+        {
+          role: "user",
+          content: `Today is ${new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })} and the time is ${new Date().toLocaleTimeString("en-US")}. Here are the article titles that will be discussed in the podcast, please write an intro for the podcast that will discuss each of them: ${articleTitles}`,
+        },
       ],
       response_format: {
         type: "json_schema",
         json_schema: {
           name: "podcastScript",
-          "description": "A Conversation between 2 podcasters introducing the podcast and the articles they're going to be discussing.  Each line is a single line of dialogue between the 2 podcasters. The name is the name of the podcaster speaking. The line is the line of dialogue that the podcaster is speaking. The instructions are the instructions for the podcasters to follow while speaking.",
-          "strict": true,
-          "schema": {
-            "type": "object",
-            "properties": {
-              "script": {
-                "type": "array",
-                "items": {
-                  "type": "object",
-                  "properties": {
-                    "name": {
-                      "type": "string"
+          description:
+            "A Conversation between 2 podcasters introducing the podcast and the articles they're going to be discussing.  Each line is a single line of dialogue between the 2 podcasters. The name is the name of the podcaster speaking. The line is the line of dialogue that the podcaster is speaking. The instructions are the instructions for the podcasters to follow while speaking.",
+          strict: true,
+          schema: {
+            type: "object",
+            properties: {
+              script: {
+                type: "array",
+                items: {
+                  type: "object",
+                  properties: {
+                    name: {
+                      type: "string",
                     },
-                    "line": {
-                      "type": "string"
+                    line: {
+                      type: "string",
                     },
-                    "instructions": {
-                      "type": "string"
-                    }
+                    instructions: {
+                      type: "string",
+                    },
                   },
-                  "required": [
-                    "name",
-                    "line",
-                    "instructions"
-                  ],
-                  "additionalProperties": false
-                }
-              }
+                  required: ["name", "line", "instructions"],
+                  additionalProperties: false,
+                },
+              },
             },
-            "required": [
-              "script"
-            ],
-            "additionalProperties": false
-          }
-        }
-      }
+            required: ["script"],
+            additionalProperties: false,
+          },
+        },
+      },
     });
 
-    const introScript = JSON.parse(introScriptResponse.choices[0].message.content as string);
+    const introScript = JSON.parse(
+      introScriptResponse.choices[0].message.content as string,
+    );
     console.log("\n\n\nGenerating Intro for podcast");
     await this.generatePodcastSegmentToWav(introScript, file);
   }
@@ -185,7 +203,7 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
   protected async generatePodcastSegmentToWav(
     script: JSONObject,
     file: WriteStream,
-    slug?: string
+    slug?: string,
   ) {
     const lines = script.script as JSONObject[];
     let allPcmData = Buffer.alloc(0);
@@ -208,14 +226,13 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
 
         // Convert the response to a buffer
         const buffer = Buffer.from(await speechResponse.arrayBuffer());
-        
+
         // Add to our accumulated PCM data
         allPcmData = Buffer.concat([allPcmData, buffer]);
-        
+
         // Add silence between lines
         const silence = Buffer.alloc(12000); // 0.5 seconds at 24kHz, 16-bit mono
         allPcmData = Buffer.concat([allPcmData, silence]);
-        
       } catch (error) {
         console.error(`Error generating speech for line: ${text}`, error);
         throw error;
@@ -234,7 +251,7 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
     // Write the accumulated PCM data to the output file
     await new Promise<void>((resolve, reject) => {
       if (!file.write(allPcmData)) {
-        file.once('drain', resolve);
+        file.once("drain", resolve);
       } else {
         resolve();
       }
@@ -270,5 +287,39 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
     console.log(
       `WAV header updated: file size ${fileSize} bytes, data size ${dataSize} bytes`,
     );
+  }
+
+  protected async appendWavData(
+    inputWavPath: string,
+    outputStream: WriteStream,
+  ): Promise<void> {
+    // Open the input file
+    const inputFd = fs.openSync(inputWavPath, "r");
+
+    try {
+      // Skip the WAV header (44 bytes)
+      const headerBuffer = Buffer.alloc(44);
+      fs.readSync(inputFd, headerBuffer, 0, 44, 0);
+
+      // Read the rest of the file in chunks
+      const chunkSize = 1024 * 1024; // 1MB chunks
+      const buffer = Buffer.alloc(chunkSize);
+
+      let bytesRead: number;
+      while (
+        (bytesRead = fs.readSync(inputFd, buffer, 0, chunkSize, null)) > 0
+      ) {
+        await new Promise<void>((resolve, reject) => {
+          if (!outputStream.write(buffer.slice(0, bytesRead))) {
+            outputStream.once("drain", resolve);
+          } else {
+            resolve();
+          }
+        });
+      }
+    } finally {
+      // Always close the input file
+      fs.closeSync(inputFd);
+    }
   }
 }
