@@ -12,17 +12,16 @@
   },
   "dependencies": {
     "@alpha/socket": "workspace:*",
-    "@react-native-async-storage/async-storage": "1.23.1",
-    "expo": "52.0.42",
-    "expo-status-bar": "2.0.1",
-    "react": "18.3.1",
-    "react-native": "0.77.2",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "expo": "~55.0.5",
+    "expo-status-bar": "~55.0.4",
+    "react": "19.2.0",
+    "react-native": "0.83.2",
     "react-native-realtime-audio": "1.1.6",
     "socket.io-client": "4.8.1"
   },
   "devDependencies": {
-    "@babel/core": "7.26.10",
-    "@types/react": "18.3.12",
-    "typescript": "5.8.2"
+    "@types/react": "~19.2.10",
+    "typescript": "~5.9.2"
   }
 }
