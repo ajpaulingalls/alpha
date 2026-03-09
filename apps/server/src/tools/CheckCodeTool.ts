@@ -1,7 +1,6 @@
 import type { ResponseFunctionCallArgumentsDoneEvent, ToolDefinition } from "openai-realtime-socket-client";
 import type { IToolHandler } from "./ToolHandler";
 import { z } from "zod";
-import { zodToJsonSchema } from "zod-to-json-schema";
 
 // Define the schema for code verification parameters
 const CheckCodeParams = z.object({
@@ -27,7 +26,7 @@ export class CheckCodeTool implements IToolHandler {
       name: this.getName(),
       type: "function",
       description: "Check if the verification code provided by the user is valid",
-      parameters: zodToJsonSchema(CheckCodeParams),
+      parameters: z.toJSONSchema(CheckCodeParams),
     };
   }
 
@@ -45,7 +44,7 @@ export class CheckCodeTool implements IToolHandler {
       return Promise.resolve();
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.error("Validation error:", error.errors);
+        console.error("Validation error:", error.issues);
       } else {
         console.error("Error storing code:", error);
       }
