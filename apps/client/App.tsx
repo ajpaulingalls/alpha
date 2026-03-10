@@ -46,7 +46,7 @@ export default function App() {
       }
     };
     loadUserToken();
-  }, []);
+  }, [getItem]);
 
   useEffect(() => {
     const checkPermissions = async () => {
@@ -120,7 +120,7 @@ export default function App() {
     return () => {
       newSocket.close();
     };
-  }, [userToken, tokenLoaded]);
+  }, [userToken, tokenLoaded, setItem]);
 
   return (
     <View style={styles.container}>

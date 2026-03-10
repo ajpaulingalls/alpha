@@ -163,7 +163,11 @@ export default class SignupHandler extends CommunicationsHandler {
   }
 
   generateUserToken(user: User): string {
-    return jwt.sign({ userId: user.id }, process.env["JWT_SECRET"]!, {
+    const secret = process.env["JWT_SECRET"];
+    if (!secret) {
+      throw new Error("JWT_SECRET environment variable is not set");
+    }
+    return jwt.sign({ userId: user.id }, secret, {
       expiresIn: "30d",
     });
   }
@@ -171,7 +175,9 @@ export default class SignupHandler extends CommunicationsHandler {
   async onComplete(): Promise<void> {
     this.completed = true;
     this.client.disconnect();
-    this.socket?.emit("saveUserToken", this.generateUserToken(this.user!));
+    if (this.user) {
+      this.socket?.emit("saveUserToken", this.generateUserToken(this.user));
+    }
     try {
       await this.streamAudioToClient("signupComplete.wav");
     } catch (error) {
@@ -181,10 +187,17 @@ export default class SignupHandler extends CommunicationsHandler {
   }
 
   async validateCode(): Promise<boolean> {
+    if (!this.user) {
+      return false;
+    }
+
     const currentTime = new Date();
     const providedCode = this.checkCodeTool.getStoredCode();
 
-    if (currentTime > this.user!.validationTimeout!) {
+    if (
+      !this.user.validationTimeout ||
+      currentTime > this.user.validationTimeout
+    ) {
       this.client.createResponse({
         instructions:
           "Sorry, the verification code has expired. Please request a new code.",
@@ -192,7 +205,7 @@ export default class SignupHandler extends CommunicationsHandler {
       return false;
     }
 
-    const storedCode = this.user!.verificationCode;
+    const storedCode = this.user.verificationCode;
     if (
       !storedCode ||
       providedCode.length !== storedCode.length ||
@@ -206,7 +219,7 @@ export default class SignupHandler extends CommunicationsHandler {
     }
 
     // Code is valid and not expired, update user validation status
-    this.user = await updateUserValidation(this.user!.email, true);
+    this.user = await updateUserValidation(this.user.email, true);
 
     logger.debug("Code verified successfully");
     return true;
