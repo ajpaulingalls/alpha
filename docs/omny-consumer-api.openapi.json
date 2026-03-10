@@ -1,0 +1,3092 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "Consumer API Documentation",
+    "description": "Omny Studio’s consumer APIs allows third-parties to integrate metadata about published content in custom players and content directories on a website or in a mobile app.\nOnly publicly-published content will be available in the consumer API. Hidden programs, private clips or private playlists will not be accessible.\nNote: the “consumer API” is a read-only API. To create, edit or delete content, the “[management API](https://help.omnystudio.com/advanced-features-and-tips-and-tricks/developer-documentation/omny-studio-management-api)” allows private administrative access to the organization.\n\n### Testing\nTo test the API, you can import the OpenAPI specification into API clients like [Postman](https://www.postman.com/downloads/) or [Insomnia](https://insomnia.rest).\n\n### Analytics\nIf you'd like to track the number of plays/downloads that are occurring from your custom players, you can [define and track custom sources](https://help.omnystudio.com/en/articles/4209306-tracking-downloads-from-custom-sources).\nIf you'd like to track consumption data for plays on custom players, you can [send player events using the Omny Studio's consumption analytics API](https://help.omnystudio.com/en/articles/2435830-consumption-analytics-api-for-third-party-players-beta).\n\n### Caching\nResponses are cached up to 10 minutes. Updates to clip metadata may not be reflected until the cache is refreshed.\n\n### CORS\nFor optimal API performance, we recommend making \"simple requests\" (i.e. do not specify any custom HTTP headers) to avoid triggering a CORS OPTIONS preflight request.\n\n### Rate limits\nThere are no practical rate limits to this API. However,\nour web application firewall Cloudflare may block traffic it deems to be malicious or harmful.\n\n### Disable preloading\nWe recommend third-party publishers who build custom players to disable preloading and auto-playing from their players to ensure only user-initiated playback will trigger a download.\n\n### Backwards compatible routes\nFor backwards compatibility, all consumer API endpoints also work with the prefix `/api/`, but we recommend using the newer documented routes that elide this now unnecessary prefix.",
+    "version": "v1",
+    "x-logo": {
+      "url": "data:image/svg+xml;base64,PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4MTcuMDUgMTc4Ljg3Ij48ZGVmcz48c3R5bGU+LmNscy0xe2ZpbGw6IzYzMTNiYzt9LmNscy0ye2ZpbGw6IzJjMDU2Yjt9PC9zdHlsZT48L2RlZnM+PHRpdGxlPk9tbnktU3R1ZGlvLXdpdGgtdHJpdG9uLXB1cnBsZS1yZ2I8L3RpdGxlPjxwYXRo\nIGNsYXNzPSJjbHMtMSIgZD0iTTEyOS4xOCw0OS40MWMwLTcuNCw0LjYzLTEyLjM0LDExLjEtMTIuMzQsNS43LDAsOS40LDMuMDksMTAuMTcsOC4zM2EyNy41NywyNy41NywwLDAsMSwyMC42Ni05LjI1LDI4LjMyLDI4LjMyLDAsMCwxLDIzLDExLjI1YzYuMTctNy4wOSwxNS44OC0xMS4yNSwyMy40My0xMS4yNSwxOCwwLDMwLjM3LDEwLjQ4LDMwLjM3LDI5LjlWMTA4LjZjMCw3LjQtNC42MiwxMi4z\nNC0xMS4xLDEyLjM0cy0xMS4xLTQuOTQtMTEuMS0xMi4zNFY2OS45MWMwLTguOTQtNC45My0xNS4yNi0xMy0xNS4yNnMtMTMuMSw2LjMyLTEzLjEsMTUuMjZWMTA4LjZjMCw3LjQtNC42MiwxMi4zNC0xMS4xLDEyLjM0cy0xMS4xLTQuOTQtMTEuMS0xMi4zNFY2OS45MWMwLTguOTQtNC45My0xNS4yNi0xMy0xNS4yNi05LjA5LDAtMTMuMSw2LjMyLTEzLjEsMTUuMjZWMTA4LjZjMCw3LjQtNC42Mywx\nMi4zNC0xMS4xLDEyLjM0cy0xMS4xLTQuOTQtMTEuMS0xMi4zNFoiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAgLTEpIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMjYwLjUyLDQ5LjQxYzAtNy40LDQuNjItMTIuMzQsMTEuMS0xMi4zNCw1LjcsMCw5LjQsMy4wOSwxMC4xNyw4LjE3LDQuMzItNiwxMC45NS05LjA5LDIxLjQzLTkuMDksMTcuNDIsMCwzMC4zNywxMS4xLDMwLjM3LDI5LjlWMTA4LjZj\nMCw3LjQtNC42MywxMi4zNC0xMS4xLDEyLjM0cy0xMS4xLTQuOTQtMTEuMS0xMi4zNFY2OS45MWMwLTEwLjMzLTYuNDgtMTUuMjYtMTQuNDktMTUuMjYtOS4xLDAtMTQuMTksNi42My0xNC4xOSwxNS4yNlYxMDguNmMwLDcuNC00LjYyLDEyLjM0LTExLjA5LDEyLjM0cy0xMS4xLTQuOTQtMTEuMS0xMi4zNFoiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAgLTEpIi8+PHBhdGggY2xhc3M9ImNscy0xIiBk\nPSJNMzQwLjY3LDUyLjMzYTE1Ljc3LDE1Ljc3LDAsMCwxLTEuMDctNS43YzAtNS41NSw1Ljg1LTkuNTYsMTAuNDgtOS41Niw1LjM5LDAsOS4yNSwyLjkzLDExLjEsNy44NmwxNS4yNiw0MS43OCwxNi4zNC00MS43OGMxLjg1LTQuOTMsNS43MS03Ljg2LDExLjEtNy44Niw0LjYyLDAsMTAuNDgsNCwxMC40OCw5LjU2YTEzLDEzLDAsMCwxLTEuMDgsNS43bC0zNy4xNSw5Mi41Yy0xLjg1LDQuNjMtNS4y\nNCw4Ljc5LTEwLjQ4LDguNzktNy41NiwwLTExLjU2LTQuNzgtMTEuNTYtOS41NmExOC44LDE4LjgsMCwwLDEsMS4zOC02LjQ4bDkuNzItMjRaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwIC0xKSIvPjxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTQ4OC44NiwyMi4xMmE1Ljg5LDUuODksMCwwLDEtNS44Niw2Yy02LDAtOC03LjA5LTIxLjU4LTcuMDlDNDUxLjQsMjEsNDQ0LDI3LjM2LDQ0NCwzNi42MWMw\nLDI0LjIsNTIuMTEsMTIuNjQsNTIuMTEsNDkuNjQsMCwxOC4xOS0xMy4yNiwzNC42OS0zNy4xNiwzNC42OS0xNC40OSwwLTMwLjUyLTUuNTUtMzAuNTItMTMuMjYsMC0zLjcsMS44NS02Ljk0LDUuNy02Ljk0LDQuNjMsMCwxMS4xLDguNDgsMjUsOC40OFM0ODEuNjIsOTksNDgxLjYyLDg2Ljg3YzAtMjYuMDYtNTIuMTEtMTMuNDItNTIuMTEtNDkuMzMsMC0xMi44LDEyLTI4LjIyLDMyLjM3LTI4LjIy\nQzQ3NS40NSw5LjMyLDQ4OC44NiwxNSw0ODguODYsMjIuMTJaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwIC0xKSIvPjxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTUxMi42LDIwLjI3YzAtNC40NywyLjYyLTcuMjUsNi43OC03LjI1czYuNzgsMi43OCw2Ljc4LDcuMjVWMzhoNS41NWM0LjQ3LDAsNi43OSwyLjE2LDYuNzksNS44NnMtMi4zMiw1Ljg1LTYuNzksNS44NWgtNS41NXY2NGMwLDQuNDctMi42\nMiw3LjI1LTYuNzgsNy4yNXMtNi43OC0yLjc4LTYuNzgtNy4yNXYtNjRoLTUuNTVjLTQuNDcsMC02Ljc5LTIuMTUtNi43OS01Ljg1UzUwMi41OCwzOCw1MDcuMDUsMzhoNS41NVoiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAgLTEpIi8+PHBhdGggY2xhc3M9ImNscy0yIiBkPSJNNTQ4LjM2LDQ0LjMyYzAtNC40NywyLjYyLTcuMjUsNi43OC03LjI1czYuNzgsMi43OCw2Ljc4LDcuMjVWODcuNzljMCwx\nNCw2LjE3LDIxLjQzLDE5LDIxLjQzczE5LTcuNCwxOS0yMS40M1Y0NC4zMmMwLTQuNDcsMi42Mi03LjI1LDYuNzgtNy4yNXM2Ljc4LDIuNzgsNi43OCw3LjI1Vjg4LjI1YzAsMjQtMTYsMzIuNjktMzIuNTIsMzIuNjlzLTMyLjUzLTguNjQtMzIuNTMtMzIuNjlaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwIC0xKSIvPjxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTY4NC45NCwxMDkuNjhoLS4zMWMtMy44\nNSw3LjQtMTEuMSwxMS4yNi0yMS44OSwxMS4yNi0yMi4yLDAtMzUtMjAuMi0zNS00MS45NHMxMi43OS00MS45MywzNS00MS45M2EyNi43OSwyNi43OSwwLDAsMSwyMS44OSwxMS4xaC4zMVY4LjI1YzAtNC40OCwyLjYyLTcuMjUsNi43OC03LjI1czYuNzksMi43Nyw2Ljc5LDcuMjVWMTEzLjY5YzAsNC40Ny0yLjYzLDcuMjUtNi43OSw3LjI1cy02Ljc4LTIuNzgtNi43OC03LjI1Wk02NjMuODIsNDgu\nNzljLTE2LjY1LDAtMjIuNTEsMTYuMzQtMjIuNTEsMzAuMjFzNS44NiwzMC4yMiwyMi41MSwzMC4yMlM2ODYuMzMsOTIuODgsNjg2LjMzLDc5LDY4MC40Nyw0OC43OSw2NjMuODIsNDguNzlaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwIC0xKSIvPjxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTcyMy43OCw5LjMyYTguMzMsOC4zMywwLDEsMS04LjMyLDguMzNBOC4yOSw4LjI5LDAsMCwxLDcyMy43OCw5\nLjMyWm02Ljc5LDEwNC4zN2MwLDQuNDctMi42Miw3LjI1LTYuNzksNy4yNXMtNi43OC0yLjc4LTYuNzgtNy4yNVY0NC4zMmMwLTQuNDcsMi42Mi03LjI1LDYuNzgtNy4yNXM2Ljc5LDIuNzgsNi43OSw3LjI1WiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAtMSkiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik03ODEsMzcuMDdjMjMuMTMsMCwzNi4wOCwyMC4yLDM2LjA4LDQxLjkzUzgwNC4xLDEyMC45\nNCw3ODEsMTIwLjk0LDc0NC45LDEwMC43NCw3NDQuOSw3OSw3NTcuODUsMzcuMDcsNzgxLDM3LjA3Wm0wLDcyLjE1YzE2LjY1LDAsMjIuNTEtMTYuMzQsMjIuNTEtMzAuMjJTNzk3LjYyLDQ4Ljc5LDc4MSw0OC43OSw3NTguNDcsNjUuMTMsNzU4LjQ3LDc5LDc2NC4zMiwxMDkuMjIsNzgxLDEwOS4yMloiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAgLTEpIi8+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJN\nNTkuMDgsOTNjLTkuOTIsMC0xNS41Ni02LjI3LTE3LjMzLTEwYTUsNSwwLDAsMSw5LTQuMzdjLjI2LjQ5LDIuNSw0LjM1LDguMzQsNC4zNWE5LjgyLDkuODIsMCwwLDAsOC42Ni00LjQzLDUsNSwwLDEsMSw4Ljg4LDQuNTlBMTkuNzcsMTkuNzcsMCwwLDEsNTkuMDgsOTNaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwIC0xKSIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTM1LjUsMTIxLjUzQTExLDEx\nLDAsMCwxLDMwLDEyMC4wNiw1OS43Niw1OS43NiwwLDEsMSw4OS42MSwxMjBhMTEsMTEsMCwwLDEtMTEtMTlBMzcuNzcsMzcuNzcsMCwxLDAsNDEsMTAxYTExLDExLDAsMCwxLTUuNDksMjAuNTRaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwIC0xKSIvPjxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTQzMiwxNzEuMjRhMS41MywxLjUzLDAsMCwxLTEuNTIsMS4xNiwxLjM1LDEuMzUsMCwwLDEtMS40OC0x\nLjMsNyw3LDAsMCwxLC40Mi0xLjU1bDcuNzktMjAuNzRjLjM5LTEuMSwxLTEuOTEsMi4yMi0xLjkxczEuODMuODEsMi4yMSwxLjkxbDcuNzksMjAuNzRhNyw3LDAsMCwxLC40MiwxLjU1LDEuMzUsMS4zNSwwLDAsMS0xLjQ4LDEuMywxLjUxLDEuNTEsMCwwLDEtMS41MS0xLjE2bC0xLjYyLTQuNTFINDMzLjZabTcuNDYtMjAuNzRoLS4wN2wtNC44MiwxMy41Nmg5LjcyWiIgdHJhbnNmb3JtPSJ0cmFu\nc2xhdGUoMCAtMSkiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik00NjQuNzksMTUySDQ2MWEyLjI4LDIuMjgsMCwwLDEtMi40LTIuNDMsMi4zNSwyLjM1LDAsMCwxLDIuNC0yLjQzaDEzYTIuMzUsMi4zNSwwLDAsMSwyLjM5LDIuNDMsMi4yNywyLjI3LDAsMCwxLTIuMzksMi40M2gtMy44NHYxNy42OGEyLjY1LDIuNjUsMCwxLDEtNS4yOSwwWiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAtMSkiLz48\ncGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik00NzQsMTU1Ljc4YTIuNSwyLjUsMCwwLDEsMi42MS0yLjU0YzEuMzMsMCwyLjQ2LjUsMi40NiwyLjEyaC4wN2E0LDQsMCwwLDEsMy41Ni0yLjEyLDIuNDcsMi40NywwLDAsMSwyLjQ2LDIuNzJjMCwxLjY1LTEuNTEsMS43Ni0zLDIuNDZzLTMuMDcsMS4zNy0zLjA3LDMuMzh2Ny43OGEyLjU1LDIuNTUsMCwxLDEtNS4wNywwWiIgdHJhbnNmb3JtPSJ0cmFuc2xh\ndGUoMCAtMSkiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik00OTEuMTMsMTQ4LjQyYTIuOSwyLjksMCwwLDEtMi44NSwyLjkyLDMsMywwLDAsMS0yLjg1LTIuOTIsMi44NSwyLjg1LDAsMCwxLDUuNywwWm0tNS4zOCw3LjY0YTIuNTUsMi41NSwwLDEsMSw1LjA3LDB2MTMuNTJhMi41NSwyLjU1LDAsMSwxLTUuMDcsMFoiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAgLTEpIi8+PHBhdGggY2xhc3M9ImNs\ncy0yIiBkPSJNNDk0Ljg3LDE1Ny44OWgtMS4xM2EyLjA1LDIuMDUsMCwwLDEtMi4yMi0yLjIyLDIuMTYsMi4xNiwwLDAsMSwyLjIyLTIuMjFoMS4xM3YtM2EyLjU1LDIuNTUsMCwxLDEsNS4wNywwdjNoMS40NGMxLjMsMCwyLjQzLjU5LDIuNDMsMi4yMWEyLjE0LDIuMTQsMCwwLDEtMi40MywyLjIyaC0xLjQ0djExLjY5YTIuNTUsMi41NSwwLDEsMS01LjA3LDBaIiB0cmFuc2Zvcm09InRyYW5zbGF0\nZSgwIC0xKSIvPjxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTUyMS40OSwxNjIuODZjMCw1LjI4LTMuNjMsOS43NS05LjA5LDkuNzVzLTkuMDgtNC40Ny05LjA4LTkuNzUsMy43My05LjgzLDkuMDgtOS44M1M1MjEuNDksMTU3LjcyLDUyMS40OSwxNjIuODZabS0xMy4xLDBjMCwyLjQzLDEuMjcsNS4xLDQsNS4xczQtMi42Nyw0LTUuMS0xLjI0LTUuMTgtNC01LjE4UzUwOC4zOSwxNjAuNDMsNTA4LjM5\nLDE2Mi44NloiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAgLTEpIi8+PHBhdGggY2xhc3M9ImNscy0yIiBkPSJNNTIzLjY0LDE1Ni4wNmEyLjU2LDIuNTYsMCwwLDEsMi41My0yLjgyLDIuMTUsMi4xNSwwLDAsMSwyLjMzLDEuODdjMS0xLjM3LDIuNS0yLjA4LDQuODktMi4wOCw0LDAsNi45NCwyLjU0LDYuOTQsNi44M3Y5LjcyYTIuNTUsMi41NSwwLDEsMS01LjA3LDB2LTguODNhMy4yOCwzLjI4LDAs\nMSwwLTYuNTUsMHY4LjgzYTIuNTUsMi41NSwwLDEsMS01LjA3LDBaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwIC0xKSIvPjxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTU1Mi43OSwxNDkuODNhMi41OSwyLjU5LDAsMCwxLDIuNzEtMi43MWg1Ljg1YzcuODksMCwxMi40LDUuMDcsMTIuNCwxMi44OCwwLDcuNC00Ljc5LDEyLjE5LTEyLDEyLjE5aC02LjEzYTIuNTgsMi41OCwwLDAsMS0yLjc4LTIuNjRa\nbTUuMjgsMTcuNWgzLjU2YzQuNTQsMCw2LjYyLTMuMzUsNi42Mi03LjU3LDAtNC41MS0yLjExLTcuNzgtNy03Ljc4aC0zLjIxWiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAtMSkiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik01ODEuNDYsMTQ4LjQyYTIuOSwyLjksMCwwLDEtMi44NiwyLjkyLDMsMywwLDAsMS0yLjg1LTIuOTIsMi44NiwyLjg2LDAsMCwxLDUuNzEsMFptLTUuMzksNy42NGEyLjU1\nLDIuNTUsMCwxLDEsNS4wNywwdjEzLjUyYTIuNTUsMi41NSwwLDEsMS01LjA3LDBaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwIC0xKSIvPjxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTYwMS4yOCwxNzAuNzFjMCw2LjA5LTQsOS4xNi05Ljc1LDkuMTYtMi4wOCwwLTgtMS04LTMuODFhMi40NiwyLjQ2LDAsMCwxLDIuMDUtMi4yMWMxLjYyLDAsMy40MSwxLjU4LDYuMzQsMS41OCwyLjQ2LDAsNC4yOS0x\nLjQ0LDQuMjktNHYtMS4yaC0uMDdhNS44MSw1LjgxLDAsMCwxLTUuMTEsMi4zOWMtNS4zMSwwLTcuODEtNC42OC03LjgxLTkuNzJzMy4yNC05Ljg2LDguMzQtOS44NmE1LjUyLDUuNTIsMCwwLDEsNC42NSwyLjMzLDIuNDQsMi40NCwwLDAsMSwyLjU0LTIuMTIsMi41NiwyLjU2LDAsMCwxLDIuNTMsMi44MlptLTktMTNjLTIuNjQsMC0zLjk0LDIuNzUtMy45NCw1LjExLDAsMi43MSwxLjMsNS4xNywz\nLjk0LDUuMTdzNC0yLjUzLDQtNVM1OTUsMTU3LjY4LDU5Mi4yMywxNTcuNjhaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwIC0xKSIvPjxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTYwOS40OSwxNDguNDJhMi45LDIuOSwwLDAsMS0yLjg2LDIuOTIsMywzLDAsMCwxLTIuODUtMi45MiwyLjg2LDIuODYsMCwwLDEsNS43MSwwWm0tNS4zOSw3LjY0YTIuNTUsMi41NSwwLDEsMSw1LjA3LDB2MTMuNTJhMi41\nNSwyLjU1LDAsMSwxLTUuMDcsMFoiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAgLTEpIi8+PHBhdGggY2xhc3M9ImNscy0yIiBkPSJNNjEzLjIyLDE1Ny44OWgtMS4xM2EyLjA1LDIuMDUsMCwwLDEtMi4yMi0yLjIyLDIuMTYsMi4xNiwwLDAsMSwyLjIyLTIuMjFoMS4xM3YtM2EyLjU1LDIuNTUsMCwxLDEsNS4wNywwdjNoMS40NGMxLjMxLDAsMi40My41OSwyLjQzLDIuMjFhMi4xNCwyLjE0LDAsMCwx\nLTIuNDMsMi4yMmgtMS40NHYxMS42OWEyLjU1LDIuNTUsMCwxLDEtNS4wNywwWiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAtMSkiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik02MzkuNzMsMTY5LjA5YzAsMS4zLDAsMy4zMS0yLjQzLDMuMzEtMS40NywwLTIuMDctLjgxLTIuNDItMi4xNWE2LjA4LDYuMDgsMCwwLDEtNC44MywyLjM2Yy00Ljc1LDAtOC4zOC00LjA1LTguMzgtOS43NXMzLjczLTku\nODMsOC4zOC05LjgzYTUuOCw1LjgsMCwwLDEsNC44MywyLjMzLDIuNCwyLjQsMCwwLDEsMi40Mi0yLjEyYzIuNDMsMCwyLjQzLDIsMi40MywzLjMxWm0tOS0xLjEzYzIuNjUsMCwzLjkxLTIuNjcsMy45MS01LjFzLTEuMjMtNS4xOC0zLjkxLTUuMTgtNCwyLjc1LTQsNS4xOFM2MjgsMTY4LDYzMC43NSwxNjhaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwIC0xKSIvPjxwYXRoIGNsYXNzPSJjbHMtMiIg\nZD0iTTY0Mi41NSwxNDcuODlhMi41NSwyLjU1LDAsMSwxLDUuMDcsMHYyMS42OWEyLjU1LDIuNTUsMCwxLDEtNS4wNywwWiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAtMSkiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik02NDkuNzcsMTUzLjE2YTcuNDMsNy40MywwLDEsMSw3LjQzLDcuNDNBNy40Myw3LjQzLDAsMCwxLDY0OS43NywxNTMuMTZabTEzLjE4LDBBNS43NSw1Ljc1LDAsMSwwLDY1Ny4y\nLDE1OSw1Ljg1LDUuODUsMCwwLDAsNjYzLDE1My4xNlptLTcuNDUuNzJ2Mi45M2EuNjguNjgsMCwwLDEtMS4zNiwwdi03LjM3YzAtLjMxLjE1LS40My40OC0uNDNoMi43MWMyLDAsMy4wOS42LDMuMDksMi40NGEyLjE1LDIuMTUsMCwwLDEtMi4xMSwyLjM2bDEuODMsMi44YTEuMTksMS4xOSwwLDAsMSwuMi41MWMwLC4yMi0uNDEuMzUtLjc2LjM1YS44NC44NCwwLDAsMS0uODItLjQ1bC0yLTMuMTRa\nbTEuNTYtMS4yNGMxLjA1LDAsMi0uMDgsMi0xLjI5LDAtMS0xLTEuMTEtMS44OS0xLjExSDY1NS41djIuNFoiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAgLTEpIi8+PHBhdGggY2xhc3M9ImNscy0yIiBkPSJNNjg2LjMsMTY5LjczYzMuNzcsMCw1LjQyLTIuMjYsNi43My0yLjI2Ljc0LDAsMS4yMy41NywxLjIzLDEuNDUsMCwxLjU4LTMuNTYsMy40OC04LDMuNDgtNy4yNiwwLTExLTYuMjMtMTEtMTIu\nNzVTNjc5LDE0Ni45LDY4Ni40OCwxNDYuOWM0LjQzLDAsNy4yNSwyLjQsNy4yNSwzLjY3YTEuMzQsMS4zNCwwLDAsMS0xLjI3LDEuNDhjLTEuNDEsMC0yLjExLTIuNDctNi0yLjQ3LTUuNTcsMC03Ljg2LDUuMjgtNy44NiwxMC4wN1M2ODEsMTY5LjczLDY4Ni4zLDE2OS43M1oiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAgLTEpIi8+PHBhdGggY2xhc3M9ImNscy0yIiBkPSJNNzA0LjU4LDE1My4yNGM1\nLjI4LDAsOC4yNCw0LjYyLDguMjQsOS41OHMtMyw5LjU4LTguMjQsOS41OC04LjI1LTQuNjEtOC4yNS05LjU4UzY5OS4yOSwxNTMuMjQsNzA0LjU4LDE1My4yNFptMCwxNi40OWMzLjgsMCw1LjE0LTMuNzQsNS4xNC02Ljkxcy0xLjM0LTYuOS01LjE0LTYuOS01LjE1LDMuNzMtNS4xNSw2LjlTNzAwLjc3LDE2OS43Myw3MDQuNTgsMTY5LjczWiIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMCAtMSkiLz48\ncGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik03MjcuMTgsMTYwLjI1YzAtMi42Ny0xLjQ4LTQuMzMtNC00LjMzcy00LDEuNjYtNCw0LjMzdjEwLjVhMS41NSwxLjU1LDAsMSwxLTMuMSwwVjE1NC45YTEuNTUsMS41NSwwLDEsMSwzLjEsMHYuNTZsLjA3LjA3YTUuMzQsNS4zNCwwLDAsMSw0LjcyLTIuMjksNS43Niw1Ljc2LDAsMCwxLDUuMTQsMy4xNyw2LjQ4LDYuNDgsMCwwLDEsNS43NC0zLjE3YzIuODks\nMCw2LjUxLDEuODQsNi41MSw3LjEydjEwLjM5YTEuNTUsMS41NSwwLDEsMS0zLjA5LDB2LTEwLjVjMC0yLjY3LTEuNDgtNC4zMy00LTQuMzNzLTQsMS42Ni00LDQuMzN2MTAuNWExLjU1LDEuNTUsMCwxLDEtMy4xLDBaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwIC0xKSIvPjxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTc0NS42LDE1NC45YTEuNTUsMS41NSwwLDEsMSwzLjEsMHYuOTFoLjA3Yy44OC0x\nLjY5LDIuNTMtMi41Nyw1LTIuNTcsNS4wNywwLDgsNC42Miw4LDkuNThzLTIuOTIsOS41OC04LDkuNThhNi4xMSw2LjExLDAsMCwxLTUtMi41M2gtLjA3djguMjdhMS41NSwxLjU1LDAsMSwxLTMuMSwwWm03LjkyLDE0LjgzYzMuODEsMCw1LjE0LTMuNzQsNS4xNC02Ljkxcy0xLjMzLTYuOS01LjE0LTYuOS01LjE0LDMuNzMtNS4xNCw2LjlTNzQ5LjcyLDE2OS43Myw3NTMuNTIsMTY5LjczWiIgdHJh\nbnNmb3JtPSJ0cmFuc2xhdGUoMCAtMSkiLz48cGF0aCBjbGFzcz0iY2xzLTIiIGQ9Ik03ODAuNTMsMTcwLjg5YTEuNDUsMS40NSwwLDEsMS0yLjg5LDB2LTEuMzFoLS4wN2E2LDYsMCwwLDEtNS4xLDIuODJjLTUuMjksMC04LjI0LTQuNjEtOC4yNC05LjU4czIuOTUtOS41OCw4LjI0LTkuNThhNi41NCw2LjU0LDAsMCwxLDUuMSwyLjVoLjA3di0xYTEuNDUsMS40NSwwLDEsMSwyLjg5LDBabS04LjA2\nLTEuMTZjMy44LDAsNS4xNC0zLjc0LDUuMTQtNi45MXMtMS4zNC02LjktNS4xNC02LjktNS4xNCwzLjczLTUuMTQsNi45Uzc2OC42NiwxNjkuNzMsNzcyLjQ3LDE2OS43M1oiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAgLTEpIi8+PHBhdGggY2xhc3M9ImNscy0yIiBkPSJNNzg0LjYxLDE1NC45YTEuNTUsMS41NSwwLDEsMSwzLjEsMHYuNzRsLjA3LjA3YTYuNDMsNi40MywwLDAsMSw1LjE4LTIuNDdj\nMi44OSwwLDYuNTIsMS44NCw2LjUyLDcuMTJ2MTAuMzlhMS41NSwxLjU1LDAsMSwxLTMuMSwwVjE2MC41M2E0LjM0LDQuMzQsMCwxLDAtOC42NywwdjEwLjIyYTEuNTUsMS41NSwwLDEsMS0zLjEsMFoiIHRyYW5zZm9ybT0idHJhbnNsYXRlKDAgLTEpIi8+PHBhdGggY2xhc3M9ImNscy0yIiBkPSJNODAyLjU0LDE1Ni4yN2E1LjQyLDUuNDIsMCwwLDEtLjQyLTEuNzIsMS4zNywxLjM3LDAsMCwxLDEu\nNC0xLjMxLDEuNiwxLjYsMCwwLDEsMS41NSwxLjE3bDQuMywxMi44NWguMDdsNC4yMy0xMi44NWExLjUxLDEuNTEsMCwwLDEsMS40OC0xLjE3LDEuMzcsMS4zNywwLDAsMSwxLjQsMS4zMSw1LjQyLDUuNDIsMCwwLDEtLjQyLDEuNzJsLTcuODIsMjIuMzZhMS41OCwxLjU4LDAsMCwxLTEuNTEsMS4xNywxLjM3LDEuMzcsMCwwLDEtMS40MS0xLjMxLDQuOTEsNC45MSwwLDAsMSwuNDYtMS43MmwyLTUu\nMjVaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgwIC0xKSIvPjwvc3ZnPg==",
+      "altText": "Omny Studio Logo"
+    }
+  },
+  "servers": [
+    {
+      "url": "/"
+    }
+  ],
+  "paths": {
+    "/orgs/{orgId}/clips/{clipId}": {
+      "get": {
+        "tags": ["Clips"],
+        "summary": "Get clip by ID",
+        "description": "Get the metadata for an Omny Studio clip (episode).\r\n            \r\n#### Example\r\n`https://api.omny.fm/orgs/289ceca7-bef3-48af-9f74-a4ba0095cab1/clips/b61cd5d4-886f-4f9f-9813-aafe00e55fdb`",
+        "operationId": "GetClip",
+        "parameters": [
+          {
+            "name": "clipId",
+            "in": "path",
+            "description": "Clip ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "includeProgramDetail",
+            "in": "query",
+            "description": "Optionally include the model of the Program to which this clip belongs",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "includePlaylistDetail",
+            "in": "query",
+            "description": "Optionally include the model(s) of the Playlist(s) in which this clip is included",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "includeEmbedOptions",
+            "in": "query",
+            "description": "Optionally include the embed player options for this clip",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "includeShowPageOptions",
+            "in": "query",
+            "description": "Optionally include the show page options for this playlist",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "accessToken",
+            "in": "query",
+            "description": "Access token for restricted clips",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsumerApiClip"
+                },
+                "example": {
+                  "Id": "00000000-0000-0000-0000-000000000000",
+                  "Title": "Kylie Minogue Interview",
+                  "Slug": null,
+                  "Description": null,
+                  "DescriptionHtml": null,
+                  "Summary": null,
+                  "Tags": null,
+                  "TranscriptUrl": null,
+                  "HasPublishedTranscript": false,
+                  "Season": null,
+                  "Episode": null,
+                  "EpisodeType": "Full",
+                  "ImageUrl": null,
+                  "AudioUrl": null,
+                  "WaveformUrl": null,
+                  "VideoUrl": null,
+                  "EmbedUrl": null,
+                  "DurationSeconds": null,
+                  "PublishState": "Unpublished",
+                  "PublishedUrl": null,
+                  "Visibility": null,
+                  "PublishedUtc": null,
+                  "PlaylistIds": null,
+                  "Chapters": null,
+                  "State": null,
+                  "ShareUrl": null,
+                  "RssLinkOverride": null,
+                  "ImportedId": null,
+                  "Monetization": null,
+                  "AdMarkers": null,
+                  "HasPreRollVideoAd": false,
+                  "RecordingMetadata": null,
+                  "PublishedAudioSizeInBytes": null,
+                  "ContentRating": "Clean",
+                  "AudioOptions": null,
+                  "ExternalId": null,
+                  "CustomFieldData": null,
+                  "VideoUrls": null,
+                  "ProgramId": "00000000-0000-0000-0000-000000000000",
+                  "ProgramSlug": null,
+                  "OrganizationId": "00000000-0000-0000-0000-000000000000",
+                  "ModifiedAtUtc": "0001-01-01T00:00:00"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Clip not found"
+          }
+        }
+      }
+    },
+    "/orgs/{orgId}/clips/{clipId}/transcript": {
+      "get": {
+        "tags": ["Clips"],
+        "summary": "Get transcript by clip ID",
+        "description": "Get the transcript for an Omny Studio clip (episode). Clip must be publicly-accessible and have a published transcript.\r\n\r\n#### Example\r\n`https://api.omny.fm/orgs/ec561129-d0bd-4e28-99b0-a4ff00357c00/clips/e6dec256-6f49-4da0-b419-a96a004fba87/transcript`",
+        "operationId": "GetClipTranscript",
+        "parameters": [
+          {
+            "name": "clipId",
+            "in": "path",
+            "description": "Clip ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "format",
+            "in": "query",
+            "description": "Transcript export format",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/TranscriptExportType"
+                }
+              ],
+              "default": "JSON"
+            }
+          },
+          {
+            "name": "speakers",
+            "in": "query",
+            "description": "Whether speaker names will be included in the transcript export",
+            "schema": {
+              "type": "boolean",
+              "default": true
+            }
+          },
+          {
+            "name": "paragraphs",
+            "in": "query",
+            "description": "[beta] If transcript should be broken up into paragraphs based on sentence delay and total paragraph duration",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsumerApiClipJsonTranscript"
+                },
+                "example": {
+                  "speakers": [{ "name": "Jon" }],
+                  "segments": [
+                    {
+                      "speaker": 0,
+                      "words": [
+                        { "start": 0.09, "end": 0.39, "text": "This" },
+                        { "start": 0.39, "end": 0.57, "text": "is" },
+                        { "start": 0.57, "end": 0.69, "text": "an" },
+                        { "start": 0.69, "end": 1.14, "text": "example" },
+                        { "start": 1.14, "end": 1.44, "text": "clip" },
+                        { "start": 1.5, "end": 1.74, "text": "on" },
+                        { "start": 1.77, "end": 2.13, "text": "Omny" },
+                        { "start": 2.13, "end": 2.73, "text": "Studio" }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Transcript not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orgs/{orgId}/clips/externalId": {
+      "get": {
+        "tags": ["Clips"],
+        "summary": "Get clip by external ID",
+        "description": "Get the metadata for an Omny Studio clip (episode) by external ID. Only returns non-Private clips.",
+        "operationId": "GetClipByExternalId",
+        "parameters": [
+          {
+            "name": "value",
+            "in": "query",
+            "description": "Clip external ID",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeProgramDetail",
+            "in": "query",
+            "description": "Optionally include the model of the Program to which this clip belongs",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "includePlaylistDetail",
+            "in": "query",
+            "description": "Optionally include the model(s) of the Playlist(s) in which this clip is included",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "includeEmbedOptions",
+            "in": "query",
+            "description": "Optionally include the embed player options for this clip",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "includeShowPageOptions",
+            "in": "query",
+            "description": "Optionally include the show page options for this playlist",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "accessToken",
+            "in": "query",
+            "description": "Access token for restricted clips",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsumerApiClip"
+                },
+                "example": {
+                  "Id": "00000000-0000-0000-0000-000000000000",
+                  "Title": "Kylie Minogue Interview",
+                  "Slug": null,
+                  "Description": null,
+                  "DescriptionHtml": null,
+                  "Summary": null,
+                  "Tags": null,
+                  "TranscriptUrl": null,
+                  "HasPublishedTranscript": false,
+                  "Season": null,
+                  "Episode": null,
+                  "EpisodeType": "Full",
+                  "ImageUrl": null,
+                  "AudioUrl": null,
+                  "WaveformUrl": null,
+                  "VideoUrl": null,
+                  "EmbedUrl": null,
+                  "DurationSeconds": null,
+                  "PublishState": "Unpublished",
+                  "PublishedUrl": null,
+                  "Visibility": null,
+                  "PublishedUtc": null,
+                  "PlaylistIds": null,
+                  "Chapters": null,
+                  "State": null,
+                  "ShareUrl": null,
+                  "RssLinkOverride": null,
+                  "ImportedId": null,
+                  "Monetization": null,
+                  "AdMarkers": null,
+                  "HasPreRollVideoAd": false,
+                  "RecordingMetadata": null,
+                  "PublishedAudioSizeInBytes": null,
+                  "ContentRating": "Clean",
+                  "AudioOptions": null,
+                  "ExternalId": null,
+                  "CustomFieldData": null,
+                  "VideoUrls": null,
+                  "ProgramId": "00000000-0000-0000-0000-000000000000",
+                  "ProgramSlug": null,
+                  "OrganizationId": "00000000-0000-0000-0000-000000000000",
+                  "ModifiedAtUtc": "0001-01-01T00:00:00"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Clip not found"
+          }
+        }
+      }
+    },
+    "/orgs/{orgId}/playlists/{playlistId}/clips": {
+      "get": {
+        "tags": ["Clips"],
+        "summary": "Get clips by playlist ID",
+        "description": "Get the clips for an Omny Studio playlist. Only publicly-available clips in the playlist (public and unlisted) are shown; private clips won't appear in the response.\r\n            \r\n#### Example\r\n`https://api.omny.fm/orgs/289ceca7-bef3-48af-9f74-a4ba0095cab1/playlists/aa8754a4-90a4-4080-9448-a4ba00a88ed7/clips`",
+        "operationId": "GetPlaylistClips",
+        "parameters": [
+          {
+            "name": "playlistId",
+            "in": "path",
+            "description": "Playlist ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Number of results per page",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            }
+          },
+          {
+            "name": "accessToken",
+            "in": "query",
+            "description": "Access token for restricted playlists and clips",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsumerApiClips"
+                },
+                "example": {
+                  "Clips": [
+                    {
+                      "Id": "00000000-0000-0000-0000-000000000000",
+                      "Title": "Kylie Minogue Interview",
+                      "Slug": null,
+                      "Description": null,
+                      "DescriptionHtml": null,
+                      "Summary": null,
+                      "Tags": null,
+                      "TranscriptUrl": null,
+                      "HasPublishedTranscript": false,
+                      "Season": null,
+                      "Episode": null,
+                      "EpisodeType": "Full",
+                      "ImageUrl": null,
+                      "AudioUrl": null,
+                      "WaveformUrl": null,
+                      "VideoUrl": null,
+                      "EmbedUrl": null,
+                      "DurationSeconds": null,
+                      "PublishState": "Unpublished",
+                      "PublishedUrl": null,
+                      "Visibility": null,
+                      "PublishedUtc": null,
+                      "PlaylistIds": null,
+                      "Chapters": null,
+                      "State": null,
+                      "ShareUrl": null,
+                      "RssLinkOverride": null,
+                      "ImportedId": null,
+                      "Monetization": null,
+                      "AdMarkers": null,
+                      "HasPreRollVideoAd": false,
+                      "RecordingMetadata": null,
+                      "PublishedAudioSizeInBytes": null,
+                      "ContentRating": "Clean",
+                      "AudioOptions": null,
+                      "ExternalId": null,
+                      "CustomFieldData": null,
+                      "VideoUrls": null,
+                      "ProgramId": "00000000-0000-0000-0000-000000000000",
+                      "ProgramSlug": null,
+                      "OrganizationId": "00000000-0000-0000-0000-000000000000",
+                      "ModifiedAtUtc": "0001-01-01T00:00:00"
+                    }
+                  ],
+                  "Cursor": "1",
+                  "TotalCount": 1
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Playlist not found"
+          }
+        },
+        "deprecated": true
+      }
+    },
+    "/orgs/{orgId}/playlists/{playlistId}/clips/v2": {
+      "get": {
+        "tags": ["Clips"],
+        "summary": "Get clips by playlist ID",
+        "description": "Get the clips for an Omny Studio playlist. Only publicly-available clips in the playlist (public and unlisted) are shown; private clips won't appear in the response.\r\n\r\n#### Example\r\n`https://api.omny.fm/orgs/289ceca7-bef3-48af-9f74-a4ba0095cab1/playlists/aa8754a4-90a4-4080-9448-a4ba00a88ed7/clips/v2`",
+        "operationId": "GetPlaylistClipsV2",
+        "parameters": [
+          {
+            "name": "playlistId",
+            "in": "path",
+            "description": "Playlist ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "clipId",
+            "in": "query",
+            "description": "If specified, include this clip or clip promo in the response",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "description": "Include clips before, after or around clipId",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ConsumerApiPlaylistPageDirection"
+                }
+              ]
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Number of results per page",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            }
+          },
+          {
+            "name": "includeProgramDetail",
+            "in": "query",
+            "description": "Optionally include the model of the Program to which this playlist belongs",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "accessToken",
+            "in": "query",
+            "description": "Access token for restricted playlists",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsumerApiPlaylistPage"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Playlist not found"
+          }
+        }
+      }
+    },
+    "/orgs/{orgId}/programs/{programId}/clips": {
+      "get": {
+        "tags": ["Clips"],
+        "summary": "Get clips by program ID",
+        "description": "Get the clips for an Omny Studio program. Only publicly-listed clips (public) are shown; unlisted or private clips won't appear in the response.\r\n            \r\n#### Example\r\n`https://api.omny.fm/orgs/289ceca7-bef3-48af-9f74-a4ba0095cab1/programs/8ac9406d-304d-441e-8532-a4ba00967cfc/clips`",
+        "operationId": "GetProgramClips",
+        "parameters": [
+          {
+            "name": "programId",
+            "in": "path",
+            "description": "Program ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Number of results per page",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            }
+          },
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsumerApiClips"
+                },
+                "example": {
+                  "Clips": [
+                    {
+                      "Id": "00000000-0000-0000-0000-000000000000",
+                      "Title": "Kylie Minogue Interview",
+                      "Slug": null,
+                      "Description": null,
+                      "DescriptionHtml": null,
+                      "Summary": null,
+                      "Tags": null,
+                      "TranscriptUrl": null,
+                      "HasPublishedTranscript": false,
+                      "Season": null,
+                      "Episode": null,
+                      "EpisodeType": "Full",
+                      "ImageUrl": null,
+                      "AudioUrl": null,
+                      "WaveformUrl": null,
+                      "VideoUrl": null,
+                      "EmbedUrl": null,
+                      "DurationSeconds": null,
+                      "PublishState": "Unpublished",
+                      "PublishedUrl": null,
+                      "Visibility": null,
+                      "PublishedUtc": null,
+                      "PlaylistIds": null,
+                      "Chapters": null,
+                      "State": null,
+                      "ShareUrl": null,
+                      "RssLinkOverride": null,
+                      "ImportedId": null,
+                      "Monetization": null,
+                      "AdMarkers": null,
+                      "HasPreRollVideoAd": false,
+                      "RecordingMetadata": null,
+                      "PublishedAudioSizeInBytes": null,
+                      "ContentRating": "Clean",
+                      "AudioOptions": null,
+                      "ExternalId": null,
+                      "CustomFieldData": null,
+                      "VideoUrls": null,
+                      "ProgramId": "00000000-0000-0000-0000-000000000000",
+                      "ProgramSlug": null,
+                      "OrganizationId": "00000000-0000-0000-0000-000000000000",
+                      "ModifiedAtUtc": "0001-01-01T00:00:00"
+                    }
+                  ],
+                  "Cursor": "1",
+                  "TotalCount": 1
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Clips not found"
+          }
+        }
+      }
+    },
+    "/programs/{programSlug}": {
+      "get": {
+        "tags": ["Programs"],
+        "summary": "Get program by slug",
+        "description": "#### Warning\r\nProgram slugs are mutable. Where possible, use program IDs, which are immutable and globally unique.\r\n\r\n#### Alternative URL\r\nAs a convenience, this API can be accessed by appending `.json` to the Omny.fm show page URL (`https://omny.fm/shows/{programSlug}.json`)\r\n\r\ne.g. `https://omny.fm/shows/fun-kids/kaye-umansky-author-of-witch-in-winter-chats-to-be.json`",
+        "operationId": "GetProgramBySlug",
+        "parameters": [
+          {
+            "name": "programSlug",
+            "in": "path",
+            "description": "Program slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeShowPageOptions",
+            "in": "query",
+            "description": "Optionally include the show page options for this program",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsumerApiProgram"
+                },
+                "example": {
+                  "Id": "00000000-0000-0000-0000-000000000000",
+                  "Name": "Drive with Jon",
+                  "Slug": null,
+                  "Description": null,
+                  "DescriptionHtml": null,
+                  "Author": null,
+                  "Publisher": null,
+                  "Copyright": null,
+                  "Language": null,
+                  "ArtworkUrl": null,
+                  "Category": null,
+                  "Categories": null,
+                  "SocialWeb": null,
+                  "SocialTwitter": null,
+                  "SocialFacebook": null,
+                  "SocialShowSupportUrl": null,
+                  "SocialShowSupportLabel": null,
+                  "Hidden": false,
+                  "Archived": false,
+                  "Network": null,
+                  "NetworkId": null,
+                  "ExternalId": null,
+                  "ContactName": null,
+                  "ContactEmail": null,
+                  "CustomFieldData": null,
+                  "DefaultPlaylistId": null,
+                  "DefaultPlaylist": null,
+                  "AdConfig": null,
+                  "OrganizationId": "00000000-0000-0000-0000-000000000000",
+                  "ModifiedAtUtc": "0001-01-01T00:00:00"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Program not found"
+          }
+        }
+      }
+    },
+    "/programs/{programSlug}/clips": {
+      "get": {
+        "tags": ["Clips"],
+        "summary": "Get clips by program slug",
+        "description": "#### Warning\r\nProgram slugs are mutable. Where possible, use program IDs, which are immutable and globally unique.",
+        "operationId": "GetProgramClipsBySlug",
+        "parameters": [
+          {
+            "name": "programSlug",
+            "in": "path",
+            "description": "Program slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Cursor",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Number of results per page",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsumerApiClips"
+                },
+                "example": {
+                  "Clips": [
+                    {
+                      "Id": "00000000-0000-0000-0000-000000000000",
+                      "Title": "Kylie Minogue Interview",
+                      "Slug": null,
+                      "Description": null,
+                      "DescriptionHtml": null,
+                      "Summary": null,
+                      "Tags": null,
+                      "TranscriptUrl": null,
+                      "HasPublishedTranscript": false,
+                      "Season": null,
+                      "Episode": null,
+                      "EpisodeType": "Full",
+                      "ImageUrl": null,
+                      "AudioUrl": null,
+                      "WaveformUrl": null,
+                      "VideoUrl": null,
+                      "EmbedUrl": null,
+                      "DurationSeconds": null,
+                      "PublishState": "Unpublished",
+                      "PublishedUrl": null,
+                      "Visibility": null,
+                      "PublishedUtc": null,
+                      "PlaylistIds": null,
+                      "Chapters": null,
+                      "State": null,
+                      "ShareUrl": null,
+                      "RssLinkOverride": null,
+                      "ImportedId": null,
+                      "Monetization": null,
+                      "AdMarkers": null,
+                      "HasPreRollVideoAd": false,
+                      "RecordingMetadata": null,
+                      "PublishedAudioSizeInBytes": null,
+                      "ContentRating": "Clean",
+                      "AudioOptions": null,
+                      "ExternalId": null,
+                      "CustomFieldData": null,
+                      "VideoUrls": null,
+                      "ProgramId": "00000000-0000-0000-0000-000000000000",
+                      "ProgramSlug": null,
+                      "OrganizationId": "00000000-0000-0000-0000-000000000000",
+                      "ModifiedAtUtc": "0001-01-01T00:00:00"
+                    }
+                  ],
+                  "Cursor": "1",
+                  "TotalCount": 1
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Program not found"
+          }
+        }
+      }
+    },
+    "/programs/{programSlug}/clips/{clipSlug}": {
+      "get": {
+        "tags": ["Clips"],
+        "summary": "Get clip by program and clip slug",
+        "description": "#### Warning\r\nProgram and clip slugs are mutable. Where possible, use program and clip IDs, which are immutable and globally unique.\r\n\r\n#### Alternative URL\r\nAs a convenience, this API can be accessed by appending `.json` to the Omny.fm clip (episode) page URL (`https://omny.fm/shows/{programSlug}/{clipSlug}.json`)\r\n\r\ne.g. `https://omny.fm/shows/fun-kids/kaye-umansky-author-of-witch-in-winter-chats-to-be.json`",
+        "operationId": "GetClipBySlug",
+        "parameters": [
+          {
+            "name": "programSlug",
+            "in": "path",
+            "description": "Program slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clipSlug",
+            "in": "path",
+            "description": "Clip slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeProgramDetail",
+            "in": "query",
+            "description": "Optionally include the model of the Program to which this clip belongs",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "includePlaylistDetail",
+            "in": "query",
+            "description": "Optionally include the model(s) of the Playlist(s) in which this clip is included",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "includeEmbedOptions",
+            "in": "query",
+            "description": "Optionally include the embed player options for this clip",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "includeShowPageOptions",
+            "in": "query",
+            "description": "Optionally include the show page options for this playlist",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "accessToken",
+            "in": "query",
+            "description": "Access token for restricted clips",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "playlistSlug",
+            "in": "query",
+            "description": "Optionally treat this clip in the context of a playlist",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "playlistProgramSlug",
+            "in": "query",
+            "description": "Optionally specify the slug of the program to which the playlist belongs (not required if the same as the clip's program)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsumerApiClip"
+                },
+                "example": {
+                  "Id": "00000000-0000-0000-0000-000000000000",
+                  "Title": "Kylie Minogue Interview",
+                  "Slug": null,
+                  "Description": null,
+                  "DescriptionHtml": null,
+                  "Summary": null,
+                  "Tags": null,
+                  "TranscriptUrl": null,
+                  "HasPublishedTranscript": false,
+                  "Season": null,
+                  "Episode": null,
+                  "EpisodeType": "Full",
+                  "ImageUrl": null,
+                  "AudioUrl": null,
+                  "WaveformUrl": null,
+                  "VideoUrl": null,
+                  "EmbedUrl": null,
+                  "DurationSeconds": null,
+                  "PublishState": "Unpublished",
+                  "PublishedUrl": null,
+                  "Visibility": null,
+                  "PublishedUtc": null,
+                  "PlaylistIds": null,
+                  "Chapters": null,
+                  "State": null,
+                  "ShareUrl": null,
+                  "RssLinkOverride": null,
+                  "ImportedId": null,
+                  "Monetization": null,
+                  "AdMarkers": null,
+                  "HasPreRollVideoAd": false,
+                  "RecordingMetadata": null,
+                  "PublishedAudioSizeInBytes": null,
+                  "ContentRating": "Clean",
+                  "AudioOptions": null,
+                  "ExternalId": null,
+                  "CustomFieldData": null,
+                  "VideoUrls": null,
+                  "ProgramId": "00000000-0000-0000-0000-000000000000",
+                  "ProgramSlug": null,
+                  "OrganizationId": "00000000-0000-0000-0000-000000000000",
+                  "ModifiedAtUtc": "0001-01-01T00:00:00"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Program or clip not found"
+          }
+        }
+      }
+    },
+    "/programs/{programSlug}/playlists": {
+      "get": {
+        "tags": ["Playlists"],
+        "summary": "Get playlists by program slug",
+        "description": "#### Warning\r\nProgram slugs are mutable. Where possible, use program IDs, which are immutable and globally unique.",
+        "operationId": "GetProgramPlaylistsBySlug",
+        "parameters": [
+          {
+            "name": "programSlug",
+            "in": "path",
+            "description": "Program slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsumerApiPlaylists"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Program not found"
+          }
+        }
+      }
+    },
+    "/programs/{programSlug}/playlists/{playlistSlug}": {
+      "get": {
+        "tags": ["Playlists"],
+        "summary": "Get playlist by program and playlist slug",
+        "description": "#### Warning\r\nProgram and playlist slugs are mutable. Where possible, use program and playlist IDs, which are immutable and globally unique.\r\n\r\n#### Alternative URL\r\nAs a convenience, this API can be accessed by appending `.json` to the Omny.fm playlist page URL (`https://omny.fm/shows/{programSlug}/playlists/{playlistSlug}.json`)\r\n\r\ne.g. `https://omny.fm/shows/fun-kids/playlists/lazy-town-on-fun-kids.json`",
+        "operationId": "GetPlaylistBySlug",
+        "parameters": [
+          {
+            "name": "programSlug",
+            "in": "path",
+            "description": "Program slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "playlistSlug",
+            "in": "path",
+            "description": "Playlist slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeProgramDetail",
+            "in": "query",
+            "description": "Optionally include the model of the Program to which this playlist belongs",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "includeEmbedOptions",
+            "in": "query",
+            "description": "Optionally include the embed player options for this playlist",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "includeShowPageOptions",
+            "in": "query",
+            "description": "Optionally include the show page options for this playlist",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "accessToken",
+            "in": "query",
+            "description": "Access token for restricted playlists",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsumerApiPlaylist"
+                },
+                "example": {
+                  "Id": "00000000-0000-0000-0000-000000000000",
+                  "Title": "Best moments",
+                  "Slug": null,
+                  "Description": null,
+                  "DescriptionHtml": null,
+                  "Summary": null,
+                  "RssFeedUrl": null,
+                  "EmbedUrl": null,
+                  "ArtworkUrl": null,
+                  "NumberOfClips": 0,
+                  "Visibility": 0,
+                  "ContentRating": "Clean",
+                  "Categories": null,
+                  "DirectoryLinks": {
+                    "ApplePodcasts": null,
+                    "ApplePodcastsId": null,
+                    "GooglePodcasts": null,
+                    "Spotify": null,
+                    "Stitcher": null,
+                    "TuneIn": null,
+                    "GooglePlay": null,
+                    "RssFeed": "https://example.com/podcast.rss",
+                    "IHeart": null,
+                    "AmazonMusic": null,
+                    "YouTubeMusic": null
+                  },
+                  "CustomFieldData": null,
+                  "Author": "Best podcast studio",
+                  "MediaType": null,
+                  "ProgramId": "00000000-0000-0000-0000-000000000000",
+                  "ProgramSlug": null,
+                  "OrganizationId": "00000000-0000-0000-0000-000000000000",
+                  "ModifiedAtUtc": "0001-01-01T00:00:00"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Program or playlist not found"
+          }
+        }
+      }
+    },
+    "/programs/{programSlug}/playlists/{playlistSlug}/clips": {
+      "get": {
+        "tags": ["Clips"],
+        "summary": "Get clips by program and playlist slug",
+        "description": "#### Warning\r\nProgram and playlist slugs are mutable. Where possible, use program and playlist IDs, which are immutable and globally unique.",
+        "operationId": "GetPlaylistClipsBySlug",
+        "parameters": [
+          {
+            "name": "programSlug",
+            "in": "path",
+            "description": "Program slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "playlistSlug",
+            "in": "path",
+            "description": "Playlist slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clipId",
+            "in": "query",
+            "description": "If specified, include this clip or clip promo in the response",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "description": "Include clips before, after or around clipId",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/ConsumerApiPlaylistPageDirection"
+                }
+              ]
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "description": "Number of results per page",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            }
+          },
+          {
+            "name": "includeProgramDetail",
+            "in": "query",
+            "description": "Optionally include the model of the Program to which this clip belongs",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "accessToken",
+            "in": "query",
+            "description": "Access token for restricted playlists and clips",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsumerApiPlaylistPage"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Program or playlist not found"
+          }
+        }
+      }
+    },
+    "/programs/{programSlug}/playlists/{playlistSlug}/clips/{clipSlug}": {
+      "get": {
+        "tags": ["Clips"],
+        "summary": "Get clip (in playlist) by program, playlist and clip slug",
+        "description": "#### Warning\r\nProgram, playlist and clip slugs are mutable. Where possible, use program, playlist and clip IDs, which are immutable and globally unique.",
+        "operationId": "GetPlaylistClipBySlug",
+        "parameters": [
+          {
+            "name": "programSlug",
+            "in": "path",
+            "description": "Program slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "playlistSlug",
+            "in": "path",
+            "description": "Playlist slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clipSlug",
+            "in": "path",
+            "description": "Clip slug",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeProgramDetail",
+            "in": "query",
+            "description": "Optionally include the model of the Program to which this clip belongs",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "includePlaylistDetail",
+            "in": "query",
+            "description": "Optionally include the model(s) of the Playlist(s) in which this clip is included",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "includeShowPageOptions",
+            "in": "query",
+            "description": "Optionally include the show page options for this playlist",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "includeEmbedOptions",
+            "in": "query",
+            "description": "Optionally include the embed player options for this clip",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "accessToken",
+            "in": "query",
+            "description": "Access token for restricted clips",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "clipProgramSlug",
+            "in": "query",
+            "description": "Slug of the Omny.Studio.Api.Models.Models.Consumer.ConsumerApiProgram\">Program</see> to which the clip belongs (in the case of <paramref name=\"playlistSlug referencing a shared playlist in programSlug)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsumerApiClip"
+                },
+                "example": {
+                  "Id": "00000000-0000-0000-0000-000000000000",
+                  "Title": "Kylie Minogue Interview",
+                  "Slug": null,
+                  "Description": null,
+                  "DescriptionHtml": null,
+                  "Summary": null,
+                  "Tags": null,
+                  "TranscriptUrl": null,
+                  "HasPublishedTranscript": false,
+                  "Season": null,
+                  "Episode": null,
+                  "EpisodeType": "Full",
+                  "ImageUrl": null,
+                  "AudioUrl": null,
+                  "WaveformUrl": null,
+                  "VideoUrl": null,
+                  "EmbedUrl": null,
+                  "DurationSeconds": null,
+                  "PublishState": "Unpublished",
+                  "PublishedUrl": null,
+                  "Visibility": null,
+                  "PublishedUtc": null,
+                  "PlaylistIds": null,
+                  "Chapters": null,
+                  "State": null,
+                  "ShareUrl": null,
+                  "RssLinkOverride": null,
+                  "ImportedId": null,
+                  "Monetization": null,
+                  "AdMarkers": null,
+                  "HasPreRollVideoAd": false,
+                  "RecordingMetadata": null,
+                  "PublishedAudioSizeInBytes": null,
+                  "ContentRating": "Clean",
+                  "AudioOptions": null,
+                  "ExternalId": null,
+                  "CustomFieldData": null,
+                  "VideoUrls": null,
+                  "ProgramId": "00000000-0000-0000-0000-000000000000",
+                  "ProgramSlug": null,
+                  "OrganizationId": "00000000-0000-0000-0000-000000000000",
+                  "ModifiedAtUtc": "0001-01-01T00:00:00"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Program or clip not found"
+          }
+        }
+      }
+    },
+    "/orgs/{orgId}/playlists/{playlistId}": {
+      "get": {
+        "tags": ["Playlists"],
+        "summary": "Get playlist by ID",
+        "description": "Get the metadata for an Omny Studio playlist (which can also be considered a podcast).\r\n\r\n#### Example\r\n`https://api.omny.fm/orgs/289ceca7-bef3-48af-9f74-a4ba0095cab1/playlists/aa8754a4-90a4-4080-9448-a4ba00a88ed7`",
+        "operationId": "GetPlaylist",
+        "parameters": [
+          {
+            "name": "playlistId",
+            "in": "path",
+            "description": "Playlist ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "includeProgramDetail",
+            "in": "query",
+            "description": "Optionally include the model of the Program to which this playlist belongs",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "includeEmbedOptions",
+            "in": "query",
+            "description": "Optionally include the embed player options for this playlist",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "includeShowPageOptions",
+            "in": "query",
+            "description": "Optionally include the show page options for this playlist",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "accessToken",
+            "in": "query",
+            "description": "Access token for restricted playlists",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsumerApiPlaylist"
+                },
+                "example": {
+                  "Id": "00000000-0000-0000-0000-000000000000",
+                  "Title": "Best moments",
+                  "Slug": null,
+                  "Description": null,
+                  "DescriptionHtml": null,
+                  "Summary": null,
+                  "RssFeedUrl": null,
+                  "EmbedUrl": null,
+                  "ArtworkUrl": null,
+                  "NumberOfClips": 0,
+                  "Visibility": 0,
+                  "ContentRating": "Clean",
+                  "Categories": null,
+                  "DirectoryLinks": {
+                    "ApplePodcasts": null,
+                    "ApplePodcastsId": null,
+                    "GooglePodcasts": null,
+                    "Spotify": null,
+                    "Stitcher": null,
+                    "TuneIn": null,
+                    "GooglePlay": null,
+                    "RssFeed": "https://example.com/podcast.rss",
+                    "IHeart": null,
+                    "AmazonMusic": null,
+                    "YouTubeMusic": null
+                  },
+                  "CustomFieldData": null,
+                  "Author": "Best podcast studio",
+                  "MediaType": null,
+                  "ProgramId": "00000000-0000-0000-0000-000000000000",
+                  "ProgramSlug": null,
+                  "OrganizationId": "00000000-0000-0000-0000-000000000000",
+                  "ModifiedAtUtc": "0001-01-01T00:00:00"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Playlist not found"
+          }
+        }
+      }
+    },
+    "/orgs/{orgId}/programs/{programId}/playlists": {
+      "get": {
+        "tags": ["Playlists"],
+        "summary": "Get playlists by program ID",
+        "description": "Get the playlists for an Omny Studio program. Only publicly-listed playlists (public) are shown; unlisted or private playlists won't appear in the response.\r\n            \r\n#### Example\r\n`https://api.omny.fm/orgs/289ceca7-bef3-48af-9f74-a4ba0095cab1/programs/8ac9406d-304d-441e-8532-a4ba00967cfc/playlists`",
+        "operationId": "GetProgramPlaylists",
+        "parameters": [
+          {
+            "name": "programId",
+            "in": "path",
+            "description": "Program ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsumerApiPlaylists"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Program not found"
+          }
+        }
+      }
+    },
+    "/orgs/{orgId}/programs": {
+      "get": {
+        "tags": ["Programs"],
+        "summary": "Get programs",
+        "description": "Get the programs for an Omny Studio organization. Only public default playlists will be included in the response; restricted default playlists won't appear in the response.\r\n            \r\n#### Example\r\n`https://api.omny.fm/orgs/289ceca7-bef3-48af-9f74-a4ba0095cab1/programs`",
+        "operationId": "GetPrograms",
+        "parameters": [
+          {
+            "name": "includeShowPageOptions",
+            "in": "query",
+            "description": "Optionally include the show page options for this program",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsumerApiPrograms"
+                },
+                "example": {
+                  "Programs": [
+                    {
+                      "Id": "00000000-0000-0000-0000-000000000000",
+                      "Name": "Drive with Jon",
+                      "Slug": null,
+                      "Description": null,
+                      "DescriptionHtml": null,
+                      "Author": null,
+                      "Publisher": null,
+                      "Copyright": null,
+                      "Language": null,
+                      "ArtworkUrl": null,
+                      "Category": null,
+                      "Categories": null,
+                      "SocialWeb": null,
+                      "SocialTwitter": null,
+                      "SocialFacebook": null,
+                      "SocialShowSupportUrl": null,
+                      "SocialShowSupportLabel": null,
+                      "Hidden": false,
+                      "Archived": false,
+                      "Network": null,
+                      "NetworkId": null,
+                      "ExternalId": null,
+                      "ContactName": null,
+                      "ContactEmail": null,
+                      "CustomFieldData": null,
+                      "DefaultPlaylistId": null,
+                      "DefaultPlaylist": null,
+                      "AdConfig": null,
+                      "OrganizationId": "00000000-0000-0000-0000-000000000000",
+                      "ModifiedAtUtc": "0001-01-01T00:00:00"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No programs found"
+          }
+        }
+      }
+    },
+    "/orgs/{orgId}/programs/{programId}": {
+      "get": {
+        "tags": ["Programs"],
+        "summary": "Get program by ID",
+        "description": "Get the metadata for an Omny Studio program. Only public default playlists will be included in the response; restricted default playlists won't appear in the response.\r\n            \r\n#### Example\r\n`https://api.omny.fm/orgs/289ceca7-bef3-48af-9f74-a4ba0095cab1/programs/8ac9406d-304d-441e-8532-a4ba00967cfc`",
+        "operationId": "GetProgram",
+        "parameters": [
+          {
+            "name": "programId",
+            "in": "path",
+            "description": "Program ID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "includeShowPageOptions",
+            "in": "query",
+            "description": "Optionally include the show page options for this program",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "orgId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsumerApiProgram"
+                },
+                "example": {
+                  "Id": "00000000-0000-0000-0000-000000000000",
+                  "Name": "Drive with Jon",
+                  "Slug": null,
+                  "Description": null,
+                  "DescriptionHtml": null,
+                  "Author": null,
+                  "Publisher": null,
+                  "Copyright": null,
+                  "Language": null,
+                  "ArtworkUrl": null,
+                  "Category": null,
+                  "Categories": null,
+                  "SocialWeb": null,
+                  "SocialTwitter": null,
+                  "SocialFacebook": null,
+                  "SocialShowSupportUrl": null,
+                  "SocialShowSupportLabel": null,
+                  "Hidden": false,
+                  "Archived": false,
+                  "Network": null,
+                  "NetworkId": null,
+                  "ExternalId": null,
+                  "ContactName": null,
+                  "ContactEmail": null,
+                  "CustomFieldData": null,
+                  "DefaultPlaylistId": null,
+                  "DefaultPlaylist": null,
+                  "AdConfig": null,
+                  "OrganizationId": "00000000-0000-0000-0000-000000000000",
+                  "ModifiedAtUtc": "0001-01-01T00:00:00"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Program not found"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ConsumerApiAdConfiguration": {
+        "required": ["ConfigTriton", "ConfigVast"],
+        "type": "object",
+        "properties": {
+          "ConfigTriton": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiAdConfigurationTriton"
+              }
+            ],
+            "description": "Triton ad configuration.",
+            "nullable": true
+          },
+          "ConfigVast": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiAdConfigurationVast"
+              }
+            ],
+            "description": "VAST configuration.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiAdConfigurationTriton": {
+        "required": ["OnDemandUrl", "StationId"],
+        "type": "object",
+        "properties": {
+          "OnDemandUrl": {
+            "type": "string",
+            "description": "Triton on-demand URL.",
+            "nullable": true
+          },
+          "StationId": {
+            "type": "string",
+            "description": "Triton Station ID.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiAdConfigurationVast": {
+        "required": ["VastUrl"],
+        "type": "object",
+        "properties": {
+          "VastUrl": {
+            "type": "string",
+            "description": "VAST URL.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiAdMarker": {
+        "required": ["AdMarkerType", "MaxNumberOfAds", "Offset"],
+        "type": "object",
+        "properties": {
+          "Offset": {
+            "type": "string",
+            "format": "time-span"
+          },
+          "MaxNumberOfAds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "AdMarkerType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiAdMarkerType"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiAdMarkerType": {
+        "enum": ["PreRoll", "MidRoll", "PostRoll"],
+        "type": "string"
+      },
+      "ConsumerApiChapter": {
+        "required": ["Id", "Name", "Position", "Tags"],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "description": "The ID of the chapter.",
+            "format": "uuid"
+          },
+          "Name": {
+            "type": "string",
+            "description": "The name of the chapter."
+          },
+          "Position": {
+            "type": "string",
+            "description": "The timestamp of the chapter in ```hh:mm:ss```.",
+            "format": "time-span"
+          },
+          "Tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Tags set for this chapter marker."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiClip": {
+        "required": [
+          "AdMarkers",
+          "AudioOptions",
+          "AudioUrl",
+          "Chapters",
+          "ContentRating",
+          "CustomFieldData",
+          "Description",
+          "DescriptionHtml",
+          "DurationSeconds",
+          "EmbedUrl",
+          "Episode",
+          "EpisodeType",
+          "ExternalId",
+          "HasPreRollVideoAd",
+          "HasPublishedTranscript",
+          "Id",
+          "ImageUrl",
+          "ImportedId",
+          "ModifiedAtUtc",
+          "Monetization",
+          "OrganizationId",
+          "PlaylistIds",
+          "ProgramId",
+          "ProgramSlug",
+          "PublishedAudioSizeInBytes",
+          "PublishedUrl",
+          "PublishedUtc",
+          "PublishState",
+          "RecordingMetadata",
+          "RssLinkOverride",
+          "Season",
+          "ShareUrl",
+          "Slug",
+          "State",
+          "Summary",
+          "Tags",
+          "Title",
+          "TranscriptUrl",
+          "VideoUrl",
+          "Visibility",
+          "WaveformUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "OrganizationId": {
+            "type": "string",
+            "description": "The ID of the parent organization.",
+            "format": "uuid"
+          },
+          "ModifiedAtUtc": {
+            "type": "string",
+            "description": "The date and time at which the object was last modified.",
+            "format": "date-time"
+          },
+          "ProgramId": {
+            "type": "string",
+            "description": "The ID of the parent program.",
+            "format": "uuid"
+          },
+          "ProgramSlug": {
+            "type": "string",
+            "description": "The slug of the parent program."
+          },
+          "Id": {
+            "type": "string",
+            "description": "The ID of the clip.",
+            "format": "uuid"
+          },
+          "Title": {
+            "type": "string",
+            "description": "The title of the clip."
+          },
+          "Slug": {
+            "type": "string",
+            "description": "The slug of the clip."
+          },
+          "Description": {
+            "type": "string",
+            "description": "The description of the clip (plaintext)."
+          },
+          "DescriptionHtml": {
+            "type": "string",
+            "description": "The description of the clip (HTML)."
+          },
+          "Summary": {
+            "type": "string",
+            "description": "A short summary of the episode. Displayed in Apple Podcasts as 'Description'. If set, overrides the link description on Facebook and X (formerly Twitter).",
+            "nullable": true
+          },
+          "Tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "An array of tags for the clip.",
+            "nullable": true
+          },
+          "TranscriptUrl": {
+            "type": "string",
+            "description": "A publicly-accessible URL to the transcript for this clip, if present (null otherwise).",
+            "nullable": true,
+            "deprecated": true
+          },
+          "HasPublishedTranscript": {
+            "type": "boolean",
+            "description": "Whether this clip has a published (publicly-accessible) transcript."
+          },
+          "Season": {
+            "type": "integer",
+            "description": "An optional season number for the clip (as defined by Apple Podcasts).",
+            "format": "int32",
+            "nullable": true
+          },
+          "Episode": {
+            "type": "integer",
+            "description": "An optional episode number for the clip (as defined by Apple Podcasts).",
+            "format": "int32",
+            "nullable": true
+          },
+          "EpisodeType": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiEpisodeType"
+              }
+            ],
+            "description": "The type of episode of the clip (as defined by Apple Podcasts)."
+          },
+          "ImageUrl": {
+            "type": "string",
+            "description": "A publicly-accessible URL to the artwork image for this clip. The ```size``` parameter specifies the image size (default size is ```medium```).\r\n            \r\nValid size parameters are:\r\n- ```thumbnail``` (64x64)\r\n- ```small``` (256x256)\r\n- ```medium``` (600x600)\r\n- ```large``` (3000x3000)\r\n- ```wideShare``` (1200x630 blurred background with centered 520x520 image; optimized for Facebook sharing)",
+            "nullable": true
+          },
+          "ImageColors": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiImageColors"
+              }
+            ],
+            "description": "Calculated primary, secondary and contrasting colors of the clip artwork. Only present when `includeEmbedOptions` or `includeShowPageOptions` is set to `true`."
+          },
+          "AudioUrl": {
+            "type": "string",
+            "description": "A publicly-accessible URL to the MP3 audio for this clip."
+          },
+          "WaveformUrl": {
+            "type": "string",
+            "description": "A publicly-accessible URL to the waveform for this clip. The URL resolves to a JSON object that contains the sample rate ```SR```,\r\nsamples per point ```SPP``` and base64-encoded array of samples ```D```.\r\n            \r\nThe ```SR``` property contains the sample rate, this is the number of samples of loudness per second that are in the array of samples. The\r\n```D``` property contains the samples encoded as a base64 string. After base64 decoding the string, each byte of the sample array is the\r\nloudness at that time, on the scale of 0 (no noise) to 255 (the loudness possible value). The sample rate and the position in the array can be used to map\r\nthe samples to the position of playback of the audio if desired, if not you can simple render the sample array ```D```\r\n\r\nWARNING: This URL is for internal use. The format of this object is not guaranteed to be stable or backwards-compatible.",
+            "nullable": true
+          },
+          "VideoUrl": {
+            "type": "string",
+            "description": "Deprecated - will always be `null`.",
+            "nullable": true,
+            "deprecated": true
+          },
+          "EmbedUrl": {
+            "type": "string",
+            "description": "The embed player iframe URL for this clip."
+          },
+          "DurationSeconds": {
+            "type": "number",
+            "description": "The time length of the clip in seconds.",
+            "format": "double"
+          },
+          "PublishState": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiPublishState"
+              }
+            ],
+            "description": "The publish state of the clip."
+          },
+          "PublishedUrl": {
+            "type": "string",
+            "description": "A publicly-accessible URL for the clip's <see href=\"https://omny.fm\">Omny.fm</see> web player."
+          },
+          "Visibility": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiPublishedState"
+              }
+            ],
+            "description": "The visibility state of the clip.",
+            "nullable": true
+          },
+          "PublishedUtc": {
+            "type": "string",
+            "description": "The date and time when the clip was published.",
+            "format": "date-time"
+          },
+          "PlaylistIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "description": "An array of IDs for playlists to which the clip has been added.",
+            "nullable": true
+          },
+          "Chapters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConsumerApiChapter"
+            },
+            "description": "An array of chapter objects added to the clip."
+          },
+          "State": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiClipState"
+              }
+            ],
+            "description": "The state of the clip.",
+            "nullable": true
+          },
+          "ShareUrl": {
+            "type": "string",
+            "description": "An optional override for the share URL.",
+            "nullable": true
+          },
+          "RssLinkOverride": {
+            "type": "string",
+            "description": "RSS link override.\r\nIf provided, overrides the URL for the item <link> in the podcast RSS feed.",
+            "nullable": true
+          },
+          "ImportedId": {
+            "type": "string",
+            "description": "An optional episode identifier if the clip was imported from another provider.",
+            "nullable": true
+          },
+          "Monetization": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiClipMonetization"
+              }
+            ],
+            "description": "Deprecated - use AdMarkers.",
+            "nullable": true,
+            "deprecated": true
+          },
+          "AdMarkers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConsumerApiAdMarker"
+            },
+            "description": "Clip ad markers.",
+            "nullable": true
+          },
+          "HasPreRollVideoAd": {
+            "type": "boolean",
+            "description": "Whether the clip has a pre-roll video ad."
+          },
+          "RecordingMetadata": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiRecordingMetadata"
+              }
+            ],
+            "description": "Optional information related to the Recording start/end times associated with this Clip, when applicable.",
+            "nullable": true
+          },
+          "PublishedAudioSizeInBytes": {
+            "type": "integer",
+            "description": "If the clip is published, the size of the audio file in bytes.",
+            "format": "int64",
+            "nullable": true
+          },
+          "ContentRating": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiExplicitRating"
+              }
+            ],
+            "description": "The content rating of the of the clip."
+          },
+          "AudioOptions": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiClipAudioOptions"
+              }
+            ],
+            "description": "The audio options used when publishing the clip.",
+            "nullable": true
+          },
+          "ExternalId": {
+            "type": "string",
+            "description": "An optional ID for mapping this program to an entry in an external system.",
+            "nullable": true
+          },
+          "CustomFieldData": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Data for the Custom fields for this clip.",
+            "nullable": true
+          },
+          "HeadlinerVideos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConsumerApiHeadlinerVideo"
+            },
+            "description": "A collection of Headliner videos. Only present when Headliner feature is enabled."
+          },
+          "EmbedOptions": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiEmbedOptions"
+              }
+            ],
+            "description": "Embed player options. Only present when `includeEmbedOptions` is set to `true`."
+          },
+          "ShowPageOptions": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiShowPageOptions"
+              }
+            ],
+            "description": "Show page options. Only present when `includeShowPageOptions` is set to `true`."
+          },
+          "Program": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiProgram"
+              }
+            ],
+            "description": "Details of the Program to which this clip belongs. Only present when `includeProgramDetail` is set to `true`."
+          },
+          "Playlists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConsumerApiPlaylist"
+            },
+            "description": "Details of the Playlists in which this clip is included. Only present when `includePlaylistDetail` is set to `true`."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiClipAudioOptions": {
+        "required": ["AutoLevelAudio", "IncludeIntroOutro"],
+        "type": "object",
+        "properties": {
+          "IncludeIntroOutro": {
+            "type": "boolean",
+            "description": "Whether the intro and/or outro from the program will be included with the clip audio during publishing."
+          },
+          "AutoLevelAudio": {
+            "type": "boolean",
+            "description": "If the clip will be auto leveled during publishing."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiClipJsonTranscript": {
+        "required": ["segments", "speakers"],
+        "type": "object",
+        "properties": {
+          "speakers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConsumerApiClipJsonTranscriptSpeaker"
+            }
+          },
+          "segments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConsumerApiClipJsonTranscriptSegment"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiClipJsonTranscriptSegment": {
+        "required": ["speaker", "words"],
+        "type": "object",
+        "properties": {
+          "speaker": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "words": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConsumerApiClipJsonTranscriptWord"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiClipJsonTranscriptSpeaker": {
+        "required": ["name"],
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiClipJsonTranscriptWord": {
+        "required": ["end", "start", "text"],
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "number",
+            "format": "double"
+          },
+          "end": {
+            "type": "number",
+            "format": "double"
+          },
+          "text": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiClipMonetization": {
+        "required": ["MidRolls", "PostRoll", "PreRoll"],
+        "type": "object",
+        "properties": {
+          "PreRoll": {
+            "type": "boolean",
+            "description": "If pre-roll ad is enabled for this clip."
+          },
+          "PostRoll": {
+            "type": "boolean",
+            "description": "If post-roll ad is enabled for this clip."
+          },
+          "MidRolls": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "time-span"
+            },
+            "description": "An array of time positions of any mid-roll ad markers in ```hh:mm:ss```.\r\nFor example, a value of ```[\"00:00:30\", \"01:23:45\"]``` would represent a marker at 30 seconds, and one at 1 hour, 23 minutes and 45 seconds into the episode.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiClipState": {
+        "enum": ["Ready"],
+        "type": "string"
+      },
+      "ConsumerApiClips": {
+        "required": ["Clips", "Cursor", "TotalCount"],
+        "type": "object",
+        "properties": {
+          "Clips": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConsumerApiClip"
+            },
+            "description": "Collection of clips"
+          },
+          "Cursor": {
+            "type": "string",
+            "description": "An opaque token that can be used to retrieve the next page of results (`null` if there are no more pages)",
+            "nullable": true
+          },
+          "TotalCount": {
+            "type": "integer",
+            "description": "Total number of clips",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiDirectoryLinks": {
+        "required": [
+          "AmazonMusic",
+          "ApplePodcasts",
+          "ApplePodcastsId",
+          "GooglePlay",
+          "GooglePodcasts",
+          "IHeart",
+          "RssFeed",
+          "Spotify",
+          "Stitcher",
+          "TuneIn",
+          "YouTubeMusic"
+        ],
+        "type": "object",
+        "properties": {
+          "ApplePodcasts": {
+            "type": "string",
+            "description": "The Apple Podcasts directory URL.",
+            "nullable": true
+          },
+          "ApplePodcastsId": {
+            "type": "string",
+            "description": "The Apple Podcasts ID.",
+            "nullable": true
+          },
+          "GooglePodcasts": {
+            "type": "string",
+            "description": "The Google Podcasts directory URL.",
+            "nullable": true,
+            "deprecated": true
+          },
+          "Spotify": {
+            "type": "string",
+            "description": "The Spotify directory URL.",
+            "nullable": true
+          },
+          "Stitcher": {
+            "type": "string",
+            "description": "The Stitcher directory URL.",
+            "nullable": true,
+            "readOnly": true,
+            "deprecated": true
+          },
+          "TuneIn": {
+            "type": "string",
+            "description": "The TuneIn directory URL.",
+            "nullable": true
+          },
+          "GooglePlay": {
+            "type": "string",
+            "description": "The Google Play directory URL.",
+            "nullable": true,
+            "readOnly": true,
+            "deprecated": true
+          },
+          "RssFeed": {
+            "type": "string",
+            "description": "The RSS feed URL for this playlist."
+          },
+          "IHeart": {
+            "type": "string",
+            "description": "The iHeart directory URL.",
+            "nullable": true
+          },
+          "AmazonMusic": {
+            "type": "string",
+            "description": "The Amazon Music directory URL.",
+            "nullable": true
+          },
+          "YouTubeMusic": {
+            "type": "string",
+            "description": "The YouTube Music directory URL.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiEmbedOptions": {
+        "required": [
+          "BackgroundColor",
+          "CustomBranding",
+          "CustomGATrackingId",
+          "CustomLogoSmall",
+          "CustomLogoTitle",
+          "CustomLogoUrl",
+          "CustomLogoWide",
+          "ForegroundColor",
+          "HighlightColor",
+          "IsEmbedColorsLocked",
+          "IsEmbedOptionsLocked",
+          "ShowArtwork",
+          "ShowDescription",
+          "ShowDownload",
+          "ShowFollow",
+          "ShowPlaylistImages",
+          "ShowPlaylistShare",
+          "ShowShare"
+        ],
+        "type": "object",
+        "properties": {
+          "ForegroundColor": {
+            "type": "string"
+          },
+          "BackgroundColor": {
+            "type": "string"
+          },
+          "HighlightColor": {
+            "type": "string"
+          },
+          "IsEmbedColorsLocked": {
+            "type": "boolean"
+          },
+          "ShowArtwork": {
+            "type": "boolean"
+          },
+          "ShowShare": {
+            "type": "boolean"
+          },
+          "ShowFollow": {
+            "type": "boolean"
+          },
+          "ShowDownload": {
+            "type": "boolean"
+          },
+          "ShowDescription": {
+            "type": "boolean"
+          },
+          "ShowPlaylistImages": {
+            "type": "boolean"
+          },
+          "ShowPlaylistShare": {
+            "type": "boolean"
+          },
+          "IsEmbedOptionsLocked": {
+            "type": "boolean"
+          },
+          "CustomBranding": {
+            "type": "boolean",
+            "description": "Whether the player has had custom branding enabled"
+          },
+          "CustomLogoWide": {
+            "type": "string",
+            "nullable": true
+          },
+          "CustomLogoSmall": {
+            "type": "string",
+            "nullable": true
+          },
+          "CustomLogoTitle": {
+            "type": "string",
+            "nullable": true
+          },
+          "CustomLogoUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "CustomGATrackingId": {
+            "type": "string",
+            "description": "Custom Google Analytics Tracking ID",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiEpisodeType": {
+        "enum": ["Full", "Trailer", "Bonus"],
+        "type": "string",
+        "description": "The type of episode content"
+      },
+      "ConsumerApiExplicitRating": {
+        "enum": ["Clean", "Explicit", "Unrated"],
+        "type": "string"
+      },
+      "ConsumerApiHeadlinerVideo": {
+        "required": [
+          "CreatedAtUtc",
+          "Id",
+          "SocialShares",
+          "VideoHeight",
+          "VideoMilliseconds",
+          "VideoWidth"
+        ],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "VideoWidth": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "VideoHeight": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "VideoMilliseconds": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "SocialShares": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConsumerApiHeadlinerVideoSocialShare"
+            },
+            "description": "A collection of social media shares associated to the Headliner video",
+            "nullable": true
+          },
+          "CreatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiHeadlinerVideoSocialShare": {
+        "required": ["CreatedAtUtc", "Id", "Platform", "SharePostUrl"],
+        "type": "object",
+        "properties": {
+          "Id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Platform": {
+            "type": "string",
+            "description": "Name of the platform where the video was shared",
+            "nullable": true
+          },
+          "SharePostUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreatedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiImageColors": {
+        "required": ["Contrast", "Primary", "Secondary"],
+        "type": "object",
+        "properties": {
+          "Primary": {
+            "type": "string",
+            "description": "The computed primary color of the image."
+          },
+          "Secondary": {
+            "type": "string",
+            "description": "The computed secondary color of the image."
+          },
+          "Contrast": {
+            "type": "string",
+            "description": "The computed contrast color (black for light images, white for dark images)."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiPlaylist": {
+        "required": [
+          "ArtworkUrl",
+          "Author",
+          "Categories",
+          "ContentRating",
+          "CustomFieldData",
+          "Description",
+          "DescriptionHtml",
+          "DirectoryLinks",
+          "EmbedUrl",
+          "Id",
+          "ModifiedAtUtc",
+          "NumberOfClips",
+          "OrganizationId",
+          "ProgramId",
+          "ProgramSlug",
+          "RssFeedUrl",
+          "Slug",
+          "Summary",
+          "Title",
+          "Visibility"
+        ],
+        "type": "object",
+        "properties": {
+          "OrganizationId": {
+            "type": "string",
+            "description": "The ID of the parent organization.",
+            "format": "uuid"
+          },
+          "ModifiedAtUtc": {
+            "type": "string",
+            "description": "The date and time at which the object was last modified.",
+            "format": "date-time"
+          },
+          "ProgramId": {
+            "type": "string",
+            "description": "The ID of the parent program.",
+            "format": "uuid"
+          },
+          "ProgramSlug": {
+            "type": "string",
+            "description": "The slug of the parent program."
+          },
+          "Id": {
+            "type": "string",
+            "description": "The ID of the playlist.",
+            "format": "uuid"
+          },
+          "Title": {
+            "type": "string",
+            "description": "The name of the playlist."
+          },
+          "Slug": {
+            "type": "string",
+            "description": "The slug of the playlist."
+          },
+          "Description": {
+            "type": "string",
+            "description": "The description of the playlist (plaintext)."
+          },
+          "DescriptionHtml": {
+            "type": "string",
+            "description": "The description of the playlist (HTML)."
+          },
+          "Summary": {
+            "type": "string",
+            "description": "Displayed in podcast directories as a short description.",
+            "nullable": true
+          },
+          "RssFeedUrl": {
+            "type": "string",
+            "description": "The RSS feed URL for this playlist."
+          },
+          "EmbedUrl": {
+            "type": "string",
+            "description": "The embed player iframe URL for this playlist."
+          },
+          "ArtworkUrl": {
+            "type": "string",
+            "description": "A publicly-accessible URL to the artwork image for this playlist. The ```size``` parameter specifies the image size (default size is ```medium```).\r\n            \r\nValid size parameters are:\r\n- ```thumbnail``` (64x64)\r\n- ```small``` (256x256)\r\n- ```medium``` (600x600)\r\n- ```large``` (3000x3000)\r\n- ```wideShare``` (1200x630 blurred background with centered 520x520 image; optimized for Facebook sharing)",
+            "nullable": true
+          },
+          "NumberOfClips": {
+            "type": "integer",
+            "description": "The number of clips available in the playlist.",
+            "format": "int32"
+          },
+          "Visibility": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiVisibility"
+              }
+            ],
+            "description": "The visibility of the playlist."
+          },
+          "ContentRating": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiExplicitRating"
+              }
+            ],
+            "description": "The content rating of the of the playlist."
+          },
+          "Categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The list of Apple Podcasts category names.",
+            "nullable": true
+          },
+          "DirectoryLinks": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiDirectoryLinks"
+              }
+            ],
+            "description": "The podcast directory (Apple Podcasts, Spotify, etc.) URLs for this playlist."
+          },
+          "CustomFieldData": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Data for the Custom fields for this playlist.",
+            "nullable": true
+          },
+          "EmbedOptions": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiEmbedOptions"
+              }
+            ],
+            "description": "Embed player options. Only present when `includeEmbedOptions` is set to `true`."
+          },
+          "ShowPageOptions": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiShowPageOptions"
+              }
+            ],
+            "description": "Show page options. Only present when `includeShowPageOptions` is set to `true`."
+          },
+          "Program": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiProgram"
+              }
+            ],
+            "description": "Details of the Program to which this playlist belongs. Only present when `includeProgramDetail` is set to `true`."
+          },
+          "Author": {
+            "type": "string",
+            "description": "The author that will appear in the RSS feed"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiPlaylistPage": {
+        "required": ["Clips", "NextClipsAvailable", "PreviousClipsAvailable"],
+        "type": "object",
+        "properties": {
+          "Clips": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConsumerApiClip"
+            }
+          },
+          "PreviousClipsAvailable": {
+            "type": "boolean"
+          },
+          "NextClipsAvailable": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiPlaylistPageDirection": {
+        "enum": [
+          "Around",
+          "BeforeInclusive",
+          "AfterInclusive",
+          "BeforeExclusive",
+          "AfterExclusive"
+        ],
+        "type": "string"
+      },
+      "ConsumerApiPlaylists": {
+        "required": ["Playlists"],
+        "type": "object",
+        "properties": {
+          "Playlists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConsumerApiPlaylist"
+            },
+            "description": "Collection of playlists"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiProgram": {
+        "required": [
+          "AdConfig",
+          "Archived",
+          "ArtworkUrl",
+          "Author",
+          "Categories",
+          "Category",
+          "ContactEmail",
+          "ContactName",
+          "Copyright",
+          "CustomFieldData",
+          "DefaultPlaylist",
+          "DefaultPlaylistId",
+          "Description",
+          "DescriptionHtml",
+          "ExternalId",
+          "Hidden",
+          "Id",
+          "Language",
+          "ModifiedAtUtc",
+          "Name",
+          "Network",
+          "NetworkId",
+          "OrganizationId",
+          "Publisher",
+          "Slug",
+          "SocialFacebook",
+          "SocialShowSupportLabel",
+          "SocialShowSupportUrl",
+          "SocialTwitter",
+          "SocialWeb"
+        ],
+        "type": "object",
+        "properties": {
+          "OrganizationId": {
+            "type": "string",
+            "description": "The ID of the parent organization.",
+            "format": "uuid"
+          },
+          "ModifiedAtUtc": {
+            "type": "string",
+            "description": "The date and time at which the object was last modified.",
+            "format": "date-time"
+          },
+          "Id": {
+            "type": "string",
+            "description": "The ID of the program.",
+            "format": "uuid"
+          },
+          "Name": {
+            "type": "string",
+            "description": "The name of the program."
+          },
+          "Slug": {
+            "type": "string",
+            "description": "The URL slug of the program. The <see href=\"https://omny.fm\">Omny.fm</see> show page can be accessed in the format <see href=\"https://omny.fm/shows/{Slug}\">https://omny.fm/shows/{Slug}</see>."
+          },
+          "Description": {
+            "type": "string",
+            "description": "The description of the program (plaintext)."
+          },
+          "DescriptionHtml": {
+            "type": "string",
+            "description": "The description of the program (HTML).",
+            "nullable": true
+          },
+          "Author": {
+            "type": "string",
+            "description": "The author of the program.",
+            "nullable": true
+          },
+          "Publisher": {
+            "type": "string",
+            "description": "Deprecated - use Copyright",
+            "nullable": true,
+            "deprecated": true
+          },
+          "Copyright": {
+            "type": "string",
+            "description": "The copyright included in the program's playlist's RSS feeds.",
+            "nullable": true
+          },
+          "Language": {
+            "type": "string",
+            "description": "Program language (IETF language tag).",
+            "nullable": true
+          },
+          "ArtworkUrl": {
+            "type": "string",
+            "description": "A publicly-accessible URL to the artwork image for this program. The ```size``` parameter specifies the image size (default size is ```medium```).\r\n            \r\nValid size parameters are:\r\n- ```thumbnail``` (64x64)\r\n- ```small``` (256x256)\r\n- ```medium``` (600x600)\r\n- ```large``` (3000x3000)\r\n- ```wideShare``` (1200x630 blurred background with centered 520x520 image; optimized for Facebook sharing)",
+            "nullable": true
+          },
+          "Category": {
+            "type": "string",
+            "description": "Deprecated - use Categories",
+            "nullable": true,
+            "deprecated": true
+          },
+          "Categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "The list of Apple Podcasts category names.",
+            "nullable": true
+          },
+          "SocialWeb": {
+            "type": "string",
+            "description": "The web URL of the program.",
+            "nullable": true
+          },
+          "SocialTwitter": {
+            "type": "string",
+            "description": "The X (formerly Twitter) account username of the program (should be accessed in the format <see href=\"https://twitter.com/{SocialTwitter}\">https://twitter.com/{SocialTwitter}</see>).",
+            "nullable": true
+          },
+          "SocialFacebook": {
+            "type": "string",
+            "description": "The Facebook page username of the program (should be accessed in the format <see href=\"https://fb.com/{SocialFacebook}\">https://fb.com/{SocialFacebook}</see>).",
+            "nullable": true
+          },
+          "SocialShowSupportUrl": {
+            "type": "string",
+            "description": "URL to support the show (e.g. donation/membership).",
+            "nullable": true
+          },
+          "SocialShowSupportLabel": {
+            "type": "string",
+            "description": "Optional customized label for SocialShowSupportUrl.",
+            "nullable": true
+          },
+          "Hidden": {
+            "type": "boolean",
+            "description": "If ```true```, the program has been marked as unlisted and should not be indexed or shown in public directories. (Unlisted programs are not available in the consumer API.)"
+          },
+          "Archived": {
+            "type": "boolean",
+            "description": "If ```true```, the program is hidden by default in the content management system."
+          },
+          "Network": {
+            "type": "string",
+            "description": "Deprecated - use NetworkId",
+            "nullable": true,
+            "deprecated": true
+          },
+          "NetworkId": {
+            "type": "string",
+            "description": "The ID of the network to which the program belongs.",
+            "format": "uuid",
+            "nullable": true
+          },
+          "ExternalId": {
+            "type": "string",
+            "description": "An optional ID for mapping this program to an entry in an external system.",
+            "nullable": true
+          },
+          "ContactName": {
+            "type": "string",
+            "description": "The contact name included in the program's playlist's RSS feeds.",
+            "nullable": true
+          },
+          "ContactEmail": {
+            "type": "string",
+            "description": "The contact email included in the program's playlist's RSS feeds.",
+            "nullable": true
+          },
+          "CustomFieldData": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Data for the Custom fields for this program.",
+            "nullable": true
+          },
+          "DefaultPlaylistId": {
+            "type": "string",
+            "description": "ID of the default playlist for this program.",
+            "format": "uuid",
+            "nullable": true,
+            "deprecated": true
+          },
+          "DefaultPlaylist": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiPlaylist"
+              }
+            ],
+            "description": "Details for the default playlist of this program, which is set when a default playlist exists and is publicly-accessible.",
+            "nullable": true
+          },
+          "AdConfig": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiAdConfiguration"
+              }
+            ],
+            "description": "Ad configuration for this program.",
+            "nullable": true
+          },
+          "ShowPageOptions": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ConsumerApiShowPageOptions"
+              }
+            ],
+            "description": "Show page options. Only present when `includeShowPageOptions` is set to `true`."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiPrograms": {
+        "required": ["Programs"],
+        "type": "object",
+        "properties": {
+          "Programs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConsumerApiProgram"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiPublishState": {
+        "enum": ["Unpublished", "Published", "Unpublishing", "Publishing"],
+        "type": "string",
+        "description": "Indicates the publish state"
+      },
+      "ConsumerApiPublishedState": {
+        "enum": ["Unlisted", "Public", "Restricted"],
+        "type": "string",
+        "description": "Indicates the state of a publishable item"
+      },
+      "ConsumerApiRecordingMetadata": {
+        "required": ["CaptureEndUtc", "CaptureStartUtc"],
+        "type": "object",
+        "properties": {
+          "CaptureStartUtc": {
+            "type": "string",
+            "description": "The date and time the recording started capturing.",
+            "format": "date-time"
+          },
+          "CaptureEndUtc": {
+            "type": "string",
+            "description": "The date and time the recording finished capturing.",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiShowPageOptions": {
+        "required": [
+          "AppleSmartBannerEnabled",
+          "ShowDownload",
+          "ShowShare",
+          "ShowSubscribe"
+        ],
+        "type": "object",
+        "properties": {
+          "ShowShare": {
+            "type": "boolean",
+            "description": "Whether the share button is visible."
+          },
+          "ShowSubscribe": {
+            "type": "boolean",
+            "description": "Whether the subscribe button is visible."
+          },
+          "ShowDownload": {
+            "type": "boolean",
+            "description": "Whether the download button is visible."
+          },
+          "AppleSmartBannerEnabled": {
+            "type": "boolean",
+            "description": "Whether the Apple Smart Banner is enabled."
+          }
+        },
+        "additionalProperties": false
+      },
+      "ConsumerApiVisibility": {
+        "enum": ["Unlisted", "Public", "Restricted"],
+        "type": "string",
+        "description": "Indicates the visibility state of an item."
+      },
+      "ProblemDetails": {
+        "required": ["detail", "instance", "status", "title", "type"],
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": {}
+      },
+      "TranscriptExportType": {
+        "enum": ["SubRip", "WebVTT", "Text", "TextWithTimestamps", "JSON"],
+        "type": "string"
+      }
+    }
+  }
+}

@@ -449,7 +449,7 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - Responses use PascalCase; the client maps to camelCase
    - Path segments (orgId, slugs) are validated against `[a-zA-Z0-9][a-zA-Z0-9_-]*` to prevent injection
    - Cursor-based pagination with default page size of 10
-   - Reference: `docs/swagger.json` (OpenAPI 3.0.1 spec for the Consumer API)
+   - Reference: `docs/omny-consumer-api.openapi.json` (OpenAPI 3.0.1 spec for the Consumer API)
 
 **Acceptance criteria:**
 
@@ -467,7 +467,7 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 - Keep the queries simple. Alpha only needs article text, metadata, and images for RAG context and display. Don't include all the CMS-specific fields from the original queries.
 - The search endpoint wraps Google CSE — response format includes `searchInformation` and `items[]` arrays.
 - The Omny Consumer API (`api.omny.fm`) is separate from the management API (`api.omnystudio.com/v0`) used by the importer. The consumer API is public, the management API requires Bearer auth.
-- `docs/swagger.json` contains the full OpenAPI spec for the consumer API.
+- `docs/omny-consumer-api.openapi.json` contains the full OpenAPI spec for the consumer API.
 
 ---
 
