@@ -10,6 +10,8 @@ import path from "path";
 import podIndexer from "./index-podcast-topics.json";
 import dotenv from "dotenv";
 
+import "@alpha/data/ts-flow/TopicInsertNode";
+
 dotenv.config();
 
 const paths: string[] = [];
@@ -26,9 +28,6 @@ paths.push(
     "api",
     "dist"
   )
-);
-paths.push(
-  path.join(process.cwd(), "..", "..", "node_modules", "@ts-flow", "db", "dist")
 );
 paths.push(
   path.join(

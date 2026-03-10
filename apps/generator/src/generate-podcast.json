@@ -165,18 +165,10 @@
         "type": "QueryEngine",
         "config": {
           "inputEventName": "podcastReady",
-          "engineType": "PGInsertQueryEngine",
-          "engineId": "postgres-save-embeddings",
+          "engineType": "TopicInsertNode",
+          "engineId": "topic-insert",
           "engineDataRoot": "homepage.data.homepage.featuredPosts",
           "engineConfig": {
-            "connectionString": "${POSTGRES_CONNECTION_STRING}",
-            "sqlInsertTemplate": "insert into podcast_topics (title, summary, filename, embedding) values ($1, $2, $3, $4)",
-            "sqlValuesTemplate": [
-              "title",
-              "summary",
-              "podcastFilename",
-              "embedding"
-            ],
             "outputEventName": "dataInserted"
           }
         }

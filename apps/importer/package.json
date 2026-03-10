@@ -9,10 +9,10 @@
     "test": "bun test"
   },
   "dependencies": {
+    "@alpha/data": "workspace:*",
     "@ts-flow/ai": "2.0.3",
     "@ts-flow/api": "2.0.4",
     "@ts-flow/core": "2.0.3",
-    "@ts-flow/db": "2.0.3",
     "@ts-flow/ffmpeg": "2.0.3",
     "@ts-flow/transforms": "2.0.6",
     "express": "5.2.1"

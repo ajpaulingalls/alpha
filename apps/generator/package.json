@@ -4,16 +4,16 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "start": "tsc && bun run src/index.ts",
-    "dev": "tsc && bun run --watch src/index.ts",
+    "start": "bun run src/index.ts",
+    "dev": "bun run --watch src/index.ts",
     "test": "bun test"
   },
   "dependencies": {
+    "@alpha/data": "workspace:*",
     "@ts-flow/ai": "2.0.3",
     "@ts-flow/api": "2.0.4",
     "@ts-flow/core": "2.0.3",
     "@ts-flow/cron": "2.0.3",
-    "@ts-flow/db": "2.0.3",
     "express": "5.2.1",
     "openai": "6.27.0"
   },

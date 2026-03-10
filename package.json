@@ -11,7 +11,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "tsc --noEmit -p apps/server/tsconfig.json && tsc --noEmit -p apps/importer/tsconfig.json && tsc -p apps/generator/tsconfig.json && tsc --noEmit -p packages/ai/tsconfig.json && tsc --noEmit -p packages/data/tsconfig.json && tsc --noEmit -p packages/socket/tsconfig.json",
+    "typecheck": "tsc --noEmit -p apps/server/tsconfig.json && tsc --noEmit -p apps/importer/tsconfig.json && tsc --noEmit -p apps/generator/tsconfig.json && tsc --noEmit -p packages/ai/tsconfig.json && tsc --noEmit -p packages/data/tsconfig.json && tsc --noEmit -p packages/socket/tsconfig.json",
     "test": "bun test",
     "check": "bun run lint && bun run format:check && bun run typecheck"
   },

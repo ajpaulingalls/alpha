@@ -8,6 +8,9 @@ import path from "path";
 import generatePodcast from "./generate-podcast.json";
 import type { Request, Response } from "express";
 
+import "./nodes/PodGenEngine.ts";
+import "@alpha/data/ts-flow/TopicInsertNode";
+
 const paths: string[] = [];
 paths.push(
   path.join(process.cwd(), "..", "..", "node_modules", "@ts-flow", "ai", "dist")
@@ -34,10 +37,6 @@ paths.push(
     "dist"
   )
 );
-paths.push(
-  path.join(process.cwd(), "..", "..", "node_modules", "@ts-flow", "db", "dist")
-);
-paths.push(path.join(process.cwd(), "dist"));
 
 void bootstrap(paths, (container: IContainer) => {
   const webServer = container.getInstance("WebServer") as WebServer;

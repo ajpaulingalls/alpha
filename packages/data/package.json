@@ -10,6 +10,7 @@
     "./crud/episodes": "./src/crud/episodes.ts",
     "./crud/topics": "./src/crud/topics.ts",
     "./crud/cached-responses": "./src/crud/cached-responses.ts",
+    "./ts-flow/TopicInsertNode": "./src/ts-flow/TopicInsertNode.ts",
     "./schema/users": "./src/schema/users.ts",
     "./schema/podcast_topics": "./src/schema/podcast_topics.ts",
     "./schema/podcast_episodes": "./src/schema/podcast_episodes.ts",
@@ -24,6 +25,9 @@
     "migrate": "bun src/migrate.ts",
     "studio": "drizzle-kit studio",
     "test": "bun test"
+  },
+  "peerDependencies": {
+    "@ts-flow/core": ">=2.0.0"
   },
   "dependencies": {
     "drizzle-orm": "0.45.1",
