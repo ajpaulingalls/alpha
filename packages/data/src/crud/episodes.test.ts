@@ -1,0 +1,100 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { describe, expect, test, mock, beforeEach } from "bun:test";
+
+function createMockResult(data: any[]) {
+  const chain: Record<string, any> = {};
+  const methods = [
+    "from",
+    "where",
+    "orderBy",
+    "limit",
+    "set",
+    "values",
+    "returning",
+  ];
+  for (const m of methods) {
+    chain[m] = mock(() => {
+      if (m === "returning") return Promise.resolve(data);
+      return chain;
+    });
+  }
+  chain.then = (resolve: (v: any) => any) =>
+    Promise.resolve(data).then(resolve);
+  return chain;
+}
+
+let mockSelectResult: any[] = [];
+let mockInsertResult: any[] = [];
+
+const mockDb = {
+  select: mock(() => createMockResult(mockSelectResult)),
+  insert: mock(() => createMockResult(mockInsertResult)),
+};
+
+mock.module("../client", () => ({ db: mockDb }));
+
+const {
+  createEpisode,
+  findEpisodesByShow,
+  findLatestEpisode,
+  findEpisodeById,
+} = await import("./episodes");
+
+describe("episodes CRUD", () => {
+  beforeEach(() => {
+    mockSelectResult = [];
+    mockInsertResult = [];
+  });
+
+  test("createEpisode returns created episode", async () => {
+    const episode: any = { id: "e1", showName: "Test Show", title: "Ep 1" };
+    mockInsertResult = [episode];
+    const result = await createEpisode({
+      showName: "Test Show",
+      title: "Ep 1",
+    });
+    expect(result).toEqual(episode);
+  });
+
+  test("findEpisodesByShow returns array of episodes", async () => {
+    const episodes: any[] = [
+      { id: "e1", showName: "Test Show" },
+      { id: "e2", showName: "Test Show" },
+    ];
+    mockSelectResult = episodes;
+    const result = await findEpisodesByShow("Test Show");
+    expect(result).toEqual(episodes);
+  });
+
+  test("findEpisodesByShow returns empty array when none found", async () => {
+    mockSelectResult = [];
+    const result = await findEpisodesByShow("Missing Show");
+    expect(result).toEqual([]);
+  });
+
+  test("findLatestEpisode returns episode when found", async () => {
+    const episode: any = { id: "e1", showName: "Test Show" };
+    mockSelectResult = [episode];
+    const result = await findLatestEpisode("Test Show");
+    expect(result).toEqual(episode);
+  });
+
+  test("findLatestEpisode returns null when not found", async () => {
+    mockSelectResult = [];
+    const result = await findLatestEpisode("Missing Show");
+    expect(result).toBeNull();
+  });
+
+  test("findEpisodeById returns episode when found", async () => {
+    const episode: any = { id: "e1", title: "Ep 1" };
+    mockSelectResult = [episode];
+    const result = await findEpisodeById("e1");
+    expect(result).toEqual(episode);
+  });
+
+  test("findEpisodeById returns null when not found", async () => {
+    mockSelectResult = [];
+    const result = await findEpisodeById("missing");
+    expect(result).toBeNull();
+  });
+});

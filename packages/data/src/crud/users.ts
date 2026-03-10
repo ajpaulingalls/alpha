@@ -72,3 +72,23 @@ export async function updateUserValidation(
 
   return result[0];
 }
+
+export async function updateUserName(
+  userId: string,
+  name: string
+): Promise<User> {
+  const result = await db
+    .update(users)
+    .set({
+      name,
+      updatedAt: new Date(),
+    })
+    .where(eq(users.id, userId))
+    .returning();
+
+  if (!result[0]) {
+    throw new Error(`User with id ${userId} not found`);
+  }
+
+  return result[0];
+}

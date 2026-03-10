@@ -1,0 +1,137 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { describe, expect, test, mock, beforeEach } from "bun:test";
+
+function createMockResult(data: any[]) {
+  const chain: Record<string, any> = {};
+  const methods = [
+    "from",
+    "where",
+    "orderBy",
+    "limit",
+    "set",
+    "values",
+    "returning",
+  ];
+  for (const m of methods) {
+    chain[m] = mock(() => {
+      if (m === "returning") return Promise.resolve(data);
+      return chain;
+    });
+  }
+  chain.then = (resolve: (v: any) => any) =>
+    Promise.resolve(data).then(resolve);
+  return chain;
+}
+
+let mockSelectResult: any[] = [];
+let mockInsertResult: any[] = [];
+let mockUpdateResult: any[] = [];
+
+const mockDb = {
+  select: mock(() => createMockResult(mockSelectResult)),
+  insert: mock(() => createMockResult(mockInsertResult)),
+  update: mock(() => createMockResult(mockUpdateResult)),
+};
+
+mock.module("../client", () => ({ db: mockDb }));
+
+const {
+  findUserByEmail,
+  findUserById,
+  createUser,
+  updateUserVerificationCode,
+  updateUserValidation,
+  updateUserName,
+} = await import("./users");
+
+describe("users CRUD", () => {
+  beforeEach(() => {
+    mockSelectResult = [];
+    mockInsertResult = [];
+    mockUpdateResult = [];
+  });
+
+  test("findUserByEmail returns user when found", async () => {
+    const user: any = { id: "1", email: "test@test.com", name: "Test" };
+    mockSelectResult = [user];
+    const result = await findUserByEmail("test@test.com");
+    expect(result).toEqual(user);
+  });
+
+  test("findUserByEmail returns null when not found", async () => {
+    mockSelectResult = [];
+    const result = await findUserByEmail("missing@test.com");
+    expect(result).toBeNull();
+  });
+
+  test("findUserById returns user when found", async () => {
+    const user: any = { id: "1", email: "test@test.com", name: "Test" };
+    mockSelectResult = [user];
+    const result = await findUserById("1");
+    expect(result).toEqual(user);
+  });
+
+  test("findUserById returns null when not found", async () => {
+    mockSelectResult = [];
+    const result = await findUserById("missing");
+    expect(result).toBeNull();
+  });
+
+  test("createUser returns created user", async () => {
+    const user: any = { id: "1", email: "test@test.com", name: "Test" };
+    mockInsertResult = [user];
+    const result = await createUser(
+      "Test",
+      "test@test.com",
+      "123456",
+      new Date()
+    );
+    expect(result).toEqual(user);
+  });
+
+  test("updateUserVerificationCode returns updated user", async () => {
+    const user: any = { id: "1", email: "test@test.com" };
+    mockUpdateResult = [user];
+    const result = await updateUserVerificationCode(
+      "test@test.com",
+      "654321",
+      new Date()
+    );
+    expect(result).toEqual(user);
+  });
+
+  test("updateUserVerificationCode throws when not found", async () => {
+    mockUpdateResult = [];
+    await expect(
+      updateUserVerificationCode("missing@test.com", "654321", new Date())
+    ).rejects.toThrow("not found");
+  });
+
+  test("updateUserValidation returns updated user", async () => {
+    const user: any = { id: "1", email: "test@test.com", validated: true };
+    mockUpdateResult = [user];
+    const result = await updateUserValidation("test@test.com", true);
+    expect(result).toEqual(user);
+  });
+
+  test("updateUserValidation throws when not found", async () => {
+    mockUpdateResult = [];
+    await expect(
+      updateUserValidation("missing@test.com", true)
+    ).rejects.toThrow("not found");
+  });
+
+  test("updateUserName returns updated user", async () => {
+    const user: any = { id: "1", name: "New Name" };
+    mockUpdateResult = [user];
+    const result = await updateUserName("1", "New Name");
+    expect(result).toEqual(user);
+  });
+
+  test("updateUserName throws when not found", async () => {
+    mockUpdateResult = [];
+    await expect(updateUserName("missing", "Name")).rejects.toThrow(
+      "not found"
+    );
+  });
+});
