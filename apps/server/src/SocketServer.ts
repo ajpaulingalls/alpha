@@ -69,7 +69,7 @@ export class SocketServer {
     logger.log(`Client connected: ${socket.id}`);
 
     const userToken =
-      (socket.handshake.auth?.["token"] as string) ||
+      (socket.handshake.auth["token"] as string) ||
       (socket.handshake.query["token"] as string);
     if (userToken) {
       try {

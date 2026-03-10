@@ -63,7 +63,7 @@ async function* parseSSEStream(
           if (data === "[DONE]") return;
           try {
             const chunk = JSON.parse(data) as ChatCompletionChunk;
-            const content = chunk.choices?.[0]?.delta?.content;
+            const content = chunk.choices[0]?.delta?.content;
             if (content) yield content;
           } catch {
             // skip malformed JSON lines
@@ -146,7 +146,10 @@ export class CortexClient {
     )}`;
     const messages: ChatMessage[] = [
       { role: "system", content: systemContent },
-      { role: "user", content: (params.text as string) ?? "" },
+      {
+        role: "user",
+        content: typeof params.text === "string" ? params.text : "",
+      },
     ];
 
     yield* this.streamChatCompletion(messages);

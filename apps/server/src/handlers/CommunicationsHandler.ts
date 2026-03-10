@@ -92,7 +92,7 @@ export abstract class CommunicationsHandler
     this.socket = socket;
     this.audioRootDir = audioRootDir;
 
-    this.socket?.on("appendAudio", (audio: string) => {
+    socket.on("appendAudio", (audio: string) => {
       if (audio.length > MAX_AUDIO_CHUNK_BYTES) {
         logger.warn(
           `Rejected oversized audio chunk (${audio.length} bytes) from ${socket.id}`
@@ -102,15 +102,15 @@ export abstract class CommunicationsHandler
       this.appendAudio(audio);
     });
 
-    this.socket?.on("voiceStarted", () => {
+    socket.on("voiceStarted", () => {
       this.voiceStarted();
     });
 
-    this.socket?.on("voiceStopped", () => {
+    socket.on("voiceStopped", () => {
       this.voiceStopped();
     });
 
-    this.socket?.on("disconnect", () => {
+    socket.on("disconnect", () => {
       this.client.disconnect();
       this.emitComplete();
     });

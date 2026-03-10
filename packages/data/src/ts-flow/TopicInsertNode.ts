@@ -35,13 +35,11 @@ export class TopicInsertNode extends NodeBase implements IQueryEngine {
   }
 
   private mapToTopic(item: JSONObject): NewPodcastTopic {
-    const title =
-      (item["topic"] as string) ?? (item["title"] as string) ?? undefined;
-    const summary = (item["summary"] as string) ?? undefined;
-    const filename =
-      (item["filename"] as string) ??
-      (item["podcastFilename"] as string) ??
-      undefined;
+    const title = (item["topic"] ?? item["title"]) as string | undefined;
+    const summary = item["summary"] as string | undefined;
+    const filename = (item["filename"] ?? item["podcastFilename"]) as
+      | string
+      | undefined;
     const embedding = item["embedding"];
 
     if (!title || !summary || !filename) {
