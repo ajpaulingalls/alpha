@@ -1,19 +1,13 @@
-import { describe, expect, test, mock, beforeEach } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { ContentClient } from "./client.ts";
+import {
+  jsonResponse,
+  fetchMock,
+  fetchUrl,
+  setupFetchMock,
+} from "./test-helpers.ts";
 
 // --- Helpers ---
-
-function jsonResponse(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    statusText: status === 200 ? "OK" : "Error",
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
-function fetchUrl(): string {
-  return (fetchMock.mock.calls[0] as unknown[])[0] as string;
-}
 
 function parseVariables(): Record<string, unknown> {
   const url = fetchUrl();
@@ -21,12 +15,7 @@ function parseVariables(): Record<string, unknown> {
   return JSON.parse(decodeURIComponent(match[1])) as Record<string, unknown>;
 }
 
-let fetchMock: ReturnType<typeof mock>;
-
-beforeEach(() => {
-  fetchMock = mock();
-  globalThis.fetch = fetchMock as unknown as typeof fetch;
-});
+setupFetchMock();
 
 // --- Mock data ---
 

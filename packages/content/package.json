@@ -5,6 +5,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./client": "./src/client.ts",
+    "./omny-client": "./src/omny-client.ts",
     "./types": "./src/types.ts"
   },
   "scripts": {

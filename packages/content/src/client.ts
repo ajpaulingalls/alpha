@@ -15,30 +15,13 @@ import {
   PODCAST_SERIES_QUERY,
   EPISODE_QUERY,
 } from "./queries.ts";
+import { assertOk, DEFAULT_TIMEOUT_MS } from "./http.ts";
 
-const DEFAULT_TIMEOUT_MS = 15_000;
 const WP_SITE = "aje";
 const HEADERS: Record<string, string> = {
   accept: "application/json",
   "wp-site": WP_SITE,
 };
-
-const MAX_ERROR_BODY_LENGTH = 1024;
-
-async function assertOk(response: Response): Promise<void> {
-  if (!response.ok) {
-    const raw = await response.text().catch(() => "");
-    const body =
-      raw.length > MAX_ERROR_BODY_LENGTH
-        ? raw.slice(0, MAX_ERROR_BODY_LENGTH)
-        : raw;
-    throw new Error(
-      `HTTP ${response.status}: ${response.statusText}${
-        body ? ` — ${body}` : ""
-      }`
-    );
-  }
-}
 
 export class ContentClient {
   private graphqlUrl: string;
