@@ -461,6 +461,45 @@ describe("CortexClient", () => {
     });
   });
 
+  describe("pathway name validation", () => {
+    test("rejects names with spaces", () => {
+      const client = new CortexClient("https://cortex.example.com");
+      expect(client.callPathway("bad name", {})).rejects.toThrow(
+        "Invalid pathway name"
+      );
+    });
+
+    test("rejects names with GraphQL injection characters", () => {
+      const client = new CortexClient("https://cortex.example.com");
+      expect(
+        client.callPathway("test { __schema { types { name } } }", {})
+      ).rejects.toThrow("Invalid pathway name");
+    });
+
+    test("rejects empty name", () => {
+      const client = new CortexClient("https://cortex.example.com");
+      expect(client.callPathway("", {})).rejects.toThrow(
+        "Invalid pathway name"
+      );
+    });
+
+    test("rejects names starting with a digit", () => {
+      const client = new CortexClient("https://cortex.example.com");
+      expect(client.callPathway("123test", {})).rejects.toThrow(
+        "Invalid pathway name"
+      );
+    });
+
+    test("accepts valid names with underscores and digits", async () => {
+      const client = new CortexClient("https://cortex.example.com");
+      fetchMock.mockResolvedValueOnce(
+        jsonResponse({ data: { my_pathway_2: { result: "ok" } } })
+      );
+      const res = await client.callPathway("my_pathway_2", {});
+      expect(res.result).toBe("ok");
+    });
+  });
+
   describe("error handling", () => {
     test("throws on non-2xx HTTP status with response body", async () => {
       const client = new CortexClient("https://cortex.example.com");

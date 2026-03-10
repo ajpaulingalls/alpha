@@ -10,6 +10,9 @@ import type {
   SearchResult,
 } from "./types.ts";
 
+const VALID_NAME = /^[a-zA-Z_]\w*$/;
+const DEFAULT_TIMEOUT_MS = 30_000;
+
 async function assertOk(response: Response): Promise<void> {
   if (!response.ok) {
     const body = await response.text().catch(() => "");
@@ -63,7 +66,7 @@ async function* parseSSEStream(
           if (data === "[DONE]") return;
           try {
             const chunk = JSON.parse(data) as ChatCompletionChunk;
-            const content = chunk.choices[0]?.delta?.content;
+            const content = chunk.choices?.[0]?.delta?.content;
             if (content) yield content;
           } catch {
             // skip malformed JSON lines
@@ -80,6 +83,7 @@ export class CortexClient {
   private baseUrl: string;
   private apiKey?: string;
   private defaultModel?: string;
+  private timeoutMs: number;
 
   constructor(config: string | CortexClientConfig) {
     if (typeof config === "string") {
@@ -89,6 +93,9 @@ export class CortexClient {
       this.apiKey = config.apiKey;
       this.defaultModel = config.defaultModel;
     }
+    this.timeoutMs =
+      (typeof config === "object" ? config.timeoutMs : undefined) ??
+      DEFAULT_TIMEOUT_MS;
   }
 
   private headers(): Record<string, string> {
@@ -106,6 +113,12 @@ export class CortexClient {
     name: string,
     params: Record<string, unknown> = {}
   ): Promise<PathwayResponse> {
+    if (!VALID_NAME.test(name)) {
+      throw new Error(
+        `Invalid pathway name "${name}": must match /^[a-zA-Z_]\\w*$/`
+      );
+    }
+
     const entries = Object.entries(params).filter(([, v]) => v !== undefined);
 
     const variableDefs = entries
@@ -120,6 +133,7 @@ export class CortexClient {
       method: "POST",
       headers: this.headers(),
       body: JSON.stringify({ query, variables }),
+      signal: AbortSignal.timeout(this.timeoutMs),
     });
     await assertOk(response);
 
@@ -141,6 +155,12 @@ export class CortexClient {
     name: string,
     params: Record<string, unknown> = {}
   ): AsyncGenerator<string> {
+    if (!VALID_NAME.test(name)) {
+      throw new Error(
+        `Invalid pathway name "${name}": must match /^[a-zA-Z_]\\w*$/`
+      );
+    }
+
     const systemContent = `Use the ${name} pathway. Parameters: ${JSON.stringify(
       params
     )}`;
@@ -168,6 +188,7 @@ export class CortexClient {
         messages,
         ...(stream && { stream: true }),
       }),
+      signal: AbortSignal.timeout(this.timeoutMs),
     });
     await assertOk(response);
     return response;

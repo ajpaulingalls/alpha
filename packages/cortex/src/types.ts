@@ -38,6 +38,8 @@ export interface CortexClientConfig {
   baseUrl: string;
   apiKey?: string;
   defaultModel?: string;
+  /** Request timeout in milliseconds (default: 30 000) */
+  timeoutMs?: number;
 }
 
 export interface ChatCompletionResponse {
@@ -62,7 +64,7 @@ export interface ChatCompletionChunk {
   object: string;
   created: number;
   model: string;
-  choices: {
+  choices?: {
     index: number;
     delta: { role?: string; content?: string };
     finish_reason: string | null;
