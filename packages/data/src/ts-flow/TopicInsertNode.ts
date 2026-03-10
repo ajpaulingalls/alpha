@@ -35,12 +35,27 @@ export class TopicInsertNode extends NodeBase implements IQueryEngine {
   }
 
   private mapToTopic(item: JSONObject): NewPodcastTopic {
-    return {
-      title: (item["topic"] as string) ?? (item["title"] as string),
-      summary: item["summary"] as string,
-      filename:
-        (item["filename"] as string) ?? (item["podcastFilename"] as string),
-      embedding: item["embedding"] as number[],
-    };
+    const title =
+      (item["topic"] as string) ?? (item["title"] as string) ?? undefined;
+    const summary = (item["summary"] as string) ?? undefined;
+    const filename =
+      (item["filename"] as string) ??
+      (item["podcastFilename"] as string) ??
+      undefined;
+    const embedding = item["embedding"];
+
+    if (!title || !summary || !filename) {
+      throw new Error(
+        `TopicInsertNode: missing required field(s) — title: ${!!title}, summary: ${!!summary}, filename: ${!!filename}`
+      );
+    }
+
+    if (!Array.isArray(embedding)) {
+      throw new Error(
+        `TopicInsertNode: embedding must be a number array, got ${typeof embedding}`
+      );
+    }
+
+    return { title, summary, filename, embedding: embedding as number[] };
   }
 }

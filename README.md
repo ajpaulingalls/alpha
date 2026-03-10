@@ -76,15 +76,14 @@ bun run studio     # open Drizzle Studio UI
 
 ## Environment Variables
 
-| Variable                     | Used By                     | Description                          |
-| ---------------------------- | --------------------------- | ------------------------------------ |
-| `OPENAI_API_KEY`             | server, generator, importer | OpenAI API access                    |
-| `DATABASE_URL`               | server, data                | PostgreSQL connection string         |
-| `POSTGRES_CONNECTION_STRING` | generator, importer         | PostgreSQL connection (for @ts-flow) |
-| `JWT_SECRET`                 | server                      | Secret for signing auth tokens       |
-| `PORT`                       | server                      | HTTP server port (default: 8081)     |
-| `CORS_HOSTS`                 | server                      | Allowed CORS origins (JSON array)    |
-| `OMNY_STUDIO_API_KEY`        | importer                    | Omny Studio podcast API access       |
+| Variable              | Used By                     | Description                       |
+| --------------------- | --------------------------- | --------------------------------- |
+| `OPENAI_API_KEY`      | server, generator, importer | OpenAI API access                 |
+| `DATABASE_URL`        | server, generator, importer | PostgreSQL connection string      |
+| `JWT_SECRET`          | server                      | Secret for signing auth tokens    |
+| `PORT`                | server                      | HTTP server port (default: 8081)  |
+| `CORS_HOSTS`          | server                      | Allowed CORS origins (JSON array) |
+| `OMNY_STUDIO_API_KEY` | importer                    | Omny Studio podcast API access    |
 
 ## Tech Stack
 
