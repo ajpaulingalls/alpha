@@ -15,11 +15,11 @@
     "@ts-flow/db": "2.0.3",
     "@ts-flow/ffmpeg": "2.0.3",
     "@ts-flow/transforms": "2.0.6",
-    "express": "5.1.0"
+    "express": "5.2.1"
   },
   "devDependencies": {
-    "@types/bun": "1.2.9",
-    "@types/express": "5.0.1"
+    "@types/bun": "1.3.10",
+    "@types/express": "5.0.6"
   },
   "peerDependencies": {
     "typescript": "5.8.2"

@@ -19,7 +19,7 @@
     "react": "19.2.0",
     "react-native": "0.83.2",
     "react-native-realtime-audio": "1.1.6",
-    "socket.io-client": "4.8.1"
+    "socket.io-client": "4.8.3"
   },
   "devDependencies": {
     "@types/react": "~19.2.10",

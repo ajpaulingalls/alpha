@@ -4,6 +4,12 @@
   "type": "module",
   "exports": {
     "./crud/users": "./src/crud/users.ts",
+    "./crud/preferences": "./src/crud/preferences.ts",
+    "./crud/sessions": "./src/crud/sessions.ts",
+    "./crud/listen-history": "./src/crud/listen-history.ts",
+    "./crud/episodes": "./src/crud/episodes.ts",
+    "./crud/topics": "./src/crud/topics.ts",
+    "./crud/cached-responses": "./src/crud/cached-responses.ts",
     "./schema/users": "./src/schema/users.ts",
     "./schema/podcast_topics": "./src/schema/podcast_topics.ts",
     "./schema/podcast_episodes": "./src/schema/podcast_episodes.ts",
@@ -20,11 +26,11 @@
     "test": "bun test"
   },
   "dependencies": {
-    "drizzle-orm": "0.41.0",
-    "postgres": "3.4.5"
+    "drizzle-orm": "0.45.1",
+    "postgres": "3.4.8"
   },
   "devDependencies": {
-    "@types/bun": "1.2.9",
-    "drizzle-kit": "0.30.6"
+    "@types/bun": "1.3.10",
+    "drizzle-kit": "0.31.9"
   }
 }

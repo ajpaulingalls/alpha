@@ -14,12 +14,12 @@
     "@ts-flow/core": "2.0.3",
     "@ts-flow/cron": "2.0.3",
     "@ts-flow/db": "2.0.3",
-    "express": "5.1.0",
+    "express": "5.2.1",
     "openai": "6.27.0"
   },
   "devDependencies": {
-    "@types/bun": "1.2.9",
-    "@types/express": "5.0.1"
+    "@types/bun": "1.3.10",
+    "@types/express": "5.0.6"
   },
   "peerDependencies": {
     "typescript": "5.8.2"
