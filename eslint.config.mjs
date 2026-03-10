@@ -32,9 +32,9 @@ export default tseslint.config(
     },
     rules: {
       "no-console": "off",
-      "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/no-non-null-assertion": "warn",
-      "@typescript-eslint/no-empty-object-type": "warn",
+      "@typescript-eslint/no-explicit-any": "error",
+      "@typescript-eslint/no-non-null-assertion": "error",
+      "@typescript-eslint/no-empty-object-type": "error",
       "@typescript-eslint/no-unused-vars": [
         "error",
         {
