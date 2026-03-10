@@ -192,6 +192,20 @@ Drizzle ORM database layer for PostgreSQL + pgvector.
 
 OpenAI TTS utility. Exports `generateAudioFromTextToFile()` which calls the TTS API and writes PCM output (24kHz 16-bit) directly to a file.
 
+### `@alpha/content` (`packages/content/`)
+
+Typed clients for external content APIs. Two independent clients:
+
+- **`ContentClient`** — Al Jazeera GraphQL API (`aljazeera.com/graphql`). Searches articles, fetches full article content for RAG context, and discovers podcast series. Public API, no auth.
+- **`OmnyClient`** — Omny Studio Consumer API (`api.omny.fm`). Read-only access to full podcast episodes for playback. Lists programs, paginates episodes (cursor-based), and fetches individual clips by slug. Public API, no auth. Constructor takes an org ID.
+
+**Subpath exports:**
+
+- `@alpha/content` — both clients + all public types
+- `@alpha/content/client` — `ContentClient` only
+- `@alpha/content/omny-client` — `OmnyClient` only
+- `@alpha/content/types` — all type definitions
+
 ### `@alpha/socket` (`packages/socket/`)
 
 Shared type definitions for agent ↔ client communication. With the move to LiveKit, this will evolve to define the RPC method contracts and data payloads for agent → client triggers (topic cards, podcast metadata, mode transitions) rather than Socket.io event types.
@@ -384,8 +398,11 @@ Not a custom screen, but critical to support via standard OS media APIs.
 
 The server orchestrates across four content sources to answer user queries, build catch-ups, and play podcasts.
 
-**1. Imported Podcasts (Importer)**
-Al Jazeera's existing podcast catalog. Transcribed, split into topic segments, embedded for vector search. Each topic has a title, summary, embedding, and trimmed audio file. These can be played as full episodes or served as individual topic clips in response to user queries.
+**1. Podcast Catalog (Omny Studio)**
+Al Jazeera's existing podcast catalog, hosted on Omny Studio. Accessed two ways:
+
+- **Consumer API** (`api.omny.fm`) — public read-only API for browsing programs and streaming full episodes. Used by the server via `OmnyClient` (`@alpha/content/omny-client`) when users request episode playback. No auth needed.
+- **Management API** (`api.omnystudio.com/v0`) — authenticated API used by the importer to fetch episodes for indexing. Episodes are transcribed, split into topic segments, embedded for vector search. Each topic has a title, summary, embedding, and trimmed audio file that can be served as individual clips in response to user queries.
 
 **2. Pre-Generated Episodes (Generator)**
 Daily automated podcast episodes produced from Al Jazeera's top stories. Two AI hosts (Blair & Betty) discuss current news articles. Full audio files with embeddings stored in the database. Used in catch-ups and available for on-demand playback.
@@ -757,4 +774,5 @@ Workflows are bootstrapped by `@ts-flow/core`, which loads the JSON definition a
 | `POSTGRES_CONNECTION_STRING` | generator, importer | PostgreSQL connection (for @ts-flow)      |
 | `JWT_SECRET`                 | server              | Secret for signing auth tokens            |
 | `PORT`                       | server              | HTTP server port (default: 8081)          |
-| `OMNY_STUDIO_API_KEY`        | importer            | Omny Studio podcast API access            |
+| `OMNY_STUDIO_API_KEY`        | importer            | Omny Studio management API access         |
+| `OMNY_STUDIO_ORG_ID`         | server              | Omny Studio org ID (for consumer API)     |
