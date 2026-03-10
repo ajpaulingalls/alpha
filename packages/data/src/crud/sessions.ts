@@ -1,6 +1,7 @@
 import { eq, desc } from "drizzle-orm";
 import { db } from "../client";
 import { sessions, type Session } from "../schema/sessions";
+import { updateOneOrThrow } from "./helpers";
 
 export async function createSession(userId: string): Promise<Session> {
   const result = await db
@@ -11,17 +12,14 @@ export async function createSession(userId: string): Promise<Session> {
 }
 
 export async function endSession(sessionId: string): Promise<Session> {
-  const result = await db
-    .update(sessions)
-    .set({ endedAt: new Date() })
-    .where(eq(sessions.id, sessionId))
-    .returning();
-
-  if (!result[0]) {
-    throw new Error(`Session ${sessionId} not found`);
-  }
-
-  return result[0];
+  return updateOneOrThrow(
+    db
+      .update(sessions)
+      .set({ endedAt: new Date() })
+      .where(eq(sessions.id, sessionId))
+      .returning(),
+    `Session ${sessionId} not found`
+  );
 }
 
 export async function findLatestSession(
@@ -39,15 +37,12 @@ export async function findLatestSession(
 export async function markCatchUpDelivered(
   sessionId: string
 ): Promise<Session> {
-  const result = await db
-    .update(sessions)
-    .set({ catchUpDelivered: true })
-    .where(eq(sessions.id, sessionId))
-    .returning();
-
-  if (!result[0]) {
-    throw new Error(`Session ${sessionId} not found`);
-  }
-
-  return result[0];
+  return updateOneOrThrow(
+    db
+      .update(sessions)
+      .set({ catchUpDelivered: true })
+      .where(eq(sessions.id, sessionId))
+      .returning(),
+    `Session ${sessionId} not found`
+  );
 }

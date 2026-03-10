@@ -68,21 +68,25 @@ export class SocketServer {
   ) {
     logger.log(`Client connected: ${socket.id}`);
 
-    const userToken = socket.handshake.query["token"] as string;
+    const userToken =
+      (socket.handshake.auth?.["token"] as string) ||
+      (socket.handshake.query["token"] as string);
     if (userToken) {
       try {
         const secret = process.env["JWT_SECRET"];
         if (!secret) {
           throw new Error("JWT_SECRET is not configured");
         }
-        const decoded = jwt.verify(userToken, secret);
+        const decoded = jwt.verify(userToken, secret, {
+          algorithms: ["HS256"],
+        });
         const userId = (decoded as JwtPayload)["userId"];
         if (typeof userId !== "string") {
           throw new Error("Invalid token payload: missing userId");
         }
         socket.data.userId = userId;
         const user = await findUserById(socket.data.userId);
-        if (user) {
+        if (user && user.validated) {
           socket.data.userName = user.name;
           const newHandler = new PodcastHandler(this.apiKey);
           newHandler.init(socket, this.audioRootDir);

@@ -4,6 +4,7 @@ import type {
 } from "openai-realtime-socket-client";
 import type { IToolHandler } from "./ToolHandler";
 import { z } from "zod";
+import { logger } from "../utils/logger";
 
 // Define the schema for code verification parameters
 const CheckCodeParams = z.object({
@@ -35,7 +36,7 @@ export class CheckCodeTool implements IToolHandler {
   }
 
   executeCall(event: ResponseFunctionCallArgumentsDoneEvent): Promise<void> {
-    console.log("CheckCodeTool.executeCall", event);
+    logger.debug("CheckCodeTool.executeCall", event);
 
     try {
       // Parse and validate the input using Zod
@@ -47,9 +48,9 @@ export class CheckCodeTool implements IToolHandler {
       return Promise.resolve();
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.error("Validation error:", error.issues);
+        logger.error("Validation error:", error.issues);
       } else {
-        console.error("Error storing code:", error);
+        logger.error("Error storing code:", error);
       }
       return Promise.reject(error);
     }

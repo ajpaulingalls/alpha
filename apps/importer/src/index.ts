@@ -62,6 +62,16 @@ void bootstrap(paths, (container: IContainer) => {
     app.use(express.json());
 
     app.post("/start", async (req: Request, res: Response) => {
+      // Validate API key
+      const apiKey = process.env["IMPORTER_API_KEY"];
+      if (apiKey) {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || authHeader !== `Bearer ${apiKey}`) {
+          res.status(401).json({ error: "Unauthorized" });
+          return;
+        }
+      }
+
       const { programId } = req.body;
 
       if (!programId) {
@@ -69,12 +79,17 @@ void bootstrap(paths, (container: IContainer) => {
         return;
       }
 
+      // Validate programId format (alphanumeric, hyphens, underscores only)
+      if (!/^[a-zA-Z0-9_-]{1,50}$/.test(String(programId))) {
+        res.status(400).json({ error: "Invalid program ID format" });
+        return;
+      }
+
       try {
         eventBus.sendEvent("loadProgram", { programId });
         res.status(200).json({ message: "Program processing started" });
-      } catch (e) {
-        console.log("error", e);
-        res.status(500).json({ message: e });
+      } catch {
+        res.status(500).json({ error: "Internal server error" });
       }
     });
     container.createInstance(

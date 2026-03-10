@@ -7,6 +7,7 @@ import type {
 } from "@alpha/socket/SocketInterfaces";
 import type { InterServerEvents } from "../SocketServer";
 import type { SocketData } from "../SocketServer";
+import { logger } from "../utils/logger";
 
 export class PodcastHandler extends CommunicationsHandler {
   constructor(apiKey: string) {
@@ -41,7 +42,7 @@ export class PodcastHandler extends CommunicationsHandler {
         await new Promise((resolve) => setTimeout(resolve, 1000));
         await this.streamAudioToClient("podcast.wav");
       } catch (error) {
-        console.error("Error playing welcome audio:", error);
+        logger.error("Error playing welcome audio:", error);
       }
     });
 

@@ -1,6 +1,7 @@
 import { eq, and, desc, gt } from "drizzle-orm";
 import { db } from "../client";
 import { listenHistory, type ListenHistory } from "../schema/listen_history";
+import { updateOneOrThrow } from "./helpers";
 
 export async function recordListen(
   sessionId: string,
@@ -19,17 +20,14 @@ export async function updateCompletedPercent(
   id: string,
   percent: number
 ): Promise<ListenHistory> {
-  const result = await db
-    .update(listenHistory)
-    .set({ completedPercent: percent })
-    .where(eq(listenHistory.id, id))
-    .returning();
-
-  if (!result[0]) {
-    throw new Error(`Listen history entry ${id} not found`);
-  }
-
-  return result[0];
+  return updateOneOrThrow(
+    db
+      .update(listenHistory)
+      .set({ completedPercent: percent })
+      .where(eq(listenHistory.id, id))
+      .returning(),
+    `Listen history entry ${id} not found`
+  );
 }
 
 export async function findRecentListens(

@@ -4,10 +4,18 @@ import type {
 } from "openai-realtime-socket-client";
 import type { IToolHandler } from "./ToolHandler";
 import { z } from "zod";
+import { logger } from "../utils/logger";
 
 // Define the schema for user creation parameters
 const SavePhoneParams = z.object({
-  phone: z.string().min(1, "Phone is required"),
+  phone: z
+    .string()
+    .min(1, "Phone is required")
+    .max(20, "Phone number is too long")
+    .regex(
+      /^[+]?[\d\s\-().]{7,20}$/,
+      "Phone must contain only digits, spaces, hyphens, parentheses, or leading +"
+    ),
 });
 
 // Type inference from the schema
@@ -34,7 +42,7 @@ export class SavePhoneTool implements IToolHandler {
   }
 
   executeCall(event: ResponseFunctionCallArgumentsDoneEvent): Promise<void> {
-    console.log("SavePhoneTool.executeCall", event);
+    logger.debug("SavePhoneTool.executeCall", event);
 
     try {
       // Parse and validate the input using Zod
@@ -45,9 +53,9 @@ export class SavePhoneTool implements IToolHandler {
       return Promise.resolve();
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.error("Validation error:", error.issues);
+        logger.error("Validation error:", error.issues);
       } else {
-        console.error("Error saving phone:", error);
+        logger.error("Error saving phone:", error);
       }
       return Promise.reject(error);
     }

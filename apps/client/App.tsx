@@ -66,16 +66,12 @@ export default function App() {
       return;
     }
 
-    // Initialize socket connection with token if available
-    const socketUrl = new URL("http://192.168.7.141:8082");
-    if (userToken) {
-      socketUrl.searchParams.append("token", userToken);
-    }
+    // Initialize socket connection with token via auth (not query params)
+    const socketUrl = "http://192.168.7.141:8082";
 
-    const newSocket = io(socketUrl.toString()) as Socket<
-      ServerToClientEvents,
-      ClientToServerEvents
-    >;
+    const newSocket = io(socketUrl, {
+      auth: userToken ? { token: userToken } : undefined,
+    }) as Socket<ServerToClientEvents, ClientToServerEvents>;
 
     // Socket event handlers
     newSocket.on("connect", () => {
@@ -98,7 +94,7 @@ export default function App() {
     });
 
     newSocket.on("saveUserToken", async (token: string) => {
-      console.log("Saving user token", token);
+      console.log("Saving user token");
       try {
         await setItem(token);
         setUserToken(token);

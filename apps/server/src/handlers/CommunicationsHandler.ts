@@ -15,6 +15,8 @@ import type { ServerToClientEvents } from "@alpha/socket/SocketInterfaces";
 
 export const HANDLER_COMPLETE = "handler_complete";
 
+const MAX_AUDIO_CHUNK_BYTES = 256 * 1024; // 256KB max per chunk (base64)
+
 export interface ICommunicationsHandler {
   init(
     socket: Socket<
@@ -91,6 +93,12 @@ export abstract class CommunicationsHandler
     this.audioRootDir = audioRootDir;
 
     this.socket?.on("appendAudio", (audio: string) => {
+      if (audio.length > MAX_AUDIO_CHUNK_BYTES) {
+        logger.warn(
+          `Rejected oversized audio chunk (${audio.length} bytes) from ${socket.id}`
+        );
+        return;
+      }
       this.appendAudio(audio);
     });
 
@@ -121,6 +129,14 @@ export abstract class CommunicationsHandler
       const CHUNK_SIZE = 48000;
       const filePath = path.join(this.audioRootDir, audioPath);
 
+      // Prevent path traversal
+      const resolvedPath = path.resolve(filePath);
+      const resolvedRoot = path.resolve(this.audioRootDir);
+      if (!resolvedPath.startsWith(resolvedRoot + path.sep)) {
+        reject(new Error("Invalid audio path"));
+        return;
+      }
+
       const streamItem: RealtimeItem = {
         id: `audio-${Date.now()}`,
         type: "message",
@@ -134,7 +150,7 @@ export abstract class CommunicationsHandler
 
       try {
         if (!fs.existsSync(filePath)) {
-          this.socket?.emit("error", `Audio file not found: ${audioPath}`);
+          this.socket?.emit("error", "Requested audio not available");
           reject(new Error(`Audio file not found: ${audioPath}`));
           return;
         }
@@ -166,7 +182,7 @@ export abstract class CommunicationsHandler
           logger.error(
             `Stream error for client ${this.socket?.id}: ${error.message}`
           );
-          this.socket?.emit("error", `Error streaming audio: ${error.message}`);
+          this.socket?.emit("error", "Audio streaming error");
           reject(error);
         });
       } catch (error: unknown) {
@@ -175,10 +191,7 @@ export abstract class CommunicationsHandler
         logger.error(
           `Failed to start audio stream for client ${this.socket?.id}: ${errorMessage}`
         );
-        this.socket?.emit(
-          "error",
-          `Failed to start audio stream: ${errorMessage}`
-        );
+        this.socket?.emit("error", "Audio streaming error");
         reject(error);
       }
     });

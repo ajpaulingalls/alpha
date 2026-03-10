@@ -4,6 +4,7 @@ import {
   userPreferences,
   type UserPreference,
 } from "../schema/user_preferences";
+import { updateOneOrThrow } from "./helpers";
 
 export async function findPreferencesByUserId(
   userId: string
@@ -37,37 +38,31 @@ export async function updatePreferences(
     Pick<UserPreference, "timezone" | "catchUpDepth" | "preferences">
   >
 ): Promise<UserPreference> {
-  const result = await db
-    .update(userPreferences)
-    .set({ ...updates, updatedAt: new Date() })
-    .where(eq(userPreferences.userId, userId))
-    .returning();
-
-  if (!result[0]) {
-    throw new Error(`Preferences for user ${userId} not found`);
-  }
-
-  return result[0];
+  return updateOneOrThrow(
+    db
+      .update(userPreferences)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(userPreferences.userId, userId))
+      .returning(),
+    `Preferences for user ${userId} not found`
+  );
 }
 
 export async function updatePreferencesJson(
   userId: string,
   jsonUpdates: Record<string, unknown>
 ): Promise<UserPreference> {
-  const result = await db
-    .update(userPreferences)
-    .set({
-      preferences: sql`COALESCE(${
-        userPreferences.preferences
-      }, '{}'::jsonb) || ${JSON.stringify(jsonUpdates)}::jsonb`,
-      updatedAt: new Date(),
-    })
-    .where(eq(userPreferences.userId, userId))
-    .returning();
-
-  if (!result[0]) {
-    throw new Error(`Preferences for user ${userId} not found`);
-  }
-
-  return result[0];
+  return updateOneOrThrow(
+    db
+      .update(userPreferences)
+      .set({
+        preferences: sql`COALESCE(${
+          userPreferences.preferences
+        }, '{}'::jsonb) || ${JSON.stringify(jsonUpdates)}::jsonb`,
+        updatedAt: new Date(),
+      })
+      .where(eq(userPreferences.userId, userId))
+      .returning(),
+    `Preferences for user ${userId} not found`
+  );
 }

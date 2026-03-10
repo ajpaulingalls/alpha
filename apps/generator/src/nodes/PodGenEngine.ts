@@ -7,6 +7,7 @@ import {
 } from "@ts-flow/core";
 import fs from "fs";
 import { WriteStream } from "fs";
+import path from "path";
 import OpenAI from "openai";
 
 @ContainerNode
@@ -50,7 +51,11 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
 
         // Check if we have cached data for this segment
         const slug = item.slug as string;
-        const cachePath = `./pods/cache/${slug}/segment.pcm`;
+        // Validate slug to prevent path traversal
+        if (!/^[a-zA-Z0-9_-]+$/.test(slug)) {
+          throw new Error("Invalid slug format");
+        }
+        const cachePath = path.join("./pods/cache", slug, "segment.pcm");
         if (fs.existsSync(cachePath)) {
           console.log("\n\n\nUsing cached segment for:", item.title);
           const cachedData = fs.readFileSync(cachePath);
@@ -245,11 +250,15 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
 
     // If we have a slug, save the PCM data to cache
     if (slug) {
-      const cacheDir = `./pods/cache/${slug}`;
+      // Validate slug to prevent path traversal
+      if (!/^[a-zA-Z0-9_-]+$/.test(slug)) {
+        throw new Error("Invalid slug format");
+      }
+      const cacheDir = path.join("./pods/cache", slug);
       if (!fs.existsSync(cacheDir)) {
         fs.mkdirSync(cacheDir, { recursive: true });
       }
-      fs.writeFileSync(`${cacheDir}/segment.pcm`, allPcmData);
+      fs.writeFileSync(path.join(cacheDir, "segment.pcm"), allPcmData);
     }
 
     // Write the accumulated PCM data to the output file

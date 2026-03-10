@@ -7,6 +7,7 @@ import {
   type CachedResponse,
   type NewCachedResponse,
 } from "../schema/cached_responses";
+import { updateOneOrThrow } from "./helpers";
 
 export async function createCachedResponse(
   data: NewCachedResponse
@@ -38,20 +39,17 @@ export async function searchCachedResponses(
 }
 
 export async function incrementHitCount(id: string): Promise<CachedResponse> {
-  const result = await db
-    .update(cachedResponses)
-    .set({
-      hitCount: sql`${cachedResponses.hitCount} + 1`,
-      updatedAt: new Date(),
-    })
-    .where(eq(cachedResponses.id, id))
-    .returning();
-
-  if (!result[0]) {
-    throw new Error(`Cached response ${id} not found`);
-  }
-
-  return result[0];
+  return updateOneOrThrow(
+    db
+      .update(cachedResponses)
+      .set({
+        hitCount: sql`${cachedResponses.hitCount} + 1`,
+        updatedAt: new Date(),
+      })
+      .where(eq(cachedResponses.id, id))
+      .returning(),
+    `Cached response ${id} not found`
+  );
 }
 
 export async function deleteExpired(): Promise<number> {

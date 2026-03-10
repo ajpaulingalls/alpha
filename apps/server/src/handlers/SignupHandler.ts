@@ -1,4 +1,4 @@
-import { randomInt } from "node:crypto";
+import { randomInt, timingSafeEqual } from "node:crypto";
 import { CommunicationsHandler } from "./CommunicationsHandler";
 import { Socket } from "socket.io";
 import { SaveNameTool } from "../tools/SaveNameTool";
@@ -12,6 +12,7 @@ import {
 } from "@alpha/data/crud/users";
 import { type User } from "@alpha/data/schema/users";
 import jwt from "jsonwebtoken";
+import { logger } from "../utils/logger";
 
 export default class SignupHandler extends CommunicationsHandler {
   private saveNameTool: SaveNameTool;
@@ -26,8 +27,8 @@ export default class SignupHandler extends CommunicationsHandler {
     const checkCodeTool = new CheckCodeTool();
     super(
       apiKey,
-      `You are a helpful assistant guiding users through the signup process.  
-         Your job is to collect the user's name.  
+      `You are a helpful assistant guiding users through the signup process.
+         Your job is to collect the user's name.
          To do this, you will ask the user for their name in a friendly and engaging manner.
          You will then use the save_name tool to save the name.
          After that, you will ask for their phone number and use the save_phone tool.
@@ -56,30 +57,26 @@ export default class SignupHandler extends CommunicationsHandler {
     // Set up event handlers for the client
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.client.on("response.function_call_arguments.done", (event: any) => {
-      console.log("Function call arguments done", event);
+      logger.debug("Function call arguments done", event);
       if (event.name === this.saveNameTool.getName()) {
         this.saveNameTool
           .executeCall(event)
           .then(() => {
-            // Notify the client that user was created successfully
-            console.log("Name saved successfully");
+            logger.debug("Name saved successfully");
             this.client.createResponse({
               instructions:
                 "Now, please provide your phone number so we can send you a verification code.",
             });
           })
           .catch((error) => {
-            console.error("Error executing save name tool:", error);
-            this.socket?.emit(
-              "error",
-              error instanceof Error ? error.message : String(error)
-            );
+            logger.error("Error executing save name tool:", error);
+            this.socket?.emit("error", "Failed to save name");
           });
       } else if (event.name === this.savePhoneTool.getName()) {
         this.savePhoneTool
           .executeCall(event)
           .then(async () => {
-            console.log("Phone saved successfully");
+            logger.debug("Phone saved successfully");
             const phone = this.savePhoneTool.getSavedPhone();
             const existingUser = await findUserByEmail(phone);
             const existingCode = this.checkCodeTool.getStoredCode();
@@ -123,11 +120,8 @@ export default class SignupHandler extends CommunicationsHandler {
             }
           })
           .catch((error) => {
-            console.error("Error executing save phone tool:", error);
-            this.socket?.emit(
-              "error",
-              error instanceof Error ? error.message : String(error)
-            );
+            logger.error("Error executing save phone tool:", error);
+            this.socket?.emit("error", "Failed to process phone number");
           });
       } else if (event.name === this.checkCodeTool.getName()) {
         this.checkCodeTool
@@ -146,15 +140,12 @@ export default class SignupHandler extends CommunicationsHandler {
             }
           })
           .catch((error) => {
-            console.error("Error verifying code:", error);
+            logger.error("Error verifying code:", error);
             this.client.createResponse({
               instructions:
                 "Sorry, there was an error verifying your code. Please try again.",
             });
-            this.socket?.emit(
-              "error",
-              error instanceof Error ? error.message : String(error)
-            );
+            this.socket?.emit("error", "Code verification failed");
           });
       }
     });
@@ -164,7 +155,7 @@ export default class SignupHandler extends CommunicationsHandler {
       try {
         await this.streamAudioToClient("welcome.wav");
       } catch (error) {
-        console.error("Error playing welcome audio:", error);
+        logger.error("Error playing welcome audio:", error);
       }
     });
 
@@ -184,7 +175,7 @@ export default class SignupHandler extends CommunicationsHandler {
     try {
       await this.streamAudioToClient("signupComplete.wav");
     } catch (error) {
-      console.error("Error playing welcome audio:", error);
+      logger.error("Error playing signup complete audio:", error);
     }
     this.emitComplete();
   }
@@ -201,7 +192,12 @@ export default class SignupHandler extends CommunicationsHandler {
       return false;
     }
 
-    if (providedCode !== this.user!.verificationCode) {
+    const storedCode = this.user!.verificationCode;
+    if (
+      !storedCode ||
+      providedCode.length !== storedCode.length ||
+      !timingSafeEqual(Buffer.from(providedCode), Buffer.from(storedCode))
+    ) {
       this.client.createResponse({
         instructions:
           "Sorry, that code is invalid. Please try again with the correct verification code.",
@@ -212,7 +208,7 @@ export default class SignupHandler extends CommunicationsHandler {
     // Code is valid and not expired, update user validation status
     this.user = await updateUserValidation(this.user!.email, true);
 
-    console.log("Code verified successfully");
+    logger.debug("Code verified successfully");
     return true;
   }
 

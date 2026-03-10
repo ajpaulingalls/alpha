@@ -4,10 +4,11 @@ import type {
 } from "openai-realtime-socket-client";
 import type { IToolHandler } from "./ToolHandler";
 import { z } from "zod";
+import { logger } from "../utils/logger";
 
 // Define the schema for user creation parameters
 const SaveNameParams = z.object({
-  name: z.string().min(1, "Name is required"),
+  name: z.string().min(1, "Name is required").max(100, "Name is too long"),
 });
 
 // Type inference from the schema
@@ -34,22 +35,22 @@ export class SaveNameTool implements IToolHandler {
   }
 
   executeCall(event: ResponseFunctionCallArgumentsDoneEvent): Promise<void> {
-    console.log("SaveNameTool.executeCall", event);
+    logger.debug("SaveNameTool.executeCall", event);
 
     try {
       // Parse and validate the input using Zod
       const params = SaveNameParams.parse(JSON.parse(event.arguments));
 
       // Now we have type-safe access to the validated parameters
-      console.log("Saving name:", params.name);
+      logger.debug("Saving name:", params.name);
       this.savedName = params.name;
 
       return Promise.resolve();
     } catch (error) {
       if (error instanceof z.ZodError) {
-        console.error("Validation error:", error.issues);
+        logger.error("Validation error:", error.issues);
       } else {
-        console.error("Error saving name:", error);
+        logger.error("Error saving name:", error);
       }
       return Promise.reject(error);
     }
