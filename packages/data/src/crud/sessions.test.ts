@@ -35,8 +35,13 @@ const mockDb = {
 
 mock.module("../client", () => ({ db: mockDb }));
 
-const { createSession, endSession, findLatestSession, markCatchUpDelivered } =
-  await import("./sessions");
+const {
+  createSession,
+  findSessionById,
+  endSession,
+  findLatestSession,
+  markCatchUpDelivered,
+} = await import("./sessions");
 
 describe("sessions CRUD", () => {
   beforeEach(() => {
@@ -50,6 +55,19 @@ describe("sessions CRUD", () => {
     mockInsertResult = [session];
     const result = await createSession("u1");
     expect(result).toEqual(session);
+  });
+
+  test("findSessionById returns session when found", async () => {
+    const session: any = { id: "s1", userId: "u1", startedAt: new Date() };
+    mockSelectResult = [session];
+    const result = await findSessionById("s1");
+    expect(result).toEqual(session);
+  });
+
+  test("findSessionById returns null when not found", async () => {
+    mockSelectResult = [];
+    const result = await findSessionById("missing");
+    expect(result).toBeNull();
   });
 
   test("endSession returns ended session", async () => {

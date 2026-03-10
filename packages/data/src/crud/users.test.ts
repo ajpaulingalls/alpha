@@ -10,6 +10,7 @@ function createMockResult(data: any[]) {
     "limit",
     "set",
     "values",
+    "onConflictDoUpdate",
     "returning",
   ];
   for (const m of methods) {
@@ -39,8 +40,11 @@ const {
   findUserByEmail,
   findUserById,
   createUser,
+  upsertUserWithCode,
   updateUserVerificationCode,
   updateUserValidation,
+  clearVerificationCode,
+  incrementFailedAttempts,
   updateUserName,
 } = await import("./users");
 
@@ -119,6 +123,45 @@ describe("users CRUD", () => {
     await expect(
       updateUserValidation("missing@test.com", true)
     ).rejects.toThrow("not found");
+  });
+
+  test("upsertUserWithCode returns user", async () => {
+    const user: any = { id: "1", email: "test@test.com" };
+    mockInsertResult = [user];
+    const result = await upsertUserWithCode(
+      "test@test.com",
+      "hashed-code",
+      new Date()
+    );
+    expect(result).toEqual(user);
+  });
+
+  test("clearVerificationCode returns updated user", async () => {
+    const user: any = { id: "1", email: "test@test.com" };
+    mockUpdateResult = [user];
+    const result = await clearVerificationCode("test@test.com");
+    expect(result).toEqual(user);
+  });
+
+  test("clearVerificationCode throws when not found", async () => {
+    mockUpdateResult = [];
+    await expect(clearVerificationCode("missing@test.com")).rejects.toThrow(
+      "not found"
+    );
+  });
+
+  test("incrementFailedAttempts returns updated user", async () => {
+    const user: any = { id: "1", email: "test@test.com", failedAttempts: 1 };
+    mockUpdateResult = [user];
+    const result = await incrementFailedAttempts("test@test.com");
+    expect(result).toEqual(user);
+  });
+
+  test("incrementFailedAttempts throws when not found", async () => {
+    mockUpdateResult = [];
+    await expect(incrementFailedAttempts("missing@test.com")).rejects.toThrow(
+      "not found"
+    );
   });
 
   test("updateUserName returns updated user", async () => {

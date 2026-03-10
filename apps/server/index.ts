@@ -1,6 +1,14 @@
 import path from "node:path";
 import { ApiServer } from "./src/ApiServer";
 import { SocketServer } from "./src/SocketServer";
+import {
+  findUserByEmail,
+  upsertUserWithCode,
+  updateUserValidation,
+  clearVerificationCode,
+  incrementFailedAttempts,
+} from "@alpha/data/crud/users";
+import { createSession, findSessionById } from "@alpha/data/crud/sessions";
 
 const OPENAI_API_KEY = process.env["OPENAI_API_KEY"];
 const CORS_HOSTS = process.env["CORS_HOSTS"]
@@ -27,6 +35,14 @@ if (!JWT_SECRET || JWT_SECRET.length < 32) {
 }
 
 const apiServer = new ApiServer(OPENAI_API_KEY, CORS_HOSTS, JWT_SECRET);
-apiServer.initServer();
+apiServer.initServer({
+  findUserByEmail,
+  upsertUserWithCode,
+  updateUserValidation,
+  clearVerificationCode,
+  incrementFailedAttempts,
+  createSession,
+  findSessionById,
+});
 const server = new SocketServer(OPENAI_API_KEY, CORS_HOSTS, AUDIO_ROOT_DIR);
 server.listen(apiServer.getServer(), PORT);

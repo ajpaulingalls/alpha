@@ -2,20 +2,32 @@ import { createHmac, randomInt, timingSafeEqual } from "node:crypto";
 import { Hono } from "hono";
 import { z } from "zod";
 import jwt from "jsonwebtoken";
+import type { User } from "@alpha/data/schema/users";
+import type { Session } from "@alpha/data/schema/sessions";
 import {
-  findUserByEmail,
-  upsertUserWithCode,
-  updateUserValidation,
-  clearVerificationCode,
-  incrementFailedAttempts,
-} from "@alpha/data/crud/users";
-import { createSession } from "@alpha/data/crud/sessions";
-import { authMiddleware, type AuthEnv } from "../middleware/auth";
+  createAuthMiddleware,
+  JWT_ISSUER,
+  JWT_AUDIENCE,
+  type AuthEnv,
+} from "../middleware/auth";
 import { logger } from "../utils/logger";
 import { RateLimiter } from "../utils/rateLimit";
 
-export const JWT_ISSUER = "alpha-api";
-export const JWT_AUDIENCE = "alpha-client";
+export { JWT_ISSUER, JWT_AUDIENCE };
+
+export interface AuthDeps {
+  findUserByEmail: (email: string) => Promise<User | null>;
+  upsertUserWithCode: (
+    email: string,
+    code: string,
+    timeout: Date
+  ) => Promise<User>;
+  updateUserValidation: (email: string, validated: boolean) => Promise<User>;
+  clearVerificationCode: (email: string) => Promise<User>;
+  incrementFailedAttempts: (email: string) => Promise<User>;
+  createSession: (userId: string) => Promise<Session>;
+  findSessionById: (id: string) => Promise<Session | null>;
+}
 
 const MAX_FAILED_ATTEMPTS = 5;
 const CODE_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
@@ -36,8 +48,9 @@ function hmacCode(code: string, secret: string): string {
   return createHmac("sha256", secret).update(code).digest("hex");
 }
 
-export function createAuthRoutes() {
+export function createAuthRoutes(deps: AuthDeps) {
   const app = new Hono<AuthEnv>();
+  const authMiddleware = createAuthMiddleware(deps.findSessionById);
 
   app.post("/send-code", async (c) => {
     let body: unknown;
@@ -63,7 +76,7 @@ export function createAuthRoutes() {
     const secret = c.get("jwtSecret");
     const hashedCode = hmacCode(code, secret);
 
-    await upsertUserWithCode(email, hashedCode, timeout);
+    await deps.upsertUserWithCode(email, hashedCode, timeout);
 
     logger.debug(`[AUTH] Verification code for ${email}: ${code}`);
 
@@ -88,7 +101,7 @@ export function createAuthRoutes() {
       return c.json({ error: "Too many attempts" }, 429);
     }
 
-    const user = await findUserByEmail(email);
+    const user = await deps.findUserByEmail(email);
 
     if (!user) {
       return c.json({ error: "Invalid or expired code" }, 401);
@@ -99,7 +112,7 @@ export function createAuthRoutes() {
     }
 
     if (user.failedAttempts >= MAX_FAILED_ATTEMPTS) {
-      await clearVerificationCode(email);
+      await deps.clearVerificationCode(email);
       return c.json(
         { error: "Too many failed attempts, request a new code" },
         401
@@ -115,14 +128,14 @@ export function createAuthRoutes() {
       hashedInput.length !== storedCode.length ||
       !timingSafeEqual(Buffer.from(hashedInput), Buffer.from(storedCode))
     ) {
-      await incrementFailedAttempts(email);
+      await deps.incrementFailedAttempts(email);
       return c.json({ error: "Invalid or expired code" }, 401);
     }
 
     const [, , session] = await Promise.all([
-      updateUserValidation(email, true),
-      clearVerificationCode(email),
-      createSession(user.id),
+      deps.updateUserValidation(email, true),
+      deps.clearVerificationCode(email),
+      deps.createSession(user.id),
     ]);
 
     const token = jwt.sign({ userId: user.id, sessionId: session.id }, secret, {

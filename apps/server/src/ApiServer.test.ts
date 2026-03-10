@@ -3,19 +3,15 @@ import { Hono } from "hono";
 import jwt from "jsonwebtoken";
 import type { User } from "@alpha/data/schema/users";
 import type { Session } from "@alpha/data/schema/sessions";
+import { ApiServer } from "./ApiServer";
+import { JWT_ISSUER, JWT_AUDIENCE, type AuthDeps } from "./routes/auth";
 
 const TEST_SECRET = "test-secret-that-is-at-least-32-chars-long";
 
 const mockFindUserByEmail = mock<(email: string) => Promise<User | null>>(() =>
   Promise.resolve(null)
 );
-const mockCreateUser = mock<
-  (name: string, email: string, code: string, timeout: Date) => Promise<User>
->(() => Promise.resolve({} as User));
 const mockUpsertUserWithCode = mock<
-  (email: string, code: string, timeout: Date) => Promise<User>
->(() => Promise.resolve({} as User));
-const mockUpdateUserVerificationCode = mock<
   (email: string, code: string, timeout: Date) => Promise<User>
 >(() => Promise.resolve({} as User));
 const mockUpdateUserValidation = mock<
@@ -33,24 +29,6 @@ const mockCreateSession = mock<(userId: string) => Promise<Session>>(() =>
 const mockFindSessionById = mock<(id: string) => Promise<Session | null>>(() =>
   Promise.resolve(null)
 );
-
-mock.module("@alpha/data/crud/users", () => ({
-  findUserByEmail: mockFindUserByEmail,
-  createUser: mockCreateUser,
-  upsertUserWithCode: mockUpsertUserWithCode,
-  updateUserVerificationCode: mockUpdateUserVerificationCode,
-  updateUserValidation: mockUpdateUserValidation,
-  clearVerificationCode: mockClearVerificationCode,
-  incrementFailedAttempts: mockIncrementFailedAttempts,
-}));
-
-mock.module("@alpha/data/crud/sessions", () => ({
-  createSession: mockCreateSession,
-  findSessionById: mockFindSessionById,
-}));
-
-const { ApiServer } = await import("./ApiServer");
-const { JWT_ISSUER, JWT_AUDIENCE } = await import("./routes/auth");
 
 function makeUser(overrides: Record<string, unknown> = {}) {
   return {
@@ -79,9 +57,21 @@ function makeSession(overrides: Record<string, unknown> = {}): Session {
   } as Session;
 }
 
+function mockDeps(): AuthDeps {
+  return {
+    findUserByEmail: mockFindUserByEmail,
+    upsertUserWithCode: mockUpsertUserWithCode,
+    updateUserValidation: mockUpdateUserValidation,
+    clearVerificationCode: mockClearVerificationCode,
+    incrementFailedAttempts: mockIncrementFailedAttempts,
+    createSession: mockCreateSession,
+    findSessionById: mockFindSessionById,
+  };
+}
+
 function createTestApp() {
   const server = new ApiServer("test-key", "*", TEST_SECRET);
-  server.initServer();
+  server.initServer(mockDeps());
   return server.getServer();
 }
 
@@ -113,9 +103,7 @@ function signTestToken(
 describe("ApiServer", () => {
   beforeEach(() => {
     mockFindUserByEmail.mockReset();
-    mockCreateUser.mockReset();
     mockUpsertUserWithCode.mockReset();
-    mockUpdateUserVerificationCode.mockReset();
     mockUpdateUserValidation.mockReset();
     mockClearVerificationCode.mockReset();
     mockIncrementFailedAttempts.mockReset();
@@ -123,9 +111,7 @@ describe("ApiServer", () => {
     mockFindSessionById.mockReset();
 
     mockFindUserByEmail.mockResolvedValue(null);
-    mockCreateUser.mockResolvedValue(makeUser());
     mockUpsertUserWithCode.mockResolvedValue(makeUser());
-    mockUpdateUserVerificationCode.mockResolvedValue(makeUser());
     mockUpdateUserValidation.mockResolvedValue(makeUser());
     mockClearVerificationCode.mockResolvedValue(makeUser());
     mockIncrementFailedAttempts.mockResolvedValue(makeUser());
@@ -187,15 +173,6 @@ describe("ApiServer", () => {
       expect(args[1]).toHaveLength(64);
       expect(args[2]).toBeInstanceOf(Date);
     });
-
-    test("does not call createUser or updateUserVerificationCode", async () => {
-      const app = createTestApp();
-      await postJson(app, "/api/auth/send-code", {
-        email: "test@example.com",
-      });
-      expect(mockCreateUser).not.toHaveBeenCalled();
-      expect(mockUpdateUserVerificationCode).not.toHaveBeenCalled();
-    });
   });
 
   describe("POST /api/auth/verify-code", () => {
@@ -249,7 +226,6 @@ describe("ApiServer", () => {
     });
 
     test("returns 401 and increments failed attempts for wrong code", async () => {
-      // Store a known HMAC for "654321"
       const { createHmac } = await import("node:crypto");
       const wrongHash = createHmac("sha256", TEST_SECRET)
         .update("654321")

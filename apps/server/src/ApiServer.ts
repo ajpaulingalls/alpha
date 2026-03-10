@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { createAuthRoutes } from "./routes/auth";
+import { createAuthRoutes, type AuthDeps } from "./routes/auth";
 import type { AuthEnv } from "./middleware/auth";
 
 export class ApiServer {
@@ -18,7 +18,7 @@ export class ApiServer {
     return this.app;
   }
 
-  initServer() {
+  initServer(authDeps: AuthDeps) {
     this.app.use(
       "/api/*",
       cors({
@@ -29,7 +29,7 @@ export class ApiServer {
       c.set("jwtSecret", this.jwtSecret);
       await next();
     });
-    this.app.route("/api/auth", createAuthRoutes());
+    this.app.route("/api/auth", createAuthRoutes(authDeps));
     this.app.get("/api/health", (c) => {
       return c.json({ status: "ok" });
     });
