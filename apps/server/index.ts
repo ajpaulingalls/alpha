@@ -26,7 +26,7 @@ if (!JWT_SECRET || JWT_SECRET.length < 32) {
   process.exit(1);
 }
 
-const apiServer = new ApiServer(OPENAI_API_KEY, CORS_HOSTS);
+const apiServer = new ApiServer(OPENAI_API_KEY, CORS_HOSTS, JWT_SECRET);
 apiServer.initServer();
 const server = new SocketServer(OPENAI_API_KEY, CORS_HOSTS, AUDIO_ROOT_DIR);
 server.listen(apiServer.getServer(), PORT);

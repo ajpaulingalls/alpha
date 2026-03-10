@@ -39,7 +39,8 @@ export class SocketServer {
     this.httpServer = null;
   }
 
-  listen(app: Hono, port: number) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  listen(app: Hono<any>, port: number) {
     this.httpServer = serve({
       fetch: app.fetch,
       port,

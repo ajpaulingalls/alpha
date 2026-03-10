@@ -11,6 +11,16 @@ export async function createSession(userId: string): Promise<Session> {
   return result[0];
 }
 
+export async function findSessionById(
+  sessionId: string
+): Promise<Session | null> {
+  const result = await db
+    .select()
+    .from(sessions)
+    .where(eq(sessions.id, sessionId));
+  return result[0] || null;
+}
+
 export async function endSession(sessionId: string): Promise<Session> {
   return updateOneOrThrow(
     db
