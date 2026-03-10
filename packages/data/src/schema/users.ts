@@ -8,7 +8,7 @@ import {
 
 export const users = pgTable("users", {
   id: uuid("id").defaultRandom().primaryKey(),
-  phoneNumber: varchar("phone_number", { length: 20 }).notNull().unique(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
   name: varchar("name", { length: 255 }).notNull(),
   verificationCode: varchar("verification_code", { length: 6 }),
   validated: boolean("validated").default(false).notNull(),

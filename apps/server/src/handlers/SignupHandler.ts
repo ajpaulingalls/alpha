@@ -1,10 +1,11 @@
+import { randomInt } from "node:crypto";
 import { CommunicationsHandler } from "./CommunicationsHandler";
 import { Socket } from "socket.io";
 import { SaveNameTool } from "../tools/SaveNameTool";
 import { SavePhoneTool } from "../tools/SavePhoneTool";
 import { CheckCodeTool } from "../tools/CheckCodeTool";
 import {
-  findUserByPhoneNumber,
+  findUserByEmail,
   createUser,
   updateUserVerificationCode,
   updateUserValidation,
@@ -80,7 +81,7 @@ export default class SignupHandler extends CommunicationsHandler {
           .then(async () => {
             console.log("Phone saved successfully");
             const phone = this.savePhoneTool.getSavedPhone();
-            const existingUser = await findUserByPhoneNumber(phone);
+            const existingUser = await findUserByEmail(phone);
             const existingCode = this.checkCodeTool.getStoredCode();
 
             // If we have both an existing user and a code, try to validate it
@@ -92,9 +93,7 @@ export default class SignupHandler extends CommunicationsHandler {
             }
 
             // Generate new verification code
-            const verificationCode = Math.floor(
-              100000 + Math.random() * 900000
-            ).toString();
+            const verificationCode = randomInt(100000, 999999).toString();
             const validationTimeout = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes from now
 
             if (existingUser) {
@@ -211,7 +210,7 @@ export default class SignupHandler extends CommunicationsHandler {
     }
 
     // Code is valid and not expired, update user validation status
-    this.user = await updateUserValidation(this.user!.phoneNumber, true);
+    this.user = await updateUserValidation(this.user!.email, true);
 
     console.log("Code verified successfully");
     return true;

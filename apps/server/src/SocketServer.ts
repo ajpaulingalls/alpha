@@ -70,16 +70,29 @@ export class SocketServer {
 
     const userToken = socket.handshake.query["token"] as string;
     if (userToken) {
-      console.log("User token found");
-      const decoded = jwt.verify(userToken, process.env["JWT_SECRET"]!);
-      socket.data.userId = (decoded as JwtPayload)["userId"];
-      const user = await findUserById(socket.data.userId);
-      if (user) {
-        console.log("User found");
-        socket.data.userName = user.name;
-        const newHandler = new PodcastHandler(this.apiKey);
-        newHandler.init(socket, this.audioRootDir);
-        socket.data.currentHandler = newHandler;
+      try {
+        const secret = process.env["JWT_SECRET"];
+        if (!secret) {
+          throw new Error("JWT_SECRET is not configured");
+        }
+        const decoded = jwt.verify(userToken, secret);
+        const userId = (decoded as JwtPayload)["userId"];
+        if (typeof userId !== "string") {
+          throw new Error("Invalid token payload: missing userId");
+        }
+        socket.data.userId = userId;
+        const user = await findUserById(socket.data.userId);
+        if (user) {
+          socket.data.userName = user.name;
+          const newHandler = new PodcastHandler(this.apiKey);
+          newHandler.init(socket, this.audioRootDir);
+          socket.data.currentHandler = newHandler;
+          return;
+        }
+      } catch (error) {
+        logger.error("Authentication failed:", error);
+        socket.emit("error", "Authentication failed");
+        socket.disconnect(true);
         return;
       }
     }

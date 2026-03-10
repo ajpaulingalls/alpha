@@ -43,7 +43,6 @@ export class CheckCodeTool implements IToolHandler {
 
       // Store the code in the member variable
       this.storedCode = params.code;
-      console.log("Stored verification code:", this.storedCode);
 
       return Promise.resolve();
     } catch (error) {

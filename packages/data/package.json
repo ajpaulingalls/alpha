@@ -6,6 +6,11 @@
     "./crud/users": "./src/crud/users.ts",
     "./schema/users": "./src/schema/users.ts",
     "./schema/podcast_topics": "./src/schema/podcast_topics.ts",
+    "./schema/podcast_episodes": "./src/schema/podcast_episodes.ts",
+    "./schema/user_preferences": "./src/schema/user_preferences.ts",
+    "./schema/sessions": "./src/schema/sessions.ts",
+    "./schema/listen_history": "./src/schema/listen_history.ts",
+    "./schema/cached_responses": "./src/schema/cached_responses.ts",
     "./client": "./src/client.ts"
   },
   "scripts": {

@@ -2,13 +2,8 @@ import { eq } from "drizzle-orm";
 import { db } from "../client";
 import { users, type User, type NewUser } from "../schema/users";
 
-export async function findUserByPhoneNumber(
-  phoneNumber: string
-): Promise<User | null> {
-  const result = await db
-    .select()
-    .from(users)
-    .where(eq(users.phoneNumber, phoneNumber));
+export async function findUserByEmail(email: string): Promise<User | null> {
+  const result = await db.select().from(users).where(eq(users.email, email));
   return result[0] || null;
 }
 
@@ -19,13 +14,13 @@ export async function findUserById(id: string): Promise<User | null> {
 
 export async function createUser(
   name: string,
-  phoneNumber: string,
+  email: string,
   verificationCode: string,
   validationTimeout: Date
 ): Promise<User> {
   const newUser: NewUser = {
     name,
-    phoneNumber,
+    email,
     verificationCode,
     validationTimeout,
     validated: false,
@@ -36,7 +31,7 @@ export async function createUser(
 }
 
 export async function updateUserVerificationCode(
-  phoneNumber: string,
+  email: string,
   verificationCode: string,
   validationTimeout: Date
 ): Promise<User> {
@@ -48,18 +43,18 @@ export async function updateUserVerificationCode(
       validated: false,
       updatedAt: new Date(),
     })
-    .where(eq(users.phoneNumber, phoneNumber))
+    .where(eq(users.email, email))
     .returning();
 
   if (!result[0]) {
-    throw new Error(`User with phone number ${phoneNumber} not found`);
+    throw new Error(`User with email ${email} not found`);
   }
 
   return result[0];
 }
 
 export async function updateUserValidation(
-  phoneNumber: string,
+  email: string,
   validated: boolean
 ): Promise<User> {
   const result = await db
@@ -68,11 +63,11 @@ export async function updateUserValidation(
       validated,
       updatedAt: new Date(),
     })
-    .where(eq(users.phoneNumber, phoneNumber))
+    .where(eq(users.email, email))
     .returning();
 
   if (!result[0]) {
-    throw new Error(`User with phone number ${phoneNumber} not found`);
+    throw new Error(`User with email ${email} not found`);
   }
 
   return result[0];

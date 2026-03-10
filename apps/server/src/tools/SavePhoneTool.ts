@@ -40,8 +40,6 @@ export class SavePhoneTool implements IToolHandler {
       // Parse and validate the input using Zod
       const params = SavePhoneParams.parse(JSON.parse(event.arguments));
 
-      // Now we have type-safe access to the validated parameters
-      console.log("Saving phone:", params.phone);
       this.savedPhone = params.phone;
 
       return Promise.resolve();
