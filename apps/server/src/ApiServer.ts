@@ -3,15 +3,28 @@ import { cors } from "hono/cors";
 import { createAuthRoutes, type AuthDeps } from "./routes/auth";
 import type { AuthEnv } from "./middleware/auth";
 
+export interface LiveKitConfig {
+  apiKey: string;
+  apiSecret: string;
+  url: string;
+}
+
 export class ApiServer {
   private readonly app: Hono<AuthEnv>;
   private readonly corsHosts: string;
   private readonly jwtSecret: string;
+  private readonly livekitConfig: LiveKitConfig;
 
-  constructor(_apiKey: string, corsHosts: string, jwtSecret: string) {
+  constructor(
+    _apiKey: string,
+    corsHosts: string,
+    jwtSecret: string,
+    livekitConfig: LiveKitConfig
+  ) {
     this.app = new Hono<AuthEnv>();
     this.corsHosts = corsHosts;
     this.jwtSecret = jwtSecret;
+    this.livekitConfig = livekitConfig;
   }
 
   getServer() {
@@ -29,12 +42,9 @@ export class ApiServer {
       c.set("jwtSecret", this.jwtSecret);
       await next();
     });
-    this.app.route("/api/auth", createAuthRoutes(authDeps));
+    this.app.route("/api/auth", createAuthRoutes(authDeps, this.livekitConfig));
     this.app.get("/api/health", (c) => {
       return c.json({ status: "ok" });
-    });
-    this.app.post("/api/echo", (c) => {
-      return c.json(c.body);
     });
   }
 }

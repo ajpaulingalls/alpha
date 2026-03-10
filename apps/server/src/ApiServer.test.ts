@@ -7,6 +7,11 @@ import { ApiServer } from "./ApiServer";
 import { JWT_ISSUER, JWT_AUDIENCE, type AuthDeps } from "./routes/auth";
 
 const TEST_SECRET = "test-secret-that-is-at-least-32-chars-long";
+const TEST_LK_CONFIG = {
+  apiKey: "test-lk-key",
+  apiSecret: "test-lk-secret-that-is-long-enough",
+  url: "wss://test.livekit.cloud",
+};
 
 const mockFindUserByEmail = mock<(email: string) => Promise<User | null>>(() =>
   Promise.resolve(null)
@@ -70,7 +75,7 @@ function mockDeps(): AuthDeps {
 }
 
 function createTestApp() {
-  const server = new ApiServer("test-key", "*", TEST_SECRET);
+  const server = new ApiServer("test-key", "*", TEST_SECRET, TEST_LK_CONFIG);
   server.initServer(mockDeps());
   return server.getServer();
 }
@@ -119,8 +124,8 @@ describe("ApiServer", () => {
     mockFindSessionById.mockResolvedValue(makeSession());
   });
 
-  test("constructor accepts 3 arguments", () => {
-    const server = new ApiServer("test-key", "*", TEST_SECRET);
+  test("constructor accepts 4 arguments", () => {
+    const server = new ApiServer("test-key", "*", TEST_SECRET, TEST_LK_CONFIG);
     expect(server.getServer()).toBeInstanceOf(Hono);
   });
 
@@ -130,17 +135,6 @@ describe("ApiServer", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body).toEqual({ status: "ok" });
-  });
-
-  test("POST /api/echo echoes the body", async () => {
-    const app = createTestApp();
-    const payload = { message: "hello" };
-    const res = await app.request("/api/echo", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    expect(res.status).toBe(200);
   });
 
   describe("POST /api/auth/send-code", () => {
@@ -366,6 +360,33 @@ describe("ApiServer", () => {
       expect(res.status).toBe(401);
     });
 
+    test("returns 401 for token with missing sessionId", async () => {
+      const app = createTestApp();
+      const token = signTestToken({ userId: "user-uuid-123" });
+      const res = await app.request("/api/auth/livekit-token", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      expect(res.status).toBe(401);
+      const body = await res.json();
+      expect(body.error).toBe("Invalid token payload");
+    });
+
+    test("returns 401 for token with non-string sessionId", async () => {
+      const app = createTestApp();
+      const token = signTestToken({
+        userId: "user-uuid-123",
+        sessionId: 12345,
+      });
+      const res = await app.request("/api/auth/livekit-token", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      expect(res.status).toBe(401);
+      const body = await res.json();
+      expect(body.error).toBe("Invalid token payload");
+    });
+
     test("returns 401 for ended session", async () => {
       mockFindSessionById.mockResolvedValue(
         makeSession({ endedAt: new Date() })
@@ -382,7 +403,7 @@ describe("ApiServer", () => {
       expect(res.status).toBe(401);
     });
 
-    test("returns 200 with valid JWT and active session", async () => {
+    test("returns 200 with real LiveKit token and room name", async () => {
       mockFindSessionById.mockResolvedValue(makeSession());
       const app = createTestApp();
       const token = signTestToken({
@@ -395,10 +416,38 @@ describe("ApiServer", () => {
       });
       expect(res.status).toBe(200);
       const body = await res.json();
-      expect(body).toEqual({
-        token: "<placeholder>",
-        roomName: "<placeholder>",
+      expect(typeof body.token).toBe("string");
+      expect(body.token.length).toBeGreaterThan(0);
+      expect(body.roomName).toMatch(/^alpha-room-user-uuid-123-[a-f0-9-]+$/);
+    });
+
+    test("room name contains the userId", async () => {
+      mockFindSessionById.mockResolvedValue(makeSession());
+      const app = createTestApp();
+      const token = signTestToken({
+        userId: "user-uuid-123",
+        sessionId: "session-uuid",
       });
+      const res = await app.request("/api/auth/livekit-token", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const body = await res.json();
+      expect(body.roomName).toContain("user-uuid-123");
+    });
+
+    test("does not return 429 on first request", async () => {
+      mockFindSessionById.mockResolvedValue(makeSession());
+      const app = createTestApp();
+      const token = signTestToken({
+        userId: "rate-limit-test-user",
+        sessionId: "session-uuid",
+      });
+      const res = await app.request("/api/auth/livekit-token", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      expect(res.status).not.toBe(429);
     });
   });
 });

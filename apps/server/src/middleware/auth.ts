@@ -42,11 +42,12 @@ export function createAuthMiddleware(
       }
 
       const sessionId = decoded["sessionId"];
-      if (typeof sessionId === "string") {
-        const session = await findSessionById(sessionId);
-        if (!session || session.endedAt) {
-          return c.json({ error: "Session expired" }, 401);
-        }
+      if (typeof sessionId !== "string") {
+        return c.json({ error: "Invalid token payload" }, 401);
+      }
+      const session = await findSessionById(sessionId);
+      if (!session || session.endedAt) {
+        return c.json({ error: "Session expired" }, 401);
       }
 
       c.set("userId", userId);

@@ -1,7 +1,15 @@
-import { createHmac, randomInt, timingSafeEqual } from "node:crypto";
+import {
+  createHmac,
+  randomInt,
+  randomUUID,
+  timingSafeEqual,
+} from "node:crypto";
 import { Hono } from "hono";
 import { z } from "zod";
 import jwt from "jsonwebtoken";
+import { AccessToken } from "livekit-server-sdk";
+import { RoomAgentDispatch, RoomConfiguration } from "@livekit/protocol";
+import { AGENT_NAME } from "../agent/constants";
 import type { User } from "@alpha/data/schema/users";
 import type { Session } from "@alpha/data/schema/sessions";
 import {
@@ -34,6 +42,7 @@ const CODE_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
 
 const sendCodeLimiter = new RateLimiter(15 * 60 * 1000, 5); // 5 per 15 min per IP
 const verifyCodeLimiter = new RateLimiter(15 * 60 * 1000, 10); // 10 per 15 min per email
+const livekitTokenLimiter = new RateLimiter(15 * 60 * 1000, 10); // 10 per 15 min per user
 
 const SendCodeBody = z.object({
   email: z.string().email(),
@@ -48,7 +57,13 @@ function hmacCode(code: string, secret: string): string {
   return createHmac("sha256", secret).update(code).digest("hex");
 }
 
-export function createAuthRoutes(deps: AuthDeps) {
+export function createAuthRoutes(
+  deps: AuthDeps,
+  livekitConfig: Pick<
+    import("../ApiServer").LiveKitConfig,
+    "apiKey" | "apiSecret"
+  >
+) {
   const app = new Hono<AuthEnv>();
   const authMiddleware = createAuthMiddleware(deps.findSessionById);
 
@@ -78,7 +93,7 @@ export function createAuthRoutes(deps: AuthDeps) {
 
     await deps.upsertUserWithCode(email, hashedCode, timeout);
 
-    logger.debug(`[AUTH] Verification code for ${email}: ${code}`);
+    logger.debug(`[AUTH] Verification code sent for ${email}`);
 
     return c.json({ success: true });
   });
@@ -150,7 +165,28 @@ export function createAuthRoutes(deps: AuthDeps) {
   });
 
   app.post("/livekit-token", authMiddleware, async (c) => {
-    return c.json({ token: "<placeholder>", roomName: "<placeholder>" });
+    const userId = c.get("userId");
+    if (!livekitTokenLimiter.isAllowed(userId)) {
+      return c.json({ error: "Too many requests" }, 429);
+    }
+    const { apiKey, apiSecret } = livekitConfig;
+    const roomName = `alpha-room-${userId}-${randomUUID()}`;
+
+    const at = new AccessToken(apiKey, apiSecret, {
+      identity: userId,
+      ttl: "10m",
+    });
+    at.addGrant({
+      room: roomName,
+      roomJoin: true,
+      canPublish: true,
+      canSubscribe: true,
+    });
+
+    const dispatch = new RoomAgentDispatch({ agentName: AGENT_NAME });
+    at.roomConfig = new RoomConfiguration({ agents: [dispatch] });
+
+    return c.json({ token: await at.toJwt(), roomName });
   });
 
   return app;
