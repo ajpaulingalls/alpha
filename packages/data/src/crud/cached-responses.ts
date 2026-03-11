@@ -21,6 +21,7 @@ export async function searchCachedResponses(
   similarityThreshold: number,
   limit = 5
 ): Promise<(CachedResponse & { distance: number })[]> {
+  limit = Math.min(limit, 100);
   const distance = sql<number>`${cosineDistance(
     cachedResponses.queryEmbedding,
     queryEmbedding

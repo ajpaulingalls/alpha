@@ -11,6 +11,7 @@ function createMockResult(data: any[]) {
     "set",
     "values",
     "returning",
+    "leftJoin",
   ];
   for (const m of methods) {
     chain[m] = mock(() => {
@@ -38,6 +39,8 @@ const {
   findEpisodesByShow,
   findLatestEpisode,
   findEpisodeById,
+  findRecentEpisodes,
+  findNewEpisodesForUser,
 } = await import("./episodes");
 
 describe("episodes CRUD", () => {
@@ -96,5 +99,46 @@ describe("episodes CRUD", () => {
     mockSelectResult = [];
     const result = await findEpisodeById("missing");
     expect(result).toBeNull();
+  });
+
+  test("findRecentEpisodes returns episodes after given date", async () => {
+    const episodes: any[] = [
+      { id: "e1", publishedAt: new Date("2025-01-02") },
+      { id: "e2", publishedAt: new Date("2025-01-03") },
+    ];
+    mockSelectResult = episodes;
+    const result = await findRecentEpisodes(new Date("2025-01-01"));
+    expect(result).toEqual(episodes);
+  });
+
+  test("findRecentEpisodes returns empty array when none found", async () => {
+    mockSelectResult = [];
+    const result = await findRecentEpisodes(new Date("2025-01-01"));
+    expect(result).toEqual([]);
+  });
+
+  test("findNewEpisodesForUser returns unheard episodes", async () => {
+    const episodes: any[] = [
+      { id: "e1", title: "New Episode" },
+      { id: "e2", title: "Another New Episode" },
+    ];
+    mockSelectResult = episodes;
+    const result = await findNewEpisodesForUser("user-123");
+    expect(result).toEqual(episodes);
+  });
+
+  test("findNewEpisodesForUser returns empty array when all heard", async () => {
+    mockSelectResult = [];
+    const result = await findNewEpisodesForUser("user-123");
+    expect(result).toEqual([]);
+  });
+
+  test("findNewEpisodesForUser accepts optional since date", async () => {
+    mockSelectResult = [];
+    const result = await findNewEpisodesForUser(
+      "user-123",
+      new Date("2025-01-01")
+    );
+    expect(result).toEqual([]);
   });
 });

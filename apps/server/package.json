@@ -19,6 +19,8 @@
   },
   "dependencies": {
     "@alpha/ai": "workspace:*",
+    "@alpha/content": "workspace:*",
+    "@alpha/cortex": "workspace:*",
     "@alpha/data": "workspace:*",
     "@alpha/socket": "workspace:*",
     "@hono/node-server": "1.19.11",

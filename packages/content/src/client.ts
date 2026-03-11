@@ -101,7 +101,7 @@ export class ContentClient {
     offset?: number
   ): Promise<SearchResult[]> {
     const variables: Record<string, unknown> = { query };
-    if (offset !== undefined) variables.start = offset;
+    if (offset !== undefined) variables["start"] = offset;
 
     const data = await this.executeQuery<{
       searchPosts: { items: RawSearchItem[] };

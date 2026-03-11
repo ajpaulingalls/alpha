@@ -43,6 +43,7 @@ export async function searchTopicsByEmbedding(
   embedding: number[],
   limit = 10
 ): Promise<(PodcastTopic & { distance: number })[]> {
+  limit = Math.min(limit, 100);
   const distance = sql<number>`${cosineDistance(
     podcastTopics.embedding,
     embedding

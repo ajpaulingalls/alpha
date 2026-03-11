@@ -12,10 +12,15 @@ import type {
 
 const VALID_NAME = /^[a-zA-Z_]\w*$/;
 const DEFAULT_TIMEOUT_MS = 30_000;
+const MAX_ERROR_BODY_LENGTH = 1024;
 
 async function assertOk(response: Response): Promise<void> {
   if (!response.ok) {
-    const body = await response.text().catch(() => "");
+    const raw = await response.text().catch(() => "");
+    const body =
+      raw.length > MAX_ERROR_BODY_LENGTH
+        ? raw.slice(0, MAX_ERROR_BODY_LENGTH)
+        : raw;
     throw new Error(
       `HTTP ${response.status}: ${response.statusText}${
         body ? ` — ${body}` : ""
@@ -168,7 +173,7 @@ export class CortexClient {
       { role: "system", content: systemContent },
       {
         role: "user",
-        content: typeof params.text === "string" ? params.text : "",
+        content: typeof params["text"] === "string" ? params["text"] : "",
       },
     ];
 
@@ -220,14 +225,14 @@ export class CortexClient {
 
   async summarize(text: string, targetLength?: number): Promise<string> {
     const params: Record<string, unknown> = { text };
-    if (targetLength !== undefined) params.targetLength = targetLength;
+    if (targetLength !== undefined) params["targetLength"] = targetLength;
     const res = await this.callPathway("summary", params);
     return res.result;
   }
 
   async search(query: string, indexName?: string): Promise<SearchResult[]> {
     const params: Record<string, unknown> = { text: query };
-    if (indexName !== undefined) params.indexName = indexName;
+    if (indexName !== undefined) params["indexName"] = indexName;
     const res = await this.callPathway("cognitive_search", params);
     try {
       const parsed = JSON.parse(res.result);
@@ -255,9 +260,9 @@ export class CortexClient {
   async rag(query: string, options?: RagOptions): Promise<RagResult> {
     const chatHistory: ChatMessage[] = [{ role: "user", content: query }];
     const params: Record<string, unknown> = { chatHistory };
-    if (options?.indexName) params.indexName = options.indexName;
+    if (options?.indexName) params["indexName"] = options.indexName;
     if (options?.searchBing !== undefined)
-      params.searchBing = options.searchBing;
+      params["searchBing"] = options.searchBing;
 
     const res = await this.callPathway("rag", params);
 
