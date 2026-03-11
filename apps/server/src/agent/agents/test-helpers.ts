@@ -1,6 +1,32 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { mock } from "bun:test";
 import type { CatchUpAgentDeps } from "./CatchUpAgent";
+import type { BrowseAgentDeps } from "./BrowseAgent";
+
+export function mockBrowseDeps(
+  overrides?: Partial<BrowseAgentDeps>
+): BrowseAgentDeps {
+  return {
+    cortexClient: {
+      embed: mock(() => Promise.resolve([[0.1, 0.2, 0.3]])),
+      rag: mock(() => Promise.resolve({ result: "", sources: [] })),
+    } as any,
+    contentClient: {
+      searchArticles: mock(() => Promise.resolve([])),
+    } as any,
+    searchCachedResponses: mock(() => Promise.resolve([])),
+    searchTopicsByEmbedding: mock(() => Promise.resolve([])),
+    generator: {
+      generate: mock(() =>
+        Promise.resolve({
+          text: "Generated response.",
+          cachingPromise: Promise.resolve(),
+        })
+      ),
+    } as any,
+    ...overrides,
+  };
+}
 
 export function mockCatchUpDeps(
   overrides?: Partial<CatchUpAgentDeps>
@@ -37,6 +63,7 @@ export function mockCatchUpDeps(
     findRecentEpisodes: mock(() => Promise.resolve([])),
     findNewEpisodesForUser: mock(() => Promise.resolve([])),
     findExistingEpisodeIds: mock((ids: string[]) => Promise.resolve(ids)),
+    browseDeps: mockBrowseDeps(),
     ...overrides,
   };
 }

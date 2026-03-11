@@ -9,6 +9,8 @@ import {
 import * as livekit from "@livekit/agents-plugin-livekit";
 import * as silero from "@livekit/agents-plugin-silero";
 import { fileURLToPath } from "node:url";
+import path from "node:path";
+import OpenAI from "openai";
 import { findUserById } from "@alpha/data/crud/users";
 import {
   createSession,
@@ -22,12 +24,22 @@ import {
   findNewEpisodesForUser,
   findExistingEpisodeIds,
 } from "@alpha/data/crud/episodes";
+import {
+  searchCachedResponses,
+  createCachedResponse,
+} from "@alpha/data/crud/cached-responses";
+import { searchTopicsByEmbedding } from "@alpha/data/crud/topics";
 import { ContentClient } from "@alpha/content";
 import { CortexClient } from "@alpha/cortex";
 import { AGENT_NAME } from "./constants";
 import { type AlphaSessionData, isNewUser } from "./types";
 import { SetupAgent } from "./agents/SetupAgent";
 import { CatchUpAgent, type CatchUpAgentDeps } from "./agents/CatchUpAgent";
+import type { BrowseAgentDeps } from "./agents/BrowseAgent";
+import { AudioRecorder } from "./generation/AudioRecorder";
+import { StreamingGenerator } from "./generation/StreamingGenerator";
+import { computeExpiry } from "./generation/ExpiryRules";
+import { embedQuery } from "./tools/types";
 
 export default defineAgent({
   prewarm: async (proc: JobProcess) => {
@@ -43,11 +55,16 @@ export default defineAgent({
 
     proc.userData["contentClient"] = new ContentClient(contentGraphqlUrl);
     proc.userData["cortexClient"] = new CortexClient(cortexApiUrl);
+    proc.userData["openai"] = new OpenAI();
+    proc.userData["audioRecorder"] = new AudioRecorder({
+      openai: proc.userData["openai"] as OpenAI,
+    });
   },
   entry: async (ctx: JobContext) => {
     const vad = ctx.proc.userData["vad"] as silero.VAD;
     const contentClient = ctx.proc.userData["contentClient"] as ContentClient;
     const cortexClient = ctx.proc.userData["cortexClient"] as CortexClient;
+    const audioRecorder = ctx.proc.userData["audioRecorder"] as AudioRecorder;
 
     await ctx.connect();
     const participant = await ctx.waitForParticipant();
@@ -60,6 +77,23 @@ export default defineAgent({
 
     const isNew = isNewUser(user);
 
+    const generator = new StreamingGenerator({
+      cortexClient,
+      audioRecorder,
+      createCachedResponse,
+      embedQuery: (query: string) => embedQuery(cortexClient, query),
+      computeExpiry,
+      audioDir: path.join(process.cwd(), "audio", "cache"),
+    });
+
+    const browseDeps: BrowseAgentDeps = {
+      cortexClient,
+      contentClient,
+      searchCachedResponses,
+      searchTopicsByEmbedding,
+      generator,
+    };
+
     const catchUpDeps: CatchUpAgentDeps = {
       findPreviousSession,
       findPreferencesByUserId,
@@ -70,6 +104,7 @@ export default defineAgent({
       findRecentEpisodes,
       findNewEpisodesForUser,
       findExistingEpisodeIds,
+      browseDeps,
     };
 
     const userData: AlphaSessionData = {

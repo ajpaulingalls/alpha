@@ -14,7 +14,7 @@ import type { AlphaSessionData } from "../types";
 import { createFetchTopStoriesTool } from "../tools/fetchTopStories";
 import { createFetchWireHighlightsTool } from "../tools/fetchWireHighlights";
 import { createFetchNewPodcastsTool } from "../tools/fetchNewPodcasts";
-import { BrowseAgent } from "./BrowseAgent";
+import { BrowseAgent, type BrowseAgentDeps } from "./BrowseAgent";
 
 export interface CatchUpAgentDeps {
   findPreviousSession: (
@@ -41,6 +41,7 @@ export interface CatchUpAgentDeps {
     limit?: number
   ) => Promise<PodcastEpisode[]>;
   findExistingEpisodeIds: (ids: string[]) => Promise<string[]>;
+  browseDeps: BrowseAgentDeps;
 }
 
 export function buildBriefingInstructions(
@@ -179,7 +180,7 @@ function createCompleteBriefingTool(deps: CatchUpAgentDeps) {
         ]);
 
         return llm.handoff({
-          agent: BrowseAgent.create(),
+          agent: BrowseAgent.create(deps.browseDeps),
           returns:
             "That's the latest. You're all caught up! " +
             "Feel free to ask about anything — I can search for podcasts, " +
