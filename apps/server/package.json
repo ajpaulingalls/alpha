@@ -26,6 +26,7 @@
     "@hono/node-server": "1.19.11",
     "@livekit/agents": "^1",
     "@livekit/agents-plugin-livekit": "^1",
+    "@livekit/agents-plugin-openai": "^1",
     "@livekit/agents-plugin-silero": "^1",
     "@livekit/protocol": "^1",
     "hono": "4.12.6",

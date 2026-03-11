@@ -4,6 +4,7 @@ import {
   ServerOptions,
   cli,
   defineAgent,
+  llm,
   voice,
 } from "@livekit/agents";
 import * as livekit from "@livekit/agents-plugin-livekit";
@@ -12,6 +13,11 @@ import { fileURLToPath } from "node:url";
 import path from "node:path";
 import OpenAI from "openai";
 import { findUserById } from "@alpha/data/crud/users";
+import {
+  createCortexLLM,
+  FAST_MODEL,
+  STANDARD_MODEL,
+} from "./plugins/cortexLLM";
 import {
   createSession,
   findPreviousSession,
@@ -53,9 +59,27 @@ export default defineAgent({
       );
     }
 
+    for (const [name, value] of [
+      ["CONTENT_GRAPHQL_URL", contentGraphqlUrl],
+      ["CORTEX_API_URL", cortexApiUrl],
+    ] as const) {
+      const parsed = new URL(value);
+      if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
+        throw new Error(`${name} must use http or https protocol`);
+      }
+      if (parsed.search || parsed.hash) {
+        throw new Error(`${name} must not contain query strings or fragments`);
+      }
+    }
+
     proc.userData["contentClient"] = new ContentClient(contentGraphqlUrl);
     proc.userData["cortexClient"] = new CortexClient(cortexApiUrl);
     proc.userData["openai"] = new OpenAI();
+    proc.userData["fastLLM"] = createCortexLLM(cortexApiUrl, FAST_MODEL);
+    proc.userData["standardLLM"] = createCortexLLM(
+      cortexApiUrl,
+      STANDARD_MODEL
+    );
     proc.userData["audioRecorder"] = new AudioRecorder({
       openai: proc.userData["openai"] as OpenAI,
     });
@@ -65,6 +89,8 @@ export default defineAgent({
     const contentClient = ctx.proc.userData["contentClient"] as ContentClient;
     const cortexClient = ctx.proc.userData["cortexClient"] as CortexClient;
     const audioRecorder = ctx.proc.userData["audioRecorder"] as AudioRecorder;
+    const fastLLM = ctx.proc.userData["fastLLM"] as llm.LLM;
+    const standardLLM = ctx.proc.userData["standardLLM"] as llm.LLM;
 
     await ctx.connect();
     const participant = await ctx.waitForParticipant();
@@ -114,13 +140,13 @@ export default defineAgent({
     };
 
     const agent = isNew
-      ? SetupAgent.create(catchUpDeps)
+      ? SetupAgent.create(catchUpDeps, fastLLM)
       : CatchUpAgent.create(catchUpDeps);
 
     const session = new voice.AgentSession<AlphaSessionData>({
       vad,
       stt: "deepgram/nova-3:multi",
-      llm: "openai/gpt-4.1-mini",
+      llm: standardLLM,
       tts: "cartesia/sonic-3:9626c31c-bec5-4cca-baa8-f8ba9e84c8bc",
       turnDetection: new livekit.turnDetector.MultilingualModel(),
       userData,

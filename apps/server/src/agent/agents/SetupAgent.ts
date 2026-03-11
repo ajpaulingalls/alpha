@@ -12,8 +12,9 @@ export class SetupAgent extends voice.Agent<AlphaSessionData> {
     });
   }
 
-  static create(catchUpDeps: CatchUpAgentDeps) {
+  static create(catchUpDeps: CatchUpAgentDeps, agentLLM?: llm.LLM) {
     return new SetupAgent({
+      llm: agentLLM,
       instructions:
         "You are Alpha, an AI-powered podcast assistant meeting a new user for the first time. " +
         "Your goal is to welcome them warmly and learn their name. " +
