@@ -2,6 +2,15 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Values
+
+We follow the four values of Extreme Programming. Every decision — architecture, tooling, process — must conform to these:
+
+- **Simplicity** — Do the simplest thing that works. Don't build for hypothetical futures. Remove dead code, unused abstractions, and speculative generality. Three clear lines beat one clever one.
+- **Communication** — Code is read more than written. Names, types, and structure should make intent obvious. If something needs a comment, first try to make the code clearer. Share context in commits and PRs.
+- **Feedback** — Run tests, typecheck, and lint before every push. Fix what they surface immediately — don't accumulate known-broken windows. Write tests that fail fast and tell you exactly what went wrong.
+- **Courage** — Fix problems when you find them, even if they're outside your current task. Refactor mercilessly. Delete code that isn't earning its keep. Address pre-existing issues rather than working around them.
+
 ## Project Overview
 
 Alpha is a monorepo for an AI-powered podcast platform. It generates podcasts from news articles, indexes existing podcasts for search, serves real-time voice interactions via WebSockets, and provides a React Native mobile client.
