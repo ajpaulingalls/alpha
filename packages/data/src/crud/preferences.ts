@@ -22,8 +22,11 @@ export async function createPreferences(
   catchUpDepth?: string
 ): Promise<UserPreference> {
   const values: Record<string, unknown> = { userId };
-  if (timezone !== undefined) values.timezone = timezone;
-  if (catchUpDepth !== undefined) values.catchUpDepth = catchUpDepth;
+  if (timezone !== undefined) values["timezone"] = timezone;
+  if (catchUpDepth !== undefined) values["catchUpDepth"] = catchUpDepth;
+
+  const existing = await findPreferencesByUserId(userId);
+  if (existing) return existing;
 
   const result = await db
     .insert(userPreferences)

@@ -10,6 +10,7 @@ import jwt from "jsonwebtoken";
 import { AccessToken } from "livekit-server-sdk";
 import { RoomAgentDispatch, RoomConfiguration } from "@livekit/protocol";
 import { AGENT_NAME } from "../agent/constants";
+import { isNewUser } from "../agent/types";
 import type { User } from "@alpha/data/schema/users";
 import type { Session } from "@alpha/data/schema/sessions";
 import {
@@ -159,9 +160,7 @@ export function createAuthRoutes(
       audience: JWT_AUDIENCE,
     });
 
-    const isNewUser = !user.name || user.name.trim() === "";
-
-    return c.json({ token, isNewUser });
+    return c.json({ token, isNewUser: isNewUser(user) });
   });
 
   app.post("/livekit-token", authMiddleware, async (c) => {
