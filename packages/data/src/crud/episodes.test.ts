@@ -39,6 +39,7 @@ const {
   findEpisodesByShow,
   findLatestEpisode,
   findEpisodeById,
+  findExistingEpisodeIds,
   findRecentEpisodes,
   findNewEpisodesForUser,
 } = await import("./episodes");
@@ -99,6 +100,17 @@ describe("episodes CRUD", () => {
     mockSelectResult = [];
     const result = await findEpisodeById("missing");
     expect(result).toBeNull();
+  });
+
+  test("findExistingEpisodeIds returns IDs that exist", async () => {
+    mockSelectResult = [{ id: "e1" }, { id: "e3" }];
+    const result = await findExistingEpisodeIds(["e1", "e2", "e3"]);
+    expect(result).toEqual(["e1", "e3"]);
+  });
+
+  test("findExistingEpisodeIds returns empty array for empty input", async () => {
+    const result = await findExistingEpisodeIds([]);
+    expect(result).toEqual([]);
   });
 
   test("findRecentEpisodes returns episodes after given date", async () => {

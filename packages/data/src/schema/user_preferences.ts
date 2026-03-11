@@ -14,5 +14,6 @@ export const userPreferences = pgTable("user_preferences", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export type CatchUpDepth = "brief" | "standard" | "detailed";
 export type UserPreference = typeof userPreferences.$inferSelect;
 export type NewUserPreference = typeof userPreferences.$inferInsert;

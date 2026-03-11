@@ -40,6 +40,7 @@ const {
   findSessionById,
   endSession,
   findLatestSession,
+  findPreviousSession,
   markCatchUpDelivered,
 } = await import("./sessions");
 
@@ -95,15 +96,30 @@ describe("sessions CRUD", () => {
     expect(result).toBeNull();
   });
 
+  test("findPreviousSession returns session when found", async () => {
+    const session: any = { id: "s0", userId: "u1", startedAt: new Date() };
+    mockSelectResult = [session];
+    const result = await findPreviousSession("u1", "s1");
+    expect(result).toEqual(session);
+  });
+
+  test("findPreviousSession returns null when not found", async () => {
+    mockSelectResult = [];
+    const result = await findPreviousSession("u1", "s1");
+    expect(result).toBeNull();
+  });
+
   test("markCatchUpDelivered returns updated session", async () => {
     const session: any = { id: "s1", catchUpDelivered: true };
     mockUpdateResult = [session];
-    const result = await markCatchUpDelivered("s1");
+    const result = await markCatchUpDelivered("s1", "u1");
     expect(result).toEqual(session);
   });
 
   test("markCatchUpDelivered throws when not found", async () => {
     mockUpdateResult = [];
-    await expect(markCatchUpDelivered("missing")).rejects.toThrow("not found");
+    await expect(markCatchUpDelivered("missing", "u1")).rejects.toThrow(
+      "not found"
+    );
   });
 });

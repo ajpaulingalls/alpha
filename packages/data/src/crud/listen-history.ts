@@ -1,12 +1,16 @@
 import { eq, and, desc, gt } from "drizzle-orm";
 import { db } from "../client";
-import { listenHistory, type ListenHistory } from "../schema/listen_history";
+import {
+  listenHistory,
+  type ListenHistory,
+  type ListenContentType,
+} from "../schema/listen_history";
 import { updateOneOrThrow } from "./helpers";
 
 export async function recordListen(
   sessionId: string,
   userId: string,
-  contentType: string,
+  contentType: ListenContentType,
   contentId: string
 ): Promise<ListenHistory> {
   const result = await db
@@ -45,7 +49,7 @@ export async function findRecentListens(
 
 export async function hasUserHeard(
   userId: string,
-  contentType: string,
+  contentType: ListenContentType,
   contentId: string
 ): Promise<boolean> {
   const result = await db

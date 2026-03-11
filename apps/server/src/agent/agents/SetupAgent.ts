@@ -3,7 +3,7 @@ import { z } from "zod";
 import { updateUserName } from "@alpha/data/crud/users";
 import { createPreferences } from "@alpha/data/crud/preferences";
 import type { AlphaSessionData } from "../types";
-import { CatchUpAgent } from "./CatchUpAgent";
+import { CatchUpAgent, type CatchUpAgentDeps } from "./CatchUpAgent";
 
 export class SetupAgent extends voice.Agent<AlphaSessionData> {
   async onEnter() {
@@ -12,7 +12,7 @@ export class SetupAgent extends voice.Agent<AlphaSessionData> {
     });
   }
 
-  static create() {
+  static create(catchUpDeps: CatchUpAgentDeps) {
     return new SetupAgent({
       instructions:
         "You are Alpha, an AI-powered podcast assistant meeting a new user for the first time. " +
@@ -43,7 +43,7 @@ export class SetupAgent extends voice.Agent<AlphaSessionData> {
             ctx.userData.userName = name;
 
             return llm.handoff({
-              agent: CatchUpAgent.create(),
+              agent: CatchUpAgent.create(catchUpDeps),
               returns:
                 "Deliver this intro to the user, addressing them by name: " +
                 "\"Hey [user's name], I'm Alpha. " +

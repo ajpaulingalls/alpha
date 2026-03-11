@@ -1,8 +1,17 @@
 import { describe, expect, test } from "bun:test";
 import { z } from "zod";
+import { SetupAgent } from "./SetupAgent";
+import { mockCatchUpDeps } from "./test-helpers";
 
 const nameSchema = z.object({
   name: z.string().trim().min(1).max(100).describe("The user's first name"),
+});
+
+describe("SetupAgent", () => {
+  test("create() returns a SetupAgent instance", () => {
+    const agent = SetupAgent.create(mockCatchUpDeps());
+    expect(agent).toBeInstanceOf(SetupAgent);
+  });
 });
 
 describe("SetupAgent recordName schema", () => {

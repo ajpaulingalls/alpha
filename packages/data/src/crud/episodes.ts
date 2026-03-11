@@ -1,4 +1,4 @@
-import { eq, desc, gt, and, isNull } from "drizzle-orm";
+import { eq, desc, gt, and, isNull, inArray } from "drizzle-orm";
 import { getTableColumns } from "drizzle-orm/utils";
 import { db } from "../client";
 import {
@@ -59,6 +59,15 @@ export async function findRecentEpisodes(
     .where(gt(podcastEpisodes.publishedAt, since))
     .orderBy(desc(podcastEpisodes.publishedAt))
     .limit(Math.min(limit, 100));
+}
+
+export async function findExistingEpisodeIds(ids: string[]): Promise<string[]> {
+  if (ids.length === 0) return [];
+  const rows = await db
+    .select({ id: podcastEpisodes.id })
+    .from(podcastEpisodes)
+    .where(inArray(podcastEpisodes.id, ids));
+  return rows.map((r) => r.id);
 }
 
 export async function findNewEpisodesForUser(

@@ -30,5 +30,6 @@ export const listenHistory = pgTable(
   ]
 );
 
+export type ListenContentType = "episode" | "topic";
 export type ListenHistory = typeof listenHistory.$inferSelect;
 export type NewListenHistory = typeof listenHistory.$inferInsert;

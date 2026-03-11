@@ -22,7 +22,7 @@ export function createSearchContentTool(deps: {
 }) {
   return llm.tool({
     description:
-      "Search across cached responses, podcast topics, and articles to find the best content for a query. Returns results ranked by relevance with the query embedding for downstream caching.",
+      "Search across cached responses, podcast topics, and articles to find the best content for a query. Returns results ranked by relevance.",
     parameters: z.object({
       query: z
         .string()
@@ -80,7 +80,6 @@ export function createSearchContentTool(deps: {
         }
 
         return JSON.stringify({
-          queryEmbedding: embedding ?? [],
           results,
           ...(embedding
             ? {}

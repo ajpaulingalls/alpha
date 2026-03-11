@@ -110,7 +110,7 @@ describe("searchContent tool", () => {
     expect(parsed.results[2].contentType).toBe("article");
   });
 
-  test("execute includes queryEmbedding in result", async () => {
+  test("execute does not leak queryEmbedding in result", async () => {
     const tool = createSearchContentTool(buildDeps());
     const ctx = { userData: { userId: "u1" } } as any;
     const result = await tool.execute({ query: "test" }, {
@@ -118,7 +118,7 @@ describe("searchContent tool", () => {
       toolCallId: "t1",
     } as any);
     const parsed = JSON.parse(result as string);
-    expect(parsed.queryEmbedding).toEqual([0.1, 0.2, 0.3]);
+    expect(parsed.queryEmbedding).toBeUndefined();
   });
 
   test("execute returns articles and error on embed failure", async () => {
@@ -130,7 +130,7 @@ describe("searchContent tool", () => {
       toolCallId: "t1",
     } as any);
     const parsed = JSON.parse(result as string);
-    expect(parsed.queryEmbedding).toEqual([]);
+    expect(parsed.queryEmbedding).toBeUndefined();
     expect(parsed.error).toContain("embedding");
     expect(parsed.results).toHaveLength(1);
     expect(parsed.results[0].contentType).toBe("article");
