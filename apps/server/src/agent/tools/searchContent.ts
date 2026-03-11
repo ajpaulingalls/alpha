@@ -19,6 +19,7 @@ export function createSearchContentTool(deps: {
     embedding: number[],
     limit?: number
   ) => Promise<(PodcastTopic & { distance: number })[]>;
+  incrementHitCount?: (id: string) => Promise<unknown>;
 }) {
   return llm.tool({
     description:
@@ -54,6 +55,12 @@ export function createSearchContentTool(deps: {
               score: cached.distance,
               audioFilename: cached.audioFilename ?? undefined,
             });
+
+            if (deps.incrementHitCount) {
+              deps.incrementHitCount(cached.id).catch((err) => {
+                console.error("incrementHitCount error:", err);
+              });
+            }
           }
 
           for (const topic of topicResults) {

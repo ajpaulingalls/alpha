@@ -29,10 +29,13 @@ import {
   findRecentEpisodes,
   findNewEpisodesForUser,
   findExistingEpisodeIds,
+  findEpisodeById,
+  findEpisodesByShow,
 } from "@alpha/data/crud/episodes";
 import {
   searchCachedResponses,
   createCachedResponse,
+  incrementHitCount,
 } from "@alpha/data/crud/cached-responses";
 import { searchTopicsByEmbedding } from "@alpha/data/crud/topics";
 import { ContentClient } from "@alpha/content";
@@ -118,6 +121,10 @@ export default defineAgent({
       searchCachedResponses,
       searchTopicsByEmbedding,
       generator,
+      findEpisodesByShow,
+      findEpisodeById,
+      recordListen,
+      incrementHitCount,
     };
 
     const catchUpDeps: CatchUpAgentDeps = {

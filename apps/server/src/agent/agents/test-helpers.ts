@@ -2,6 +2,7 @@
 import { mock } from "bun:test";
 import type { CatchUpAgentDeps } from "./CatchUpAgent";
 import type { BrowseAgentDeps } from "./BrowseAgent";
+import type { PlaybackAgentDeps } from "./PlaybackAgent";
 
 export function mockBrowseDeps(
   overrides?: Partial<BrowseAgentDeps>
@@ -24,6 +25,44 @@ export function mockBrowseDeps(
         })
       ),
     } as any,
+    findEpisodesByShow: mock(() => Promise.resolve([])),
+    findEpisodeById: mock(() => Promise.resolve(null)),
+    recordListen: mock(() =>
+      Promise.resolve({
+        id: "lh1",
+        sessionId: "s1",
+        userId: "u1",
+        contentType: "episode",
+        contentId: "e1",
+        listenedAt: new Date(),
+        completedPercent: 0,
+      })
+    ),
+    incrementHitCount: mock(() =>
+      Promise.resolve({
+        id: "cr1",
+        queryEmbedding: null,
+        responseText: null,
+        audioFilename: null,
+        sourceSummary: null,
+        contentType: null,
+        expiresAt: null,
+        hitCount: 1,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      })
+    ),
+    ...overrides,
+  };
+}
+
+export function mockPlaybackDeps(
+  overrides?: Partial<PlaybackAgentDeps>
+): PlaybackAgentDeps {
+  return {
+    episodeId: "e1e1e1e1-e1e1-e1e1-e1e1-e1e1e1e1e1e1",
+    episodeTitle: "Test Episode",
+    browseDeps: mockBrowseDeps(),
     ...overrides,
   };
 }

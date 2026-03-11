@@ -7,4 +7,32 @@ describe("BrowseAgent", () => {
     const agent = BrowseAgent.create(mockBrowseDeps());
     expect(agent).toBeInstanceOf(BrowseAgent);
   });
+
+  test("create() has correct tool names", () => {
+    const agent = BrowseAgent.create(mockBrowseDeps());
+    const toolNames = Object.keys(agent.toolCtx);
+    expect(toolNames).toContain("searchContent");
+    expect(toolNames).toContain("searchPodcasts");
+    expect(toolNames).toContain("generateResponse");
+    expect(toolNames).toContain("playPodcast");
+    expect(toolNames).toHaveLength(4);
+  });
+
+  test("system prompt contains content resolution guidance", () => {
+    const agent = BrowseAgent.create(mockBrowseDeps());
+    const instructions = agent.instructions;
+    expect(instructions).toContain("Content Resolution Priority");
+  });
+
+  test("system prompt contains topic drift handling", () => {
+    const agent = BrowseAgent.create(mockBrowseDeps());
+    const instructions = agent.instructions;
+    expect(instructions).toContain("Topic Drift Handling");
+  });
+
+  test("system prompt contains tone guidance", () => {
+    const agent = BrowseAgent.create(mockBrowseDeps());
+    const instructions = agent.instructions;
+    expect(instructions).toContain("Warm, confident, and conversational");
+  });
 });
