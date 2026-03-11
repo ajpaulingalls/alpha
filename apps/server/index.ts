@@ -11,9 +11,18 @@ import { createSession, findSessionById } from "@alpha/data/crud/sessions";
 import { logger } from "./src/utils/logger";
 
 const OPENAI_API_KEY = process.env["OPENAI_API_KEY"];
-const CORS_HOSTS = process.env["CORS_HOSTS"]
-  ? JSON.parse(process.env["CORS_HOSTS"])
-  : "http://localhost:5173";
+let CORS_HOSTS = "http://localhost:5173";
+if (process.env["CORS_HOSTS"]) {
+  try {
+    CORS_HOSTS = JSON.parse(process.env["CORS_HOSTS"]);
+  } catch {
+    console.error(
+      'Environment variable "CORS_HOSTS" contains invalid JSON.\n' +
+        "Please fix it in your .env file."
+    );
+    process.exit(1);
+  }
+}
 const PORT = process.env["PORT"] ? parseInt(process.env["PORT"]) : 8081;
 
 if (!OPENAI_API_KEY) {

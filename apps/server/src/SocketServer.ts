@@ -13,6 +13,8 @@ import { HANDLER_COMPLETE } from "./handlers/CommunicationsHandler";
 import { PodcastHandler } from "./handlers/PodcastHandler";
 import jwt, { type JwtPayload } from "jsonwebtoken";
 import { findUserById } from "@alpha/data/crud/users";
+import { JWT_ISSUER, JWT_AUDIENCE } from "./middleware/auth";
+import type { Session } from "@alpha/data/schema/sessions";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface InterServerEvents {}
@@ -28,13 +30,20 @@ export class SocketServer {
   private readonly apiKey: string;
   private readonly corsHosts: string;
   private readonly audioRootDir: string;
+  private readonly createSession: (userId: string) => Promise<Session>;
   private io: Server | null;
   private httpServer: HTTPServer | null;
 
-  constructor(apiKey: string, corsHosts: string, audioRootDir: string) {
+  constructor(
+    apiKey: string,
+    corsHosts: string,
+    audioRootDir: string,
+    createSession: (userId: string) => Promise<Session>
+  ) {
     this.apiKey = apiKey;
     this.corsHosts = corsHosts;
     this.audioRootDir = audioRootDir;
+    this.createSession = createSession;
     this.io = null;
     this.httpServer = null;
   }
@@ -80,6 +89,8 @@ export class SocketServer {
         }
         const decoded = jwt.verify(userToken, secret, {
           algorithms: ["HS256"],
+          issuer: JWT_ISSUER,
+          audience: JWT_AUDIENCE,
         });
         const userId = (decoded as JwtPayload)["userId"];
         if (typeof userId !== "string") {
@@ -102,7 +113,7 @@ export class SocketServer {
       }
     }
 
-    const handler = new SignupHandler(this.apiKey);
+    const handler = new SignupHandler(this.apiKey, this.createSession);
     handler.init(socket, this.audioRootDir);
     socket.data.currentHandler = handler;
 

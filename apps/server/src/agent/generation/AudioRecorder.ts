@@ -34,7 +34,7 @@ export class AudioRecorder {
 
     const dir = path.dirname(outputPath);
     await fs.mkdir(dir, { recursive: true });
-    await fs.writeFile(outputPath, wavBuffer);
+    await fs.writeFile(outputPath, wavBuffer, { mode: 0o644 });
   }
 
   private validatePath(outputPath: string): void {

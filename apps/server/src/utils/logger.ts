@@ -24,8 +24,14 @@ export const logger = {
   },
 
   error: (...args: unknown[]) => {
-    // Always log errors, even in production
-    console.error(...args);
+    if (isProduction) {
+      const sanitized = args.map((arg) =>
+        arg instanceof Error ? arg.message : arg
+      );
+      console.error(...sanitized);
+    } else {
+      console.error(...args);
+    }
   },
 
   warn: (...args: unknown[]) => {

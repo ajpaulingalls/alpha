@@ -2,6 +2,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { createAuthRoutes, type AuthDeps } from "./routes/auth";
 import type { AuthEnv } from "./middleware/auth";
+import { securityHeaders } from "./middleware/securityHeaders";
 
 export interface LiveKitConfig {
   apiKey: string;
@@ -32,6 +33,7 @@ export class ApiServer {
   }
 
   initServer(authDeps: AuthDeps) {
+    this.app.use("/api/*", securityHeaders);
     this.app.use(
       "/api/*",
       cors({

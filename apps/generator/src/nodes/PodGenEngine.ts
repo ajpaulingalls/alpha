@@ -258,7 +258,9 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
       if (!fs.existsSync(cacheDir)) {
         fs.mkdirSync(cacheDir, { recursive: true });
       }
-      fs.writeFileSync(path.join(cacheDir, "segment.pcm"), allPcmData);
+      fs.writeFileSync(path.join(cacheDir, "segment.pcm"), allPcmData, {
+        mode: 0o644,
+      });
     }
 
     // Write the accumulated PCM data to the output file

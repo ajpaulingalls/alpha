@@ -1,4 +1,5 @@
 import { StatusBar } from "expo-status-bar";
+import Constants from "expo-constants";
 import { useRef, useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { useAsyncStorage } from "@react-native-async-storage/async-storage";
@@ -66,8 +67,9 @@ export default function App() {
       return;
     }
 
-    // Initialize socket connection with token via auth (not query params)
-    const socketUrl = "http://192.168.7.141:8082";
+    const socketUrl =
+      (Constants.expoConfig?.extra?.socketUrl as string | undefined) ??
+      "http://localhost:8082";
 
     const newSocket = io(socketUrl, {
       auth: userToken ? { token: userToken } : undefined,

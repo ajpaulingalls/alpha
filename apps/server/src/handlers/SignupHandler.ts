@@ -11,8 +11,10 @@ import {
   updateUserValidation,
 } from "@alpha/data/crud/users";
 import { type User } from "@alpha/data/schema/users";
+import type { Session } from "@alpha/data/schema/sessions";
 import jwt from "jsonwebtoken";
 import { logger } from "../utils/logger";
+import { JWT_ISSUER, JWT_AUDIENCE } from "../middleware/auth";
 
 export default class SignupHandler extends CommunicationsHandler {
   private saveNameTool: SaveNameTool;
@@ -20,8 +22,12 @@ export default class SignupHandler extends CommunicationsHandler {
   private checkCodeTool: CheckCodeTool;
   private user: User | null = null;
   private completed = false;
+  private createSession: (userId: string) => Promise<Session>;
 
-  constructor(apiKey: string) {
+  constructor(
+    apiKey: string,
+    createSession: (userId: string) => Promise<Session>
+  ) {
     const saveNameTool = new SaveNameTool();
     const savePhoneTool = new SavePhoneTool();
     const checkCodeTool = new CheckCodeTool();
@@ -42,6 +48,7 @@ export default class SignupHandler extends CommunicationsHandler {
     this.saveNameTool = saveNameTool;
     this.savePhoneTool = savePhoneTool;
     this.checkCodeTool = checkCodeTool;
+    this.createSession = createSession;
   }
 
   init(socket: Socket, audioRootDir: string): void {
@@ -162,13 +169,15 @@ export default class SignupHandler extends CommunicationsHandler {
     this.client.connect();
   }
 
-  generateUserToken(user: User): string {
+  generateUserToken(user: User, sessionId: string): string {
     const secret = process.env["JWT_SECRET"];
     if (!secret) {
       throw new Error("JWT_SECRET environment variable is not set");
     }
-    return jwt.sign({ userId: user.id }, secret, {
+    return jwt.sign({ userId: user.id, sessionId }, secret, {
       expiresIn: "30d",
+      issuer: JWT_ISSUER,
+      audience: JWT_AUDIENCE,
     });
   }
 
@@ -176,7 +185,11 @@ export default class SignupHandler extends CommunicationsHandler {
     this.completed = true;
     this.client.disconnect();
     if (this.user) {
-      this.socket?.emit("saveUserToken", this.generateUserToken(this.user));
+      const session = await this.createSession(this.user.id);
+      this.socket?.emit(
+        "saveUserToken",
+        this.generateUserToken(this.user, session.id)
+      );
     }
     try {
       await this.streamAudioToClient("signupComplete.wav");

@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import {
   bootstrap,
   EventBus,
@@ -13,6 +14,15 @@ import dotenv from "dotenv";
 import "@alpha/data/ts-flow/TopicInsertNode";
 
 dotenv.config();
+
+const IMPORTER_API_KEY = process.env["IMPORTER_API_KEY"];
+if (!IMPORTER_API_KEY) {
+  console.error(
+    'Environment variable "IMPORTER_API_KEY" is required.\n' +
+      "Please set it in your .env file."
+  );
+  process.exit(1);
+}
 
 const paths: string[] = [];
 paths.push(
@@ -60,14 +70,15 @@ void bootstrap(paths, (container: IContainer) => {
   app.use(express.json());
 
   app.post("/start", async (req: Request, res: Response) => {
-    // Validate API key
-    const apiKey = process.env["IMPORTER_API_KEY"];
-    if (apiKey) {
-      const authHeader = req.headers.authorization;
-      if (!authHeader || authHeader !== `Bearer ${apiKey}`) {
-        res.status(401).json({ error: "Unauthorized" });
-        return;
-      }
+    const authHeader = req.headers.authorization;
+    const expectedToken = `Bearer ${IMPORTER_API_KEY}`;
+    if (
+      !authHeader ||
+      authHeader.length !== expectedToken.length ||
+      !timingSafeEqual(Buffer.from(authHeader), Buffer.from(expectedToken))
+    ) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
     }
 
     const { programId } = req.body;
