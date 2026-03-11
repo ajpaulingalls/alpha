@@ -31,6 +31,22 @@ function createDeps(overrides?: Record<string, any>) {
         completedPercent: 0,
       })
     ),
+    findTopicsByEpisode: mock(() => Promise.resolve([])),
+    updateCompletedPercent: mock(() =>
+      Promise.resolve({
+        id: "lh1",
+        sessionId: "s1",
+        userId: "u1",
+        contentType: "episode",
+        contentId: "e1",
+        listenedAt: new Date(),
+        completedPercent: 50,
+      })
+    ),
+    cortexClient: {
+      rag: mock(() => Promise.resolve({ result: "", sources: [] })),
+    } as any,
+    audioDir: "/tmp/test-audio",
     browseDeps: mockBrowseDeps(),
     ...overrides,
   };
@@ -102,5 +118,21 @@ describe("playPodcast tool", () => {
 
     const handoff = result as { agent: unknown; returns: string };
     expect(handoff.returns).toContain("Gaza Ceasefire Update");
+  });
+
+  test("passes listenHistoryId to PlaybackAgent", async () => {
+    const deps = createDeps();
+    const tool = createPlayPodcastTool(deps);
+
+    const result = await tool.execute({ episodeId: EPISODE_ID }, {
+      ctx,
+      toolCallId: "t1",
+    } as any);
+
+    const handoff = result as unknown as {
+      agent: PlaybackAgent;
+      returns: string;
+    };
+    expect(handoff.agent).toBeInstanceOf(PlaybackAgent);
   });
 });

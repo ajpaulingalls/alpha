@@ -1,10 +1,12 @@
 import { llm } from "@livekit/agents";
 import { z } from "zod";
 import type { PodcastEpisode } from "@alpha/data/schema/podcast_episodes";
+import type { PodcastTopic } from "@alpha/data/schema/podcast_topics";
 import type {
   ListenHistory,
   ListenContentType,
 } from "@alpha/data/schema/listen_history";
+import type { CortexClient } from "@alpha/cortex";
 import type { AlphaSessionData } from "../types";
 import { PlaybackAgent, type PlaybackAgentDeps } from "../agents/PlaybackAgent";
 import type { BrowseAgentDeps } from "../agents/BrowseAgent";
@@ -17,6 +19,13 @@ export interface PlayPodcastDeps {
     contentType: ListenContentType,
     contentId: string
   ) => Promise<ListenHistory>;
+  findTopicsByEpisode: (episodeId: string) => Promise<PodcastTopic[]>;
+  updateCompletedPercent: (
+    id: string,
+    percent: number
+  ) => Promise<ListenHistory>;
+  cortexClient: CortexClient;
+  audioDir: string;
   browseDeps: BrowseAgentDeps;
 }
 
@@ -41,12 +50,24 @@ export function createPlayPodcastTool(deps: PlayPodcastDeps) {
         }
 
         const { sessionId, userId } = ctx.userData as AlphaSessionData;
-        await deps.recordListen(sessionId, userId, "episode", episodeId);
+        const listenRecord = await deps.recordListen(
+          sessionId,
+          userId,
+          "episode",
+          episodeId
+        );
 
-        const episodeTitle = episode.title ?? "Untitled Episode";
+        const episodeTitle = (episode.title ?? "Untitled Episode")
+          .replace(/[\n\r\t]/g, " ")
+          .slice(0, 200);
         const playbackDeps: PlaybackAgentDeps = {
           episodeId,
           episodeTitle,
+          listenHistoryId: listenRecord.id,
+          findTopicsByEpisode: deps.findTopicsByEpisode,
+          updateCompletedPercent: deps.updateCompletedPercent,
+          cortexClient: deps.cortexClient,
+          audioDir: deps.audioDir,
           browseDeps: deps.browseDeps,
         };
 

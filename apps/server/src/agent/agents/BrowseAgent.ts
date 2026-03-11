@@ -40,6 +40,12 @@ export interface BrowseAgentDeps {
     contentId: string
   ) => Promise<ListenHistory>;
   incrementHitCount: (id: string) => Promise<CachedResponse>;
+  findTopicsByEpisode: (episodeId: string) => Promise<PodcastTopic[]>;
+  updateCompletedPercent: (
+    id: string,
+    percent: number
+  ) => Promise<ListenHistory>;
+  audioDir: string;
 }
 
 const BROWSE_INSTRUCTIONS =
@@ -92,6 +98,10 @@ export class BrowseAgent extends voice.Agent<AlphaSessionData> {
         playPodcast: createPlayPodcastTool({
           findEpisodeById: deps.findEpisodeById,
           recordListen: deps.recordListen,
+          findTopicsByEpisode: deps.findTopicsByEpisode,
+          updateCompletedPercent: deps.updateCompletedPercent,
+          cortexClient: deps.cortexClient,
+          audioDir: deps.audioDir,
           browseDeps: deps,
         }),
       },

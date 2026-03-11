@@ -28,7 +28,8 @@ export async function findTopicsByEpisode(
     .select()
     .from(podcastTopics)
     .where(eq(podcastTopics.episodeId, episodeId))
-    .orderBy(asc(podcastTopics.startTime));
+    .orderBy(asc(podcastTopics.startTime))
+    .limit(200);
 }
 
 export async function findTopicById(id: string): Promise<PodcastTopic | null> {

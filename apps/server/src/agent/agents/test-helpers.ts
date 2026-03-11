@@ -52,6 +52,19 @@ export function mockBrowseDeps(
         updatedAt: new Date(),
       })
     ),
+    findTopicsByEpisode: mock(() => Promise.resolve([])),
+    updateCompletedPercent: mock(() =>
+      Promise.resolve({
+        id: "lh1",
+        sessionId: "s1",
+        userId: "u1",
+        contentType: "episode",
+        contentId: "e1",
+        listenedAt: new Date(),
+        completedPercent: 50,
+      })
+    ),
+    audioDir: "/tmp/test-audio",
     ...overrides,
   };
 }
@@ -62,7 +75,24 @@ export function mockPlaybackDeps(
   return {
     episodeId: "e1e1e1e1-e1e1-e1e1-e1e1-e1e1e1e1e1e1",
     episodeTitle: "Test Episode",
+    listenHistoryId: "lh1",
     browseDeps: mockBrowseDeps(),
+    findTopicsByEpisode: mock(() => Promise.resolve([])),
+    updateCompletedPercent: mock(() =>
+      Promise.resolve({
+        id: "lh1",
+        sessionId: "s1",
+        userId: "u1",
+        contentType: "episode",
+        contentId: "e1",
+        listenedAt: new Date(),
+        completedPercent: 50,
+      })
+    ),
+    cortexClient: {
+      rag: mock(() => Promise.resolve({ result: "", sources: [] })),
+    } as any,
+    audioDir: "/tmp/test-audio",
     ...overrides,
   };
 }

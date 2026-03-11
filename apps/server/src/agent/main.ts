@@ -24,7 +24,10 @@ import {
   markCatchUpDelivered,
 } from "@alpha/data/crud/sessions";
 import { findPreferencesByUserId } from "@alpha/data/crud/preferences";
-import { recordListen } from "@alpha/data/crud/listen-history";
+import {
+  recordListen,
+  updateCompletedPercent,
+} from "@alpha/data/crud/listen-history";
 import {
   findRecentEpisodes,
   findNewEpisodesForUser,
@@ -37,7 +40,10 @@ import {
   createCachedResponse,
   incrementHitCount,
 } from "@alpha/data/crud/cached-responses";
-import { searchTopicsByEmbedding } from "@alpha/data/crud/topics";
+import {
+  searchTopicsByEmbedding,
+  findTopicsByEpisode,
+} from "@alpha/data/crud/topics";
 import { ContentClient } from "@alpha/content";
 import { CortexClient } from "@alpha/cortex";
 import { AGENT_NAME } from "./constants";
@@ -125,6 +131,9 @@ export default defineAgent({
       findEpisodeById,
       recordListen,
       incrementHitCount,
+      findTopicsByEpisode,
+      updateCompletedPercent,
+      audioDir: path.join(process.cwd(), "audio", "topics"),
     };
 
     const catchUpDeps: CatchUpAgentDeps = {
