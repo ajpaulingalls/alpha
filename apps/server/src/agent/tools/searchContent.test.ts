@@ -22,7 +22,7 @@ const mockSearchCachedResponses = mock(() =>
       createdAt: new Date(),
       updatedAt: new Date(),
     },
-  ])
+  ]),
 );
 
 const mockSearchTopics = mock(() =>
@@ -40,7 +40,7 @@ const mockSearchTopics = mock(() =>
       createdAt: new Date(),
       updatedAt: new Date(),
     },
-  ])
+  ]),
 );
 
 const mockSearchArticles = mock(() =>
@@ -52,7 +52,7 @@ const mockSearchArticles = mock(() =>
       imageUrl: "https://example.com/img.jpg",
       publishedAt: "2025-01-01",
     },
-  ])
+  ]),
 );
 
 const mockEmbed = mock(() => Promise.resolve([[0.1, 0.2, 0.3]]));

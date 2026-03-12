@@ -12,7 +12,7 @@ export const sessions = pgTable(
     endedAt: timestamp("ended_at"),
     catchUpDelivered: boolean("catch_up_delivered").default(false).notNull(),
   },
-  (table) => [index("sessions_user_id_idx").on(table.userId)]
+  (table) => [index("sessions_user_id_idx").on(table.userId)],
 );
 
 export type Session = typeof sessions.$inferSelect;

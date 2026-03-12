@@ -42,7 +42,7 @@ export class StreamingGenerator {
   async generate(
     query: string,
     ragContext: string,
-    _userId: string
+    _userId: string,
   ): Promise<GenerateResult> {
     const messages: ChatMessage[] = [
       { role: "system", content: SYSTEM_PROMPT },
@@ -64,7 +64,7 @@ export class StreamingGenerator {
   private async cacheInBackground(
     query: string,
     ragContext: string,
-    text: string
+    text: string,
   ): Promise<void> {
     try {
       const filename = `${crypto.randomUUID()}.wav`;

@@ -10,7 +10,7 @@ import {
 import { updateOneOrThrow } from "./helpers";
 
 export async function createCachedResponse(
-  data: NewCachedResponse
+  data: NewCachedResponse,
 ): Promise<CachedResponse> {
   const result = await db.insert(cachedResponses).values(data).returning();
   return result[0];
@@ -19,12 +19,12 @@ export async function createCachedResponse(
 export async function searchCachedResponses(
   queryEmbedding: number[],
   similarityThreshold: number,
-  limit = 5
+  limit = 5,
 ): Promise<(CachedResponse & { distance: number })[]> {
   limit = Math.min(limit, 100);
   const distance = sql<number>`${cosineDistance(
     cachedResponses.queryEmbedding,
-    queryEmbedding
+    queryEmbedding,
   )}`;
   return db
     .select({ ...getTableColumns(cachedResponses), distance })
@@ -32,8 +32,8 @@ export async function searchCachedResponses(
     .where(
       and(
         gt(cachedResponses.expiresAt, new Date()),
-        sql`${distance} < ${similarityThreshold}`
-      )
+        sql`${distance} < ${similarityThreshold}`,
+      ),
     )
     .orderBy(distance)
     .limit(limit);
@@ -49,7 +49,7 @@ export async function incrementHitCount(id: string): Promise<CachedResponse> {
       })
       .where(eq(cachedResponses.id, id))
       .returning(),
-    `Cached response ${id} not found`
+    `Cached response ${id} not found`,
   );
 }
 

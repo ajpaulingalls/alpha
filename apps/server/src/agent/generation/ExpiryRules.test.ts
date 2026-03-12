@@ -5,7 +5,7 @@ describe("classifyContent", () => {
   test("classifies breaking news keywords", () => {
     expect(classifyContent("breaking news in Gaza", "")).toBe("breaking");
     expect(classifyContent("", "just in: ceasefire collapsed")).toBe(
-      "breaking"
+      "breaking",
     );
     expect(classifyContent("developing story", "")).toBe("breaking");
     expect(classifyContent("URGENT update", "")).toBe("breaking");
@@ -37,16 +37,16 @@ describe("classifyContent", () => {
 
   test("checks both query and context", () => {
     expect(classifyContent("tell me more", "breaking news about")).toBe(
-      "breaking"
+      "breaking",
     );
     expect(classifyContent("any updates", "summit talks context")).toBe(
-      "current"
+      "current",
     );
   });
 
   test("breaking takes priority over other categories", () => {
     expect(classifyContent("breaking election news today", "")).toBe(
-      "breaking"
+      "breaking",
     );
   });
 });

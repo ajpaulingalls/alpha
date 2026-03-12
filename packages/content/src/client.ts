@@ -41,14 +41,14 @@ export class ContentClient {
   private async executeQuery<T>(
     operationName: string,
     query: string,
-    variables: Record<string, unknown>
+    variables: Record<string, unknown>,
   ): Promise<T> {
     const url = `${
       this.graphqlUrl
     }?wp-site=${WP_SITE}&operationName=${encodeURIComponent(
-      operationName
+      operationName,
     )}&query=${encodeURIComponent(query)}&variables=${encodeURIComponent(
-      JSON.stringify(variables)
+      JSON.stringify(variables),
     )}&extensions=${encodeURIComponent("{}")}`;
 
     const res = await fetch(url, {
@@ -98,7 +98,7 @@ export class ContentClient {
 
   async searchArticles(
     query: string,
-    offset?: number
+    offset?: number,
   ): Promise<SearchResult[]> {
     const variables: Record<string, unknown> = { query };
     if (offset !== undefined) variables["start"] = offset;
@@ -123,7 +123,7 @@ export class ContentClient {
     const data = await this.executeQuery<{ article: RawPost | null }>(
       "ArchipelagoSingleArticleQuery",
       SINGLE_ARTICLE_QUERY,
-      { name: slug, postType: "post" }
+      { name: slug, postType: "post" },
     );
     return data.article ? this.mapPost(data.article) : null;
   }
@@ -132,14 +132,14 @@ export class ContentClient {
     const data = await this.executeQuery<{ articles: RawPost[] }>(
       "PostsQuery",
       POSTS_QUERY,
-      { postType: "post", quantity: limit ?? 10, offset: 0 }
+      { postType: "post", quantity: limit ?? 10, offset: 0 },
     );
     return data.articles.map((raw) => this.mapPost(raw));
   }
 
   async getArticlesByCategory(
     category: string,
-    limit?: number
+    limit?: number,
   ): Promise<Article[]> {
     const data = await this.executeQuery<{ articles: RawPost[] }>(
       "SectionPostsQuery",
@@ -150,7 +150,7 @@ export class ContentClient {
         quantity: limit ?? 10,
         offset: 0,
         postTypes: ["post"],
-      }
+      },
     );
     return data.articles.map((raw) => this.mapPost(raw));
   }
@@ -159,7 +159,7 @@ export class ContentClient {
     const data = await this.executeQuery<{ articles: RawPost[] }>(
       "PodcastSeriesQuery",
       PODCAST_SERIES_QUERY,
-      { quantity: limit ?? 50, offset: 0 }
+      { quantity: limit ?? 50, offset: 0 },
     );
     return data.articles.map((raw) => ({
       id: raw.id,
@@ -173,7 +173,7 @@ export class ContentClient {
     const data = await this.executeQuery<{ articles: RawPost[] }>(
       "EpisodeQuery",
       EPISODE_QUERY,
-      { category: id, quantity: 1, offset: 0 }
+      { category: id, quantity: 1, offset: 0 },
     );
     if (data.articles.length === 0) return null;
     const raw = data.articles[0];

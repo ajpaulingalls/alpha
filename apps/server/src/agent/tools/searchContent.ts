@@ -13,13 +13,14 @@ export function createSearchContentTool(deps: {
   searchCachedResponses: (
     queryEmbedding: number[],
     similarityThreshold: number,
-    limit?: number
+    limit?: number,
   ) => Promise<(CachedResponse & { distance: number })[]>;
   searchTopicsByEmbedding: (
     embedding: number[],
-    limit?: number
+    limit?: number,
   ) => Promise<(PodcastTopic & { distance: number })[]>;
   incrementHitCount?: (id: string) => Promise<unknown>;
+  onResult?: (title: string, summary: string) => void;
 }) {
   return llm.tool({
     description:
@@ -84,6 +85,10 @@ export function createSearchContentTool(deps: {
             link: article.link,
             publishedAt: article.publishedAt,
           });
+        }
+
+        if (deps.onResult && results.length > 0) {
+          deps.onResult(results[0].title, results[0].summary);
         }
 
         return JSON.stringify({

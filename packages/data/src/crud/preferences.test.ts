@@ -91,7 +91,7 @@ describe("preferences CRUD", () => {
   test("updatePreferences throws when not found", async () => {
     mockUpdateResult = [];
     await expect(
-      updatePreferences("missing", { timezone: "US/Central" })
+      updatePreferences("missing", { timezone: "US/Central" }),
     ).rejects.toThrow("not found");
   });
 
@@ -109,7 +109,7 @@ describe("preferences CRUD", () => {
   test("updatePreferencesJson throws when not found", async () => {
     mockUpdateResult = [];
     await expect(
-      updatePreferencesJson("missing", { theme: "dark" })
+      updatePreferencesJson("missing", { theme: "dark" }),
     ).rejects.toThrow("not found");
   });
 });

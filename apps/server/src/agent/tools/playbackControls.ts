@@ -41,7 +41,7 @@ export function createResumePlaybackTool(state: PlaybackState) {
 
 export function createSkipTopicTool(
   state: PlaybackState,
-  deps: PlaybackAgentDeps
+  deps: PlaybackAgentDeps,
 ) {
   return llm.tool({
     description:
@@ -53,7 +53,7 @@ export function createSkipTopicTool(
 
       const percent = calculatePlaybackPercent(
         state.currentTopicIndex,
-        state.topics.length
+        state.topics.length,
       );
       if (percent !== state.lastSentPercent) {
         state.lastSentPercent = percent;

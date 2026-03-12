@@ -1,6 +1,6 @@
 import { eq, sql } from "drizzle-orm";
 import { db } from "../client";
-import { users, type User, type NewUser } from "../schema/users";
+import { users, type User } from "../schema/users";
 import { updateOneOrThrow } from "./helpers";
 
 export async function findUserByEmail(email: string): Promise<User | null> {
@@ -13,28 +13,10 @@ export async function findUserById(id: string): Promise<User | null> {
   return result[0] || null;
 }
 
-export async function createUser(
-  name: string,
-  email: string,
-  verificationCode: string,
-  validationTimeout: Date
-): Promise<User> {
-  const newUser: NewUser = {
-    name,
-    email,
-    verificationCode,
-    validationTimeout,
-    validated: false,
-  };
-
-  const result = await db.insert(users).values(newUser).returning();
-  return result[0];
-}
-
 export async function upsertUserWithCode(
   email: string,
   verificationCode: string,
-  validationTimeout: Date
+  validationTimeout: Date,
 ): Promise<User> {
   const result = await db
     .insert(users)
@@ -59,29 +41,9 @@ export async function upsertUserWithCode(
   return result[0];
 }
 
-export async function updateUserVerificationCode(
-  email: string,
-  verificationCode: string,
-  validationTimeout: Date
-): Promise<User> {
-  return updateOneOrThrow(
-    db
-      .update(users)
-      .set({
-        verificationCode,
-        validationTimeout,
-        validated: false,
-        updatedAt: new Date(),
-      })
-      .where(eq(users.email, email))
-      .returning(),
-    `User with email ${email} not found`
-  );
-}
-
 export async function updateUserValidation(
   email: string,
-  validated: boolean
+  validated: boolean,
 ): Promise<User> {
   return updateOneOrThrow(
     db
@@ -92,7 +54,7 @@ export async function updateUserValidation(
       })
       .where(eq(users.email, email))
       .returning(),
-    `User with email ${email} not found`
+    "User not found for validation update",
   );
 }
 
@@ -108,7 +70,7 @@ export async function clearVerificationCode(email: string): Promise<User> {
       })
       .where(eq(users.email, email))
       .returning(),
-    `User with email ${email} not found`
+    "User not found for verification code clear",
   );
 }
 
@@ -122,13 +84,13 @@ export async function incrementFailedAttempts(email: string): Promise<User> {
       })
       .where(eq(users.email, email))
       .returning(),
-    `User with email ${email} not found`
+    "User not found for failed attempts increment",
   );
 }
 
 export async function updateUserName(
   userId: string,
-  name: string
+  name: string,
 ): Promise<User> {
   return updateOneOrThrow(
     db
@@ -139,6 +101,6 @@ export async function updateUserName(
       })
       .where(eq(users.id, userId))
       .returning(),
-    `User with id ${userId} not found`
+    `User with id ${userId} not found`,
   );
 }

@@ -10,6 +10,8 @@ import type {
 } from "@alpha/data/schema/listen_history";
 import type { AlphaSessionData } from "../types";
 import type { StreamingGenerator } from "../generation/StreamingGenerator";
+import type { NotifyClient } from "../rpc";
+import { RPC_SHOW_LOADING, RPC_SHOW_TOPIC } from "@alpha/socket/RPCMethods";
 import { createSearchContentTool } from "../tools/searchContent";
 import { createSearchPodcastsTool } from "../tools/searchPodcasts";
 import { createGenerateResponseTool } from "../tools/generateResponse";
@@ -20,34 +22,35 @@ import {
 } from "../tools/sessionTools";
 
 export interface BrowseAgentDeps extends EndSessionDeps {
+  notifyClient: NotifyClient;
   cortexClient: CortexClient;
   contentClient: ContentClient;
   searchCachedResponses: (
     queryEmbedding: number[],
     similarityThreshold: number,
-    limit?: number
+    limit?: number,
   ) => Promise<(CachedResponse & { distance: number })[]>;
   searchTopicsByEmbedding: (
     embedding: number[],
-    limit?: number
+    limit?: number,
   ) => Promise<(PodcastTopic & { distance: number })[]>;
   generator: StreamingGenerator;
   findEpisodesByShow: (
     showName: string,
-    limit?: number
+    limit?: number,
   ) => Promise<PodcastEpisode[]>;
   findEpisodeById: (id: string) => Promise<PodcastEpisode | null>;
   recordListen: (
     sessionId: string,
     userId: string,
     contentType: ListenContentType,
-    contentId: string
+    contentId: string,
   ) => Promise<ListenHistory>;
   incrementHitCount: (id: string) => Promise<CachedResponse>;
   findTopicsByEpisode: (episodeId: string) => Promise<PodcastTopic[]>;
   updateCompletedPercent: (
     id: string,
-    percent: number
+    percent: number,
   ) => Promise<ListenHistory>;
   audioDir: string;
 }
@@ -93,6 +96,8 @@ export class BrowseAgent extends voice.Agent<AlphaSessionData> {
           searchCachedResponses: deps.searchCachedResponses,
           searchTopicsByEmbedding: deps.searchTopicsByEmbedding,
           incrementHitCount: deps.incrementHitCount,
+          onResult: (title, summary) =>
+            deps.notifyClient(RPC_SHOW_TOPIC, { title, summary }),
         }),
         searchPodcasts: createSearchPodcastsTool({
           cortexClient: deps.cortexClient,
@@ -101,6 +106,10 @@ export class BrowseAgent extends voice.Agent<AlphaSessionData> {
         }),
         generateResponse: createGenerateResponseTool({
           generator: deps.generator,
+          onLoading: (message) =>
+            deps.notifyClient(RPC_SHOW_LOADING, { message }),
+          onResult: (title, summary) =>
+            deps.notifyClient(RPC_SHOW_TOPIC, { title, summary }),
         }),
         playPodcast: createPlayPodcastTool({
           findEpisodeById: deps.findEpisodeById,

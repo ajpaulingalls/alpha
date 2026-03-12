@@ -8,7 +8,7 @@ export function createFetchTopStoriesTool(deps: {
   contentClient: ContentClient;
   findRecentEpisodes: (
     since: Date,
-    limit?: number
+    limit?: number,
   ) => Promise<PodcastEpisode[]>;
 }) {
   return llm.tool({

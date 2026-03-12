@@ -53,7 +53,7 @@ describe("endSession tool", () => {
 
   test("returns error JSON when endDbSession fails", async () => {
     deps.endDbSession = mock(() =>
-      Promise.reject(new Error("DB connection failed"))
+      Promise.reject(new Error("DB connection failed")),
     );
 
     const tool = createEndSessionTool(deps);

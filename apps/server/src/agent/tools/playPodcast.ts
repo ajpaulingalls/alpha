@@ -8,7 +8,11 @@ import type {
 } from "@alpha/data/schema/listen_history";
 import type { CortexClient } from "@alpha/cortex";
 import type { AlphaSessionData } from "../types";
-import { PlaybackAgent, type PlaybackAgentDeps } from "../agents/PlaybackAgent";
+import {
+  PlaybackAgent,
+  type PlaybackAgentDeps,
+  sanitizeTitle,
+} from "../agents/PlaybackAgent";
 import type { BrowseAgentDeps } from "../agents/BrowseAgent";
 
 export interface PlayPodcastDeps {
@@ -17,12 +21,12 @@ export interface PlayPodcastDeps {
     sessionId: string,
     userId: string,
     contentType: ListenContentType,
-    contentId: string
+    contentId: string,
   ) => Promise<ListenHistory>;
   findTopicsByEpisode: (episodeId: string) => Promise<PodcastTopic[]>;
   updateCompletedPercent: (
     id: string,
-    percent: number
+    percent: number,
   ) => Promise<ListenHistory>;
   cortexClient: CortexClient;
   audioDir: string;
@@ -54,13 +58,12 @@ export function createPlayPodcastTool(deps: PlayPodcastDeps) {
           sessionId,
           userId,
           "episode",
-          episodeId
+          episodeId,
         );
 
-        const episodeTitle = (episode.title ?? "Untitled Episode")
-          .replace(/[\n\r\t]/g, " ")
-          .slice(0, 200);
+        const episodeTitle = sanitizeTitle(episode.title ?? "Untitled Episode");
         const playbackDeps: PlaybackAgentDeps = {
+          notifyClient: deps.browseDeps.notifyClient,
           episodeId,
           episodeTitle,
           listenHistoryId: listenRecord.id,

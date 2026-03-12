@@ -26,10 +26,10 @@ export const cachedResponses = pgTable(
   (table) => [
     index("cachedResponseEmbeddingIndex").using(
       "hnsw",
-      table.queryEmbedding.op("vector_cosine_ops")
+      table.queryEmbedding.op("vector_cosine_ops"),
     ),
     index("cached_responses_expires_at_idx").on(table.expiresAt),
-  ]
+  ],
 );
 
 export type CachedResponse = typeof cachedResponses.$inferSelect;

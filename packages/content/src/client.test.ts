@@ -53,7 +53,7 @@ describe("ContentClient", () => {
     test("accepts bare string URL and strips trailing slashes", () => {
       const client = new ContentClient("https://www.aljazeera.com/graphql///");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ data: { searchPosts: { items: [] } } })
+        jsonResponse({ data: { searchPosts: { items: [] } } }),
       );
       client.searchArticles("test");
       expect(fetchUrl()).toStartWith("https://www.aljazeera.com/graphql?");
@@ -65,7 +65,7 @@ describe("ContentClient", () => {
         timeoutMs: 5000,
       });
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ data: { searchPosts: { items: [] } } })
+        jsonResponse({ data: { searchPosts: { items: [] } } }),
       );
       client.searchArticles("test");
       expect(fetchUrl()).toStartWith("https://www.aljazeera.com/graphql?");
@@ -76,7 +76,7 @@ describe("ContentClient", () => {
     test("uses GET method", async () => {
       const client = new ContentClient("https://www.aljazeera.com/graphql");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ data: { searchPosts: { items: [] } } })
+        jsonResponse({ data: { searchPosts: { items: [] } } }),
       );
       await client.searchArticles("test");
       const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
@@ -86,7 +86,7 @@ describe("ContentClient", () => {
     test("includes wp-site, operationName, query, and extensions params", async () => {
       const client = new ContentClient("https://www.aljazeera.com/graphql");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ data: { searchPosts: { items: [] } } })
+        jsonResponse({ data: { searchPosts: { items: [] } } }),
       );
       await client.searchArticles("test");
       const url = fetchUrl();
@@ -99,7 +99,7 @@ describe("ContentClient", () => {
     test("encodes variables as JSON in query params", async () => {
       const client = new ContentClient("https://www.aljazeera.com/graphql");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ data: { article: MOCK_RAW_POST } })
+        jsonResponse({ data: { article: MOCK_RAW_POST } }),
       );
       await client.getArticle("test-slug");
       const vars = parseVariables();
@@ -110,7 +110,7 @@ describe("ContentClient", () => {
     test("includes wp-site and accept headers", async () => {
       const client = new ContentClient("https://www.aljazeera.com/graphql");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ data: { searchPosts: { items: [] } } })
+        jsonResponse({ data: { searchPosts: { items: [] } } }),
       );
       await client.searchArticles("test");
       const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
@@ -139,7 +139,7 @@ describe("ContentClient", () => {
               ],
             },
           },
-        })
+        }),
       );
 
       const results = await client.searchArticles("test query");
@@ -169,7 +169,7 @@ describe("ContentClient", () => {
               ],
             },
           },
-        })
+        }),
       );
 
       const results = await client.searchArticles("test");
@@ -179,7 +179,7 @@ describe("ContentClient", () => {
     test("passes offset as start variable", async () => {
       const client = new ContentClient("https://www.aljazeera.com/graphql");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ data: { searchPosts: { items: [] } } })
+        jsonResponse({ data: { searchPosts: { items: [] } } }),
       );
       await client.searchArticles("test", 20);
       expect(parseVariables().start).toBe(20);
@@ -188,7 +188,7 @@ describe("ContentClient", () => {
     test("omits start when offset is undefined", async () => {
       const client = new ContentClient("https://www.aljazeera.com/graphql");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ data: { searchPosts: { items: [] } } })
+        jsonResponse({ data: { searchPosts: { items: [] } } }),
       );
       await client.searchArticles("test");
       expect(parseVariables().start).toBeUndefined();
@@ -199,7 +199,7 @@ describe("ContentClient", () => {
     test("maps article correctly", async () => {
       const client = new ContentClient("https://www.aljazeera.com/graphql");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ data: { article: MOCK_RAW_POST } })
+        jsonResponse({ data: { article: MOCK_RAW_POST } }),
       );
 
       const article = await client.getArticle("test-article");
@@ -209,7 +209,7 @@ describe("ContentClient", () => {
     test("returns null when article is not found", async () => {
       const client = new ContentClient("https://www.aljazeera.com/graphql");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ data: { article: null } })
+        jsonResponse({ data: { article: null } }),
       );
 
       const article = await client.getArticle("nonexistent");
@@ -226,7 +226,7 @@ describe("ContentClient", () => {
               link: "https://www.aljazeera.com/news/2024/1/15/some-slug/",
             },
           },
-        })
+        }),
       );
 
       const article = await client.getArticle("some-slug");
@@ -237,11 +237,11 @@ describe("ContentClient", () => {
     test("uses ArchipelagoSingleArticleQuery operation name", async () => {
       const client = new ContentClient("https://www.aljazeera.com/graphql");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ data: { article: MOCK_RAW_POST } })
+        jsonResponse({ data: { article: MOCK_RAW_POST } }),
       );
       await client.getArticle("test");
       expect(fetchUrl()).toContain(
-        "operationName=ArchipelagoSingleArticleQuery"
+        "operationName=ArchipelagoSingleArticleQuery",
       );
     });
 
@@ -252,7 +252,7 @@ describe("ContentClient", () => {
           data: {
             article: { ...MOCK_RAW_POST, featuredImage: null },
           },
-        })
+        }),
       );
 
       const article = await client.getArticle("test");
@@ -267,7 +267,7 @@ describe("ContentClient", () => {
           data: {
             article: { ...MOCK_RAW_POST, author: [] },
           },
-        })
+        }),
       );
 
       const article = await client.getArticle("test");
@@ -281,7 +281,7 @@ describe("ContentClient", () => {
       const client = new ContentClient("https://www.aljazeera.com/graphql");
       const { content: _, ...postWithoutContent } = MOCK_RAW_POST;
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ data: { articles: [postWithoutContent] } })
+        jsonResponse({ data: { articles: [postWithoutContent] } }),
       );
 
       const articles = await client.getRecentArticles();
@@ -316,7 +316,7 @@ describe("ContentClient", () => {
     test("passes category and limit", async () => {
       const client = new ContentClient("https://www.aljazeera.com/graphql");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ data: { articles: [MOCK_RAW_POST] } })
+        jsonResponse({ data: { articles: [MOCK_RAW_POST] } }),
       );
       const articles = await client.getArticlesByCategory("economy", 3);
       expect(articles).toHaveLength(1);
@@ -353,7 +353,7 @@ describe("ContentClient", () => {
               },
             ],
           },
-        })
+        }),
       );
 
       const series = await client.getPodcastSeries();
@@ -381,7 +381,7 @@ describe("ContentClient", () => {
               },
             ],
           },
-        })
+        }),
       );
 
       const series = await client.getPodcastSeries();
@@ -427,7 +427,7 @@ describe("ContentClient", () => {
               },
             ],
           },
-        })
+        }),
       );
 
       const episode = await client.getEpisode("the-take");
@@ -471,7 +471,7 @@ describe("ContentClient", () => {
               },
             ],
           },
-        })
+        }),
       );
 
       const episode = await client.getEpisode("the-take");
@@ -489,11 +489,11 @@ describe("ContentClient", () => {
         new Response("Something went wrong", {
           status: 500,
           statusText: "Internal Server Error",
-        })
+        }),
       );
 
       await expect(client.searchArticles("test")).rejects.toThrow(
-        "HTTP 500: Internal Server Error — Something went wrong"
+        "HTTP 500: Internal Server Error — Something went wrong",
       );
     });
 
@@ -502,11 +502,11 @@ describe("ContentClient", () => {
       fetchMock.mockResolvedValueOnce(
         jsonResponse({
           errors: [{ message: "Query not found" }],
-        })
+        }),
       );
 
       await expect(client.searchArticles("test")).rejects.toThrow(
-        "GraphQL error: Query not found"
+        "GraphQL error: Query not found",
       );
     });
 
@@ -515,7 +515,7 @@ describe("ContentClient", () => {
       fetchMock.mockResolvedValueOnce(jsonResponse({ data: null }));
 
       await expect(client.searchArticles("test")).rejects.toThrow(
-        'No data returned for query "SearchQuery"'
+        'No data returned for query "SearchQuery"',
       );
     });
 
@@ -525,7 +525,7 @@ describe("ContentClient", () => {
         new Response("Unauthorized", {
           status: 401,
           statusText: "Unauthorized",
-        })
+        }),
       );
 
       await expect(client.getArticle("test")).rejects.toThrow("HTTP 401");

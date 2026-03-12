@@ -26,7 +26,7 @@ export function mapEpisodeSummary(ep: PodcastEpisode) {
 
 export async function embedQuery(
   cortexClient: { embed: (text: string) => Promise<number[][]> },
-  query: string
+  query: string,
 ): Promise<number[] | null> {
   const embeddings = await cortexClient.embed(query);
   return embeddings.length > 0 ? embeddings[0] : null;

@@ -21,7 +21,7 @@ const mockFindNew = mock(() =>
       createdAt: new Date(),
       updatedAt: new Date(),
     },
-  ])
+  ]),
 );
 
 describe("fetchNewPodcasts tool", () => {
@@ -76,7 +76,7 @@ describe("fetchNewPodcasts tool", () => {
     expect(mockFindNew).toHaveBeenCalledWith(
       "user-42",
       new Date("2025-06-01T00:00:00Z"),
-      10
+      10,
     );
   });
 });

@@ -26,7 +26,7 @@ export const logger = {
   error: (...args: unknown[]) => {
     if (isProduction) {
       const sanitized = args.map((arg) =>
-        arg instanceof Error ? arg.message : arg
+        arg instanceof Error ? arg.message : arg,
       );
       console.error(...sanitized);
     } else {

@@ -70,5 +70,5 @@ export default tseslint.config(
   },
 
   // Prettier must be last to disable conflicting rules
-  eslintConfigPrettier
+  eslintConfigPrettier,
 );

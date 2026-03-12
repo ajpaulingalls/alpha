@@ -156,7 +156,7 @@ export function createAuthRoutes(
     ]);
 
     const token = jwt.sign({ userId: user.id, sessionId: session.id }, secret, {
-      expiresIn: "30d",
+      expiresIn: "7d",
       issuer: JWT_ISSUER,
       audience: JWT_AUDIENCE,
     });

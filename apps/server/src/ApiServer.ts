@@ -20,7 +20,7 @@ export class ApiServer {
     _apiKey: string,
     corsHosts: string,
     jwtSecret: string,
-    livekitConfig: LiveKitConfig
+    livekitConfig: LiveKitConfig,
   ) {
     this.app = new Hono<AuthEnv>();
     this.corsHosts = corsHosts;
@@ -38,7 +38,7 @@ export class ApiServer {
       "/api/*",
       cors({
         origin: this.corsHosts,
-      })
+      }),
     );
     this.app.use("/api/*", async (c, next) => {
       c.set("jwtSecret", this.jwtSecret);

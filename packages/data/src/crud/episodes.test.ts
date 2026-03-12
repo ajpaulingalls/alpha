@@ -149,7 +149,7 @@ describe("episodes CRUD", () => {
     mockSelectResult = [];
     const result = await findNewEpisodesForUser(
       "user-123",
-      new Date("2025-01-01")
+      new Date("2025-01-01"),
     );
     expect(result).toEqual([]);
   });

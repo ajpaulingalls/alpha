@@ -6,12 +6,12 @@ import {
 } from "./StreamingGenerator";
 
 function makeDeps(
-  overrides?: Partial<StreamingGeneratorDeps>
+  overrides?: Partial<StreamingGeneratorDeps>,
 ): StreamingGeneratorDeps {
   return {
     cortexClient: {
       chatCompletion: mock(() =>
-        Promise.resolve("Here is the latest on the situation.")
+        Promise.resolve("Here is the latest on the situation."),
       ),
     } as any,
     audioRecorder: {
@@ -86,7 +86,7 @@ describe("StreamingGenerator", () => {
 
   test("background errors are caught and logged", async () => {
     const consoleSpy = spyOn(console, "error").mockImplementation(
-      () => undefined
+      () => undefined,
     );
     const deps = makeDeps({
       audioRecorder: {
@@ -153,7 +153,7 @@ describe("StreamingGenerator", () => {
     expect(embedStart).toBeLessThan(embedEnd);
     // Both start before either ends (parallel)
     expect(Math.max(ttsStart, embedStart)).toBeLessThan(
-      Math.min(ttsEnd, embedEnd)
+      Math.min(ttsEnd, embedEnd),
     );
   });
 });

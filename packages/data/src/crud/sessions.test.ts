@@ -119,7 +119,7 @@ describe("sessions CRUD", () => {
   test("markCatchUpDelivered throws when not found", async () => {
     mockUpdateResult = [];
     await expect(markCatchUpDelivered("missing", "u1")).rejects.toThrow(
-      "not found"
+      "not found",
     );
   });
 });

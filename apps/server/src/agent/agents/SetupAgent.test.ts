@@ -1,7 +1,16 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, mock, test } from "bun:test";
 import { z } from "zod";
-import { SetupAgent } from "./SetupAgent";
+import { SetupAgent, type SetupAgentDeps } from "./SetupAgent";
 import { mockCatchUpDeps } from "./test-helpers";
+
+function mockSetupDeps(overrides?: Partial<SetupAgentDeps>): SetupAgentDeps {
+  return {
+    notifyClient: mock(() => undefined),
+    updateUserName: mock(() => Promise.resolve({})),
+    createPreferences: mock(() => Promise.resolve({})),
+    ...overrides,
+  };
+}
 
 const nameSchema = z.object({
   name: z.string().trim().min(1).max(100).describe("The user's first name"),
@@ -9,7 +18,7 @@ const nameSchema = z.object({
 
 describe("SetupAgent", () => {
   test("create() returns a SetupAgent instance", () => {
-    const agent = SetupAgent.create(mockCatchUpDeps());
+    const agent = SetupAgent.create(mockSetupDeps(), mockCatchUpDeps());
     expect(agent).toBeInstanceOf(SetupAgent);
   });
 });

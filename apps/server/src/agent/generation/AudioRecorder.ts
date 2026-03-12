@@ -18,7 +18,7 @@ export class AudioRecorder {
   async generateAndSave(
     text: string,
     outputPath: string,
-    voice = "alloy"
+    voice = "alloy",
   ): Promise<void> {
     this.validatePath(outputPath);
 

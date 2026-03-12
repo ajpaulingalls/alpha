@@ -19,11 +19,11 @@ export class TopicInsertNode extends NodeBase implements IQueryEngine {
 
   async execute(
     payload: JSONObject,
-    completeCallback: (completeEventName: string, result: JSONObject) => void
+    completeCallback: (completeEventName: string, result: JSONObject) => void,
   ): Promise<void> {
     if (Array.isArray(payload)) {
       const topics: NewPodcastTopic[] = payload.map((item) =>
-        this.mapToTopic(item)
+        this.mapToTopic(item),
       );
       await createTopics(topics);
     } else {
@@ -44,13 +44,13 @@ export class TopicInsertNode extends NodeBase implements IQueryEngine {
 
     if (!title || !summary || !filename) {
       throw new Error(
-        `TopicInsertNode: missing required field(s) — title: ${!!title}, summary: ${!!summary}, filename: ${!!filename}`
+        `TopicInsertNode: missing required field(s) — title: ${!!title}, summary: ${!!summary}, filename: ${!!filename}`,
       );
     }
 
     if (!Array.isArray(embedding)) {
       throw new Error(
-        `TopicInsertNode: embedding must be a number array, got ${typeof embedding}`
+        `TopicInsertNode: embedding must be a number array, got ${typeof embedding}`,
       );
     }
 

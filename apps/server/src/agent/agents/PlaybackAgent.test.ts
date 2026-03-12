@@ -24,7 +24,7 @@ describe("PlaybackAgent", () => {
 
   test("instructions contain episode title", () => {
     const agent = PlaybackAgent.create(
-      mockPlaybackDeps({ episodeTitle: "Gaza Update" })
+      mockPlaybackDeps({ episodeTitle: "Gaza Update" }),
     );
     expect(agent.instructions).toContain("Gaza Update");
   });
@@ -41,7 +41,7 @@ describe("PlaybackAgent", () => {
 
   test("sanitizes episode title in instructions", () => {
     const agent = PlaybackAgent.create(
-      mockPlaybackDeps({ episodeTitle: "Bad\nTitle\twith\rchars" })
+      mockPlaybackDeps({ episodeTitle: "Bad\nTitle\twith\rchars" }),
     );
     expect(agent.instructions).toContain("Bad Title with chars");
     expect(agent.instructions).not.toContain("Bad\nTitle");

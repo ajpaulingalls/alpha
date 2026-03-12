@@ -8,7 +8,7 @@ export function createFetchNewPodcastsTool(deps: {
   findNewEpisodesForUser: (
     userId: string,
     since?: Date,
-    limit?: number
+    limit?: number,
   ) => Promise<PodcastEpisode[]>;
 }) {
   return llm.tool({
@@ -28,7 +28,7 @@ export function createFetchNewPodcastsTool(deps: {
         const episodes = await deps.findNewEpisodesForUser(
           userData.userId,
           sinceDate,
-          10
+          10,
         );
 
         return JSON.stringify({

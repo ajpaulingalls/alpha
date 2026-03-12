@@ -11,7 +11,7 @@ export async function recordListen(
   sessionId: string,
   userId: string,
   contentType: ListenContentType,
-  contentId: string
+  contentId: string,
 ): Promise<ListenHistory> {
   const result = await db
     .insert(listenHistory)
@@ -22,7 +22,7 @@ export async function recordListen(
 
 export async function updateCompletedPercent(
   id: string,
-  percent: number
+  percent: number,
 ): Promise<ListenHistory> {
   return updateOneOrThrow(
     db
@@ -30,19 +30,22 @@ export async function updateCompletedPercent(
       .set({ completedPercent: percent })
       .where(eq(listenHistory.id, id))
       .returning(),
-    `Listen history entry ${id} not found`
+    `Listen history entry ${id} not found`,
   );
 }
 
 export async function findRecentListens(
   userId: string,
-  since: Date
+  since: Date,
 ): Promise<ListenHistory[]> {
   return db
     .select()
     .from(listenHistory)
     .where(
-      and(eq(listenHistory.userId, userId), gt(listenHistory.listenedAt, since))
+      and(
+        eq(listenHistory.userId, userId),
+        gt(listenHistory.listenedAt, since),
+      ),
     )
     .orderBy(desc(listenHistory.listenedAt));
 }
@@ -50,7 +53,7 @@ export async function findRecentListens(
 export async function hasUserHeard(
   userId: string,
   contentType: ListenContentType,
-  contentId: string
+  contentId: string,
 ): Promise<boolean> {
   const result = await db
     .select()
@@ -59,8 +62,8 @@ export async function hasUserHeard(
       and(
         eq(listenHistory.userId, userId),
         eq(listenHistory.contentType, contentType),
-        eq(listenHistory.contentId, contentId)
-      )
+        eq(listenHistory.contentId, contentId),
+      ),
     )
     .limit(1);
   return result.length > 0;

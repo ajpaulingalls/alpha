@@ -39,7 +39,7 @@ describe("CortexClient", () => {
       fetchMock.mockResolvedValueOnce(
         jsonResponse({
           data: { test: { result: "ok" } },
-        })
+        }),
       );
       client.callPathway("test", { text: "hi" });
       const url = (fetchMock.mock.calls[0] as unknown[])[0] as string;
@@ -53,7 +53,7 @@ describe("CortexClient", () => {
         defaultModel: "gpt-4",
       });
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ choices: [{ message: { content: "hi" } }] })
+        jsonResponse({ choices: [{ message: { content: "hi" } }] }),
       );
       client.chatCompletion([{ role: "user", content: "hello" }]);
       const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
@@ -69,7 +69,7 @@ describe("CortexClient", () => {
         apiKey: "my-key",
       });
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ data: { test: { result: "ok" } } })
+        jsonResponse({ data: { test: { result: "ok" } } }),
       );
       await client.callPathway("test", {});
       const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
@@ -80,7 +80,7 @@ describe("CortexClient", () => {
     test("omits ocp-apim-subscription-key when apiKey is not configured", async () => {
       const client = new CortexClient("https://cortex.example.com");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ data: { test: { result: "ok" } } })
+        jsonResponse({ data: { test: { result: "ok" } } }),
       );
       await client.callPathway("test", {});
       const [, init] = fetchMock.mock.calls[0] as [string, RequestInit];
@@ -95,7 +95,7 @@ describe("CortexClient", () => {
       fetchMock.mockResolvedValueOnce(
         jsonResponse({
           data: { summary: { result: "summarized", resultData: null } },
-        })
+        }),
       );
 
       await client.callPathway("summary", {
@@ -109,7 +109,7 @@ describe("CortexClient", () => {
       expect(body.query).toContain("$targetLength: Int");
       expect(body.query).toContain("query summary(");
       expect(body.query).toContain(
-        "summary(text: $text, targetLength: $targetLength)"
+        "summary(text: $text, targetLength: $targetLength)",
       );
       expect(body.variables).toEqual({ text: "hello", targetLength: 100 });
     });
@@ -117,7 +117,7 @@ describe("CortexClient", () => {
     test("infers Float type for non-integer numbers", async () => {
       const client = new CortexClient("https://cortex.example.com");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ data: { test: { result: "ok" } } })
+        jsonResponse({ data: { test: { result: "ok" } } }),
       );
 
       await client.callPathway("test", { temperature: 0.7 });
@@ -130,7 +130,7 @@ describe("CortexClient", () => {
     test("infers Boolean type", async () => {
       const client = new CortexClient("https://cortex.example.com");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ data: { test: { result: "ok" } } })
+        jsonResponse({ data: { test: { result: "ok" } } }),
       );
 
       await client.callPathway("test", { verbose: true });
@@ -143,7 +143,7 @@ describe("CortexClient", () => {
     test("infers [String] type for string arrays", async () => {
       const client = new CortexClient("https://cortex.example.com");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ data: { test: { result: "ok" } } })
+        jsonResponse({ data: { test: { result: "ok" } } }),
       );
 
       await client.callPathway("test", { tags: ["a", "b"] });
@@ -156,7 +156,7 @@ describe("CortexClient", () => {
     test("filters out undefined params", async () => {
       const client = new CortexClient("https://cortex.example.com");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ data: { test: { result: "ok" } } })
+        jsonResponse({ data: { test: { result: "ok" } } }),
       );
 
       await client.callPathway("test", {
@@ -187,7 +187,7 @@ describe("CortexClient", () => {
               debug: null,
             },
           },
-        })
+        }),
       );
 
       const res = await client.callPathway("summary", { text: "hi" });
@@ -205,7 +205,7 @@ describe("CortexClient", () => {
       fetchMock.mockResolvedValueOnce(
         jsonResponse({
           choices: [{ message: { content: "Hello there!" } }],
-        })
+        }),
       );
 
       const result = await client.chatCompletion([
@@ -228,7 +228,7 @@ describe("CortexClient", () => {
       fetchMock.mockResolvedValueOnce(
         jsonResponse({
           choices: [{ message: { content: "ok" } }],
-        })
+        }),
       );
 
       await client.chatCompletion([{ role: "user", content: "Hi" }]);
@@ -246,7 +246,7 @@ describe("CortexClient", () => {
       fetchMock.mockResolvedValueOnce(
         jsonResponse({
           choices: [{ message: { content: "ok" } }],
-        })
+        }),
       );
 
       await client.chatCompletion([{ role: "user", content: "Hi" }], "gpt-3.5");
@@ -269,7 +269,7 @@ describe("CortexClient", () => {
             choices: [{ delta: { content: " world" } }],
           })}`,
           `data: [DONE]`,
-        ])
+        ]),
       );
 
       const chunks: string[] = [];
@@ -309,7 +309,7 @@ describe("CortexClient", () => {
             choices: [{ delta: { content: "hi" } }],
           })}`,
           `data: [DONE]`,
-        ])
+        ]),
       );
 
       const chunks: string[] = [];
@@ -329,7 +329,7 @@ describe("CortexClient", () => {
       fetchMock.mockResolvedValueOnce(
         jsonResponse({
           data: { summary: { result: "Short version." } },
-        })
+        }),
       );
 
       const result = await client.summarize("Long text...", 50);
@@ -352,7 +352,7 @@ describe("CortexClient", () => {
               }),
             },
           },
-        })
+        }),
       );
 
       const results = await client.search("test query");
@@ -366,7 +366,7 @@ describe("CortexClient", () => {
       fetchMock.mockResolvedValueOnce(
         jsonResponse({
           data: { cognitive_search: { result: "not json" } },
-        })
+        }),
       );
 
       const results = await client.search("test");
@@ -385,7 +385,7 @@ describe("CortexClient", () => {
               }),
             },
           },
-        })
+        }),
       );
 
       const result = await client.embed("test text");
@@ -411,7 +411,7 @@ describe("CortexClient", () => {
               resultData: null,
             },
           },
-        })
+        }),
       );
 
       const result = await client.rag("what is X?");
@@ -432,7 +432,7 @@ describe("CortexClient", () => {
           data: {
             rag: { result: "answer", tool: null, resultData: null },
           },
-        })
+        }),
       );
 
       const result = await client.rag("query");
@@ -446,7 +446,7 @@ describe("CortexClient", () => {
           data: {
             rag: { result: "answer", tool: null, resultData: null },
           },
-        })
+        }),
       );
 
       await client.rag("query", {
@@ -465,35 +465,35 @@ describe("CortexClient", () => {
     test("rejects names with spaces", () => {
       const client = new CortexClient("https://cortex.example.com");
       expect(client.callPathway("bad name", {})).rejects.toThrow(
-        "Invalid pathway name"
+        "Invalid pathway name",
       );
     });
 
     test("rejects names with GraphQL injection characters", () => {
       const client = new CortexClient("https://cortex.example.com");
       expect(
-        client.callPathway("test { __schema { types { name } } }", {})
+        client.callPathway("test { __schema { types { name } } }", {}),
       ).rejects.toThrow("Invalid pathway name");
     });
 
     test("rejects empty name", () => {
       const client = new CortexClient("https://cortex.example.com");
       expect(client.callPathway("", {})).rejects.toThrow(
-        "Invalid pathway name"
+        "Invalid pathway name",
       );
     });
 
     test("rejects names starting with a digit", () => {
       const client = new CortexClient("https://cortex.example.com");
       expect(client.callPathway("123test", {})).rejects.toThrow(
-        "Invalid pathway name"
+        "Invalid pathway name",
       );
     });
 
     test("accepts valid names with underscores and digits", async () => {
       const client = new CortexClient("https://cortex.example.com");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ data: { my_pathway_2: { result: "ok" } } })
+        jsonResponse({ data: { my_pathway_2: { result: "ok" } } }),
       );
       const res = await client.callPathway("my_pathway_2", {});
       expect(res.result).toBe("ok");
@@ -507,11 +507,11 @@ describe("CortexClient", () => {
         new Response("Something went wrong", {
           status: 500,
           statusText: "Internal Server Error",
-        })
+        }),
       );
 
       await expect(client.callPathway("test", { text: "hi" })).rejects.toThrow(
-        "HTTP 500: Internal Server Error — Something went wrong"
+        "HTTP 500: Internal Server Error — Something went wrong",
       );
     });
 
@@ -520,11 +520,11 @@ describe("CortexClient", () => {
       fetchMock.mockResolvedValueOnce(
         jsonResponse({
           errors: [{ message: "Pathway not found" }],
-        })
+        }),
       );
 
       await expect(
-        client.callPathway("missing", { text: "hi" })
+        client.callPathway("missing", { text: "hi" }),
       ).rejects.toThrow("GraphQL error: Pathway not found");
     });
 
@@ -533,7 +533,7 @@ describe("CortexClient", () => {
       fetchMock.mockResolvedValueOnce(jsonResponse({ data: {} }));
 
       await expect(client.callPathway("test", { text: "hi" })).rejects.toThrow(
-        'No data returned for pathway "test"'
+        'No data returned for pathway "test"',
       );
     });
 
@@ -543,18 +543,18 @@ describe("CortexClient", () => {
         new Response("Unauthorized", {
           status: 401,
           statusText: "Unauthorized",
-        })
+        }),
       );
 
       await expect(
-        client.chatCompletion([{ role: "user", content: "hi" }])
+        client.chatCompletion([{ role: "user", content: "hi" }]),
       ).rejects.toThrow("HTTP 401");
     });
 
     test("throws on non-2xx for streamChatCompletion", async () => {
       const client = new CortexClient("https://cortex.example.com");
       fetchMock.mockResolvedValueOnce(
-        new Response("Bad Request", { status: 400, statusText: "Bad Request" })
+        new Response("Bad Request", { status: 400, statusText: "Bad Request" }),
       );
 
       await expect(async () => {

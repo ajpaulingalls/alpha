@@ -11,7 +11,7 @@ function makeMockOpenAI(pcmBytes: Buffer = Buffer.alloc(4800)) {
         create: mock(() =>
           Promise.resolve({
             arrayBuffer: () => Promise.resolve(pcmBytes.buffer),
-          })
+          }),
         ),
       },
     },
@@ -56,7 +56,7 @@ describe("AudioRecorder", () => {
     await recorder.generateAndSave("Hello", outPath);
 
     expect(openai.audio.speech.create).toHaveBeenCalledWith(
-      expect.objectContaining({ voice: "alloy" })
+      expect.objectContaining({ voice: "alloy" }),
     );
   });
 
@@ -108,7 +108,7 @@ describe("AudioRecorder", () => {
     const recorder = new AudioRecorder({ openai });
 
     await expect(
-      recorder.generateAndSave("Test", "/tmp/../etc/test.wav")
+      recorder.generateAndSave("Test", "/tmp/../etc/test.wav"),
     ).rejects.toThrow("Invalid path segment");
   });
 
@@ -117,7 +117,7 @@ describe("AudioRecorder", () => {
     const recorder = new AudioRecorder({ openai });
 
     await expect(
-      recorder.generateAndSave("Test", path.join(TMP_DIR, "bad file!.wav"))
+      recorder.generateAndSave("Test", path.join(TMP_DIR, "bad file!.wav")),
     ).rejects.toThrow("Invalid filename");
   });
 });

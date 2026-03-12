@@ -20,7 +20,7 @@ const main = async () => {
 
   if (!values.filename || !values.text) {
     console.error(
-      'Usage: bun createAudioFromText.ts --filename output.wav --text "text to convert"'
+      'Usage: bun createAudioFromText.ts --filename output.wav --text "text to convert"',
     );
     process.exit(1);
   }
@@ -34,7 +34,7 @@ const main = async () => {
     await generateAudioFromTextToFile(
       openai,
       values.text,
-      path.join(process.cwd(), values.filename)
+      path.join(process.cwd(), values.filename),
     );
     console.log(`Successfully created audio file: ${values.filename}`);
   } catch (error) {

@@ -10,7 +10,9 @@ import type {
 } from "@alpha/data/schema/listen_history";
 import type { CatchUpDepth } from "@alpha/data/schema/user_preferences";
 import type { PodcastEpisode } from "@alpha/data/schema/podcast_episodes";
+import { RPC_SHOW_MODE } from "@alpha/socket/RPCMethods";
 import type { AlphaSessionData } from "../types";
+import type { NotifyClient } from "../rpc";
 import { createFetchTopStoriesTool } from "../tools/fetchTopStories";
 import { createFetchWireHighlightsTool } from "../tools/fetchWireHighlights";
 import { createFetchNewPodcastsTool } from "../tools/fetchNewPodcasts";
@@ -18,9 +20,10 @@ import { createEndSessionTool } from "../tools/sessionTools";
 import { BrowseAgent, type BrowseAgentDeps } from "./BrowseAgent";
 
 export interface CatchUpAgentDeps {
+  notifyClient: NotifyClient;
   findPreviousSession: (
     userId: string,
-    currentSessionId: string
+    currentSessionId: string,
   ) => Promise<Session | null>;
   findPreferencesByUserId: (userId: string) => Promise<UserPreference | null>;
   markCatchUpDelivered: (sessionId: string, userId: string) => Promise<Session>;
@@ -28,18 +31,18 @@ export interface CatchUpAgentDeps {
     sessionId: string,
     userId: string,
     contentType: ListenContentType,
-    contentId: string
+    contentId: string,
   ) => Promise<ListenHistory>;
   contentClient: ContentClient;
   cortexClient: CortexClient;
   findRecentEpisodes: (
     since: Date,
-    limit?: number
+    limit?: number,
   ) => Promise<PodcastEpisode[]>;
   findNewEpisodesForUser: (
     userId: string,
     since?: Date,
-    limit?: number
+    limit?: number,
   ) => Promise<PodcastEpisode[]>;
   findExistingEpisodeIds: (ids: string[]) => Promise<string[]>;
   browseDeps: BrowseAgentDeps;
@@ -48,9 +51,12 @@ export interface CatchUpAgentDeps {
 export function buildBriefingInstructions(
   hoursSince: number,
   depth: CatchUpDepth,
-  userName?: string
+  userName?: string,
 ): string {
-  const greeting = userName ? `The user's name is ${userName}.` : "";
+  const safeName = userName
+    ? userName.replace(/[\n\r\t]/g, " ").slice(0, 100)
+    : undefined;
+  const greeting = safeName ? `The user's name is ${safeName}.` : "";
 
   let scope: string;
   if (hoursSince < 2) {
@@ -82,7 +88,7 @@ export function buildBriefingInstructions(
   return (
     `${greeting} ` +
     `It has been approximately ${Math.round(
-      hoursSince
+      hoursSince,
     )} hours since the user's last session. ` +
     `${scope} ${verbosity} ` +
     "Use the available tools to gather content, then deliver the briefing conversationally. " +
@@ -96,13 +102,15 @@ export class CatchUpAgent extends voice.Agent<AlphaSessionData> {
 
   constructor(
     options: voice.AgentOptions<AlphaSessionData>,
-    deps: CatchUpAgentDeps
+    deps: CatchUpAgentDeps,
   ) {
     super(options);
     this.deps = deps;
   }
 
   async onEnter() {
+    this.deps.notifyClient(RPC_SHOW_MODE, { mode: "catchup" });
+
     const { userId, userName, sessionId } = this.session.userData;
 
     const [lastSession, preferences] = await Promise.all([
@@ -152,7 +160,7 @@ export class CatchUpAgent extends voice.Agent<AlphaSessionData> {
           }),
         },
       },
-      deps
+      deps,
     );
   }
 }
@@ -181,9 +189,11 @@ function createCompleteBriefingTool(deps: CatchUpAgentDeps) {
         await Promise.all([
           deps.markCatchUpDelivered(sessionId, userId),
           ...validIds.map((id) =>
-            deps.recordListen(sessionId, userId, "episode", id)
+            deps.recordListen(sessionId, userId, "episode", id),
           ),
         ]);
+
+        deps.notifyClient(RPC_SHOW_MODE, { mode: "browse" });
 
         return llm.handoff({
           agent: BrowseAgent.create(deps.browseDeps),

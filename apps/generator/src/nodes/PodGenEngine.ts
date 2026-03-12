@@ -38,7 +38,7 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
 
   async execute(
     payload: JSONObject,
-    completeCallback: (completeEventName: string, result: JSONObject) => void
+    completeCallback: (completeEventName: string, result: JSONObject) => void,
   ): Promise<void> {
     const file = await this.createWavFile();
     if (Array.isArray(payload)) {
@@ -71,7 +71,7 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
           await this.generatePodcastSegmentToWav(
             item.script as JSONObject,
             file,
-            slug
+            slug,
           );
         }
 
@@ -91,7 +91,7 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
       await this.generatePodcastSegmentToWav(
         payload.script as JSONObject,
         file,
-        payload.slug as string
+        payload.slug as string,
       );
       file.close();
 
@@ -141,7 +141,7 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
 
   protected async generatePodcastIntro(
     articles: JSONObject[],
-    file: WriteStream
+    file: WriteStream,
   ) {
     const articleTitles = articles.map((article) => article.title).join(", ");
 
@@ -161,7 +161,7 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
             month: "long",
             day: "numeric",
           })} and the time is ${new Date().toLocaleTimeString(
-            "en-US"
+            "en-US",
           )}. Here are the article titles that will be discussed in the podcast, please write an intro for the podcast that will discuss each of them: ${articleTitles}`,
         },
       ],
@@ -203,7 +203,7 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
     });
 
     const introScript = JSON.parse(
-      introScriptResponse.choices[0].message.content as string
+      introScriptResponse.choices[0].message.content as string,
     );
     console.log("\n\n\nGenerating Intro for podcast");
     await this.generatePodcastSegmentToWav(introScript, file);
@@ -212,7 +212,7 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
   protected async generatePodcastSegmentToWav(
     script: JSONObject,
     file: WriteStream,
-    slug?: string
+    slug?: string,
   ) {
     const lines = script.script as JSONObject[];
     let allPcmData = Buffer.alloc(0);
@@ -300,13 +300,13 @@ export class PodGenEngine extends NodeBase implements IQueryEngine {
     fs.closeSync(fd);
 
     console.log(
-      `WAV header updated: file size ${fileSize} bytes, data size ${dataSize} bytes`
+      `WAV header updated: file size ${fileSize} bytes, data size ${dataSize} bytes`,
     );
   }
 
   protected async appendWavData(
     inputWavPath: string,
-    outputStream: WriteStream
+    outputStream: WriteStream,
   ): Promise<void> {
     // Open the input file
     const inputFd = fs.openSync(inputWavPath, "r");

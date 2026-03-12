@@ -5,6 +5,8 @@ import type { AlphaSessionData } from "../types";
 
 export function createGenerateResponseTool(deps: {
   generator: StreamingGenerator;
+  onLoading?: (message: string) => void;
+  onResult?: (title: string, summary: string) => void;
 }) {
   return llm.tool({
     description:
@@ -22,17 +24,21 @@ export function createGenerateResponseTool(deps: {
         .max(5000)
         .default("")
         .describe(
-          "Relevant context from search results to ground the response"
+          "Relevant context from search results to ground the response",
         ),
     }),
     execute: async ({ query, context }, { ctx }) => {
       try {
+        deps.onLoading?.("Generating response...");
+
         const userData = ctx.userData as AlphaSessionData;
         const result = await deps.generator.generate(
           query,
           context,
-          userData.userId
+          userData.userId,
         );
+
+        deps.onResult?.(query, result.text.slice(0, 200));
 
         result.cachingPromise.catch((err) => {
           console.error("Background caching error:", err);

@@ -74,9 +74,5 @@ apiServer.initServer({
   endSession,
 });
 
-// Socket.io disabled — LiveKit agent runs as separate process
-// const server = new SocketServer(OPENAI_API_KEY, CORS_HOSTS, AUDIO_ROOT_DIR);
-// server.listen(apiServer.getServer(), PORT);
-
 serve({ fetch: apiServer.getServer().fetch, port: PORT });
 logger.log(`Listening on http://localhost:${PORT}`);

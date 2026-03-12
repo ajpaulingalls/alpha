@@ -5,9 +5,10 @@ import type { BrowseAgentDeps } from "./BrowseAgent";
 import type { PlaybackAgentDeps } from "./PlaybackAgent";
 
 export function mockBrowseDeps(
-  overrides?: Partial<BrowseAgentDeps>
+  overrides?: Partial<BrowseAgentDeps>,
 ): BrowseAgentDeps {
   return {
+    notifyClient: mock(() => undefined),
     cortexClient: {
       embed: mock(() => Promise.resolve([[0.1, 0.2, 0.3]])),
       rag: mock(() => Promise.resolve({ result: "", sources: [] })),
@@ -22,7 +23,7 @@ export function mockBrowseDeps(
         Promise.resolve({
           text: "Generated response.",
           cachingPromise: Promise.resolve(),
-        })
+        }),
       ),
     } as any,
     findEpisodesByShow: mock(() => Promise.resolve([])),
@@ -36,7 +37,7 @@ export function mockBrowseDeps(
         contentId: "e1",
         listenedAt: new Date(),
         completedPercent: 0,
-      })
+      }),
     ),
     incrementHitCount: mock(() =>
       Promise.resolve({
@@ -50,7 +51,7 @@ export function mockBrowseDeps(
         hitCount: 1,
         createdAt: new Date(),
         updatedAt: new Date(),
-      })
+      }),
     ),
     findTopicsByEpisode: mock(() => Promise.resolve([])),
     updateCompletedPercent: mock(() =>
@@ -62,7 +63,7 @@ export function mockBrowseDeps(
         contentId: "e1",
         listenedAt: new Date(),
         completedPercent: 50,
-      })
+      }),
     ),
     audioDir: "/tmp/test-audio",
     endDbSession: mock((_sid: string, _uid: string) => Promise.resolve()),
@@ -72,9 +73,10 @@ export function mockBrowseDeps(
 }
 
 export function mockPlaybackDeps(
-  overrides?: Partial<PlaybackAgentDeps>
+  overrides?: Partial<PlaybackAgentDeps>,
 ): PlaybackAgentDeps {
   return {
+    notifyClient: mock(() => undefined),
     episodeId: "e1e1e1e1-e1e1-e1e1-e1e1-e1e1e1e1e1e1",
     episodeTitle: "Test Episode",
     listenHistoryId: "lh1",
@@ -89,7 +91,7 @@ export function mockPlaybackDeps(
         contentId: "e1",
         listenedAt: new Date(),
         completedPercent: 50,
-      })
+      }),
     ),
     cortexClient: {
       rag: mock(() => Promise.resolve({ result: "", sources: [] })),
@@ -100,9 +102,10 @@ export function mockPlaybackDeps(
 }
 
 export function mockCatchUpDeps(
-  overrides?: Partial<CatchUpAgentDeps>
+  overrides?: Partial<CatchUpAgentDeps>,
 ): CatchUpAgentDeps {
   return {
+    notifyClient: mock(() => undefined),
     findPreviousSession: mock(() => Promise.resolve(null)),
     findPreferencesByUserId: mock(() => Promise.resolve(null)),
     markCatchUpDelivered: mock(() =>
@@ -112,7 +115,7 @@ export function mockCatchUpDeps(
         startedAt: new Date(),
         endedAt: null,
         catchUpDelivered: true,
-      })
+      }),
     ),
     recordListen: mock(() =>
       Promise.resolve({
@@ -123,7 +126,7 @@ export function mockCatchUpDeps(
         contentId: "e1",
         listenedAt: new Date(),
         completedPercent: 0,
-      })
+      }),
     ),
     contentClient: {
       getRecentArticles: mock(() => Promise.resolve([])),

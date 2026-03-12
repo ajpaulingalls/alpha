@@ -12,6 +12,7 @@
     "test": "bun test"
   },
   "dependencies": {
+    "@alpha/socket": "workspace:*",
     "@config-plugins/react-native-webrtc": "^10.0.0",
     "@livekit/react-native": "^2.9.6",
     "@livekit/react-native-expo-plugin": "^1.0.1",

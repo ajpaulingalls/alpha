@@ -12,7 +12,7 @@ import * as silero from "@livekit/agents-plugin-silero";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 import OpenAI from "openai";
-import { findUserById } from "@alpha/data/crud/users";
+import { findUserById, updateUserName } from "@alpha/data/crud/users";
 import {
   createCortexLLM,
   FAST_MODEL,
@@ -24,7 +24,10 @@ import {
   findPreviousSession,
   markCatchUpDelivered,
 } from "@alpha/data/crud/sessions";
-import { findPreferencesByUserId } from "@alpha/data/crud/preferences";
+import {
+  createPreferences,
+  findPreferencesByUserId,
+} from "@alpha/data/crud/preferences";
 import {
   recordListen,
   updateCompletedPercent,
@@ -49,7 +52,8 @@ import { ContentClient } from "@alpha/content";
 import { CortexClient } from "@alpha/cortex";
 import { AGENT_NAME } from "./constants";
 import { type AlphaSessionData, isNewUser } from "./types";
-import { SetupAgent } from "./agents/SetupAgent";
+import { createNotifyClient } from "./rpc";
+import { SetupAgent, type SetupAgentDeps } from "./agents/SetupAgent";
 import { CatchUpAgent, type CatchUpAgentDeps } from "./agents/CatchUpAgent";
 import type { BrowseAgentDeps } from "./agents/BrowseAgent";
 import { AudioRecorder } from "./generation/AudioRecorder";
@@ -66,7 +70,7 @@ export default defineAgent({
     const cortexApiUrl = process.env["CORTEX_API_URL"];
     if (!contentGraphqlUrl || !cortexApiUrl) {
       throw new Error(
-        "CONTENT_GRAPHQL_URL and CORTEX_API_URL environment variables are required"
+        "CONTENT_GRAPHQL_URL and CORTEX_API_URL environment variables are required",
       );
     }
 
@@ -89,7 +93,7 @@ export default defineAgent({
     proc.userData["fastLLM"] = createCortexLLM(cortexApiUrl, FAST_MODEL);
     proc.userData["standardLLM"] = createCortexLLM(
       cortexApiUrl,
-      STANDARD_MODEL
+      STANDARD_MODEL,
     );
     proc.userData["audioRecorder"] = new AudioRecorder({
       openai: proc.userData["openai"] as OpenAI,
@@ -106,6 +110,7 @@ export default defineAgent({
     await ctx.connect();
     const participant = await ctx.waitForParticipant();
     const userId = participant.identity;
+    const notifyClient = createNotifyClient(ctx.room, userId);
 
     const [user, dbSession] = await Promise.all([
       findUserById(userId),
@@ -129,6 +134,7 @@ export default defineAgent({
     let sessionEnded = false;
 
     const browseDeps: BrowseAgentDeps = {
+      notifyClient,
       cortexClient,
       contentClient,
       searchCachedResponses,
@@ -150,6 +156,7 @@ export default defineAgent({
     };
 
     const catchUpDeps: CatchUpAgentDeps = {
+      notifyClient,
       findPreviousSession,
       findPreferencesByUserId,
       markCatchUpDelivered,
@@ -168,8 +175,13 @@ export default defineAgent({
       sessionId: dbSession.id,
     };
 
+    const setupDeps: SetupAgentDeps = {
+      notifyClient,
+      updateUserName,
+      createPreferences,
+    };
     const agent = isNew
-      ? SetupAgent.create(catchUpDeps, fastLLM)
+      ? SetupAgent.create(setupDeps, catchUpDeps, fastLLM)
       : CatchUpAgent.create(catchUpDeps);
 
     const session = new voice.AgentSession<AlphaSessionData>({
@@ -191,14 +203,14 @@ export default defineAgent({
       if (sessionEnded) return;
       sessionEnded = true;
       await endSession(dbSession.id, userId).catch((err) =>
-        console.error("Failed to end session on shutdown:", err)
+        console.error("Failed to end session on shutdown:", err),
       );
     });
 
     // Log session close reason
     session.on(voice.AgentSessionEventTypes.Close, ({ reason }) => {
       console.log(
-        `Session ${dbSession.id} closed (user: ${userId}, reason: ${reason})`
+        `Session ${dbSession.id} closed (user: ${userId}, reason: ${reason})`,
       );
     });
 
@@ -214,7 +226,7 @@ export default defineAgent({
           }),
         onTimeout: () =>
           session.shutdown({ drain: true, reason: "inactivity" }),
-      })
+      }),
     );
 
     await session.start({ agent, room: ctx.room });
@@ -225,5 +237,5 @@ cli.runApp(
   new ServerOptions({
     agent: fileURLToPath(import.meta.url),
     agentName: AGENT_NAME,
-  })
+  }),
 );

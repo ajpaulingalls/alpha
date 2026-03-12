@@ -4,7 +4,9 @@ import path from "node:path";
 import type { PodcastTopic } from "@alpha/data/schema/podcast_topics";
 import type { ListenHistory } from "@alpha/data/schema/listen_history";
 import type { CortexClient } from "@alpha/cortex";
+import { RPC_SHOW_MODE, RPC_SHOW_PODCAST } from "@alpha/socket/RPCMethods";
 import type { AlphaSessionData } from "../types";
+import type { NotifyClient } from "../rpc";
 import { BrowseAgent, type BrowseAgentDeps } from "./BrowseAgent";
 import {
   createPausePlaybackTool,
@@ -14,6 +16,7 @@ import {
 import { createSearchContextTool } from "../tools/searchContext";
 
 export interface PlaybackAgentDeps {
+  notifyClient: NotifyClient;
   episodeId: string;
   episodeTitle: string;
   listenHistoryId: string;
@@ -21,7 +24,7 @@ export interface PlaybackAgentDeps {
   findTopicsByEpisode: (episodeId: string) => Promise<PodcastTopic[]>;
   updateCompletedPercent: (
     id: string,
-    percent: number
+    percent: number,
   ) => Promise<ListenHistory>;
   cortexClient: CortexClient;
   audioDir: string;
@@ -39,13 +42,13 @@ export interface PlaybackState {
 
 export function calculatePlaybackPercent(
   currentIndex: number,
-  totalCount: number
+  totalCount: number,
 ): number {
   return totalCount > 0 ? Math.round((currentIndex / totalCount) * 100) : 100;
 }
 
 /** Truncate and strip control characters to prevent prompt injection via episode titles. */
-function sanitizeTitle(raw: string): string {
+export function sanitizeTitle(raw: string): string {
   return raw.replace(/[\n\r\t]/g, " ").slice(0, 200);
 }
 
@@ -73,7 +76,7 @@ export class PlaybackAgent extends voice.Agent<AlphaSessionData> {
     options: voice.AgentOptions<AlphaSessionData>,
     episodeTitle: string,
     state: PlaybackState,
-    deps: PlaybackAgentDeps
+    deps: PlaybackAgentDeps,
   ) {
     super(options);
     this.episodeTitle = episodeTitle;
@@ -82,9 +85,16 @@ export class PlaybackAgent extends voice.Agent<AlphaSessionData> {
   }
 
   async onEnter() {
+    this.deps.notifyClient(RPC_SHOW_MODE, { mode: "playback" });
+    this.deps.notifyClient(RPC_SHOW_PODCAST, {
+      title: this.episodeTitle,
+      show: this.episodeTitle,
+      duration: 0,
+    });
+
     try {
       this.state.topics = await this.deps.findTopicsByEpisode(
-        this.deps.episodeId
+        this.deps.episodeId,
       );
     } catch (err) {
       console.error("Failed to load topics:", err);
@@ -127,7 +137,7 @@ export class PlaybackAgent extends voice.Agent<AlphaSessionData> {
         const topic = this.state.topics[this.state.currentTopicIndex];
         const audioPath = path.resolve(
           this.deps.audioDir,
-          path.basename(topic.filename)
+          path.basename(topic.filename),
         );
         if (
           !audioPath.startsWith(path.resolve(this.deps.audioDir) + path.sep)
@@ -160,7 +170,7 @@ export class PlaybackAgent extends voice.Agent<AlphaSessionData> {
         }
         const percent = calculatePlaybackPercent(
           this.state.currentTopicIndex,
-          this.state.topics.length
+          this.state.topics.length,
         );
         if (percent !== this.state.lastSentPercent) {
           this.state.lastSentPercent = percent;
@@ -215,7 +225,7 @@ export class PlaybackAgent extends voice.Agent<AlphaSessionData> {
       },
       title,
       state,
-      deps
+      deps,
     );
   }
 }
@@ -227,6 +237,7 @@ function createEndPlaybackTool(deps: PlaybackAgentDeps) {
       "Call this when the user says 'stop', 'go back', or wants to do something else.",
     parameters: z.object({}),
     execute: async () => {
+      deps.notifyClient(RPC_SHOW_MODE, { mode: "browse" });
       return llm.handoff({
         agent: BrowseAgent.create(deps.browseDeps),
         returns: `Stopped playing "${deps.episodeTitle}". What would you like to explore next?`,

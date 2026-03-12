@@ -13,7 +13,7 @@ const mockRag = mock(() =>
     sources: [
       { title: "Source 1", content: "Content 1", url: "https://example.com" },
     ],
-  })
+  }),
 );
 
 describe("fetchWireHighlights tool", () => {

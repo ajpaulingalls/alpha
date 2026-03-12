@@ -88,14 +88,14 @@ export class OmnyClient {
 
   async getPrograms(): Promise<OmnyProgram[]> {
     const data = await this.get<RawOmnyProgramsResponse>(
-      `${this.baseUrl}/orgs/${this.orgId}/programs`
+      `${this.baseUrl}/orgs/${this.orgId}/programs`,
     );
     return data.Programs.map((raw) => this.mapProgram(raw));
   }
 
   async getClips(
     programSlug: string,
-    options?: { pageSize?: number; cursor?: string }
+    options?: { pageSize?: number; cursor?: string },
   ): Promise<OmnyClipsResult> {
     assertValidSegment(programSlug, "programSlug");
     const pageSize = options?.pageSize ?? DEFAULT_PAGE_SIZE;
@@ -104,7 +104,7 @@ export class OmnyClient {
       params.set("cursor", options.cursor);
     }
     const data = await this.get<RawOmnyClipsResponse>(
-      `${this.baseUrl}/programs/${programSlug}/clips?${params.toString()}`
+      `${this.baseUrl}/programs/${programSlug}/clips?${params.toString()}`,
     );
     return {
       clips: data.Clips.map((raw) => this.mapClip(raw)),
@@ -117,7 +117,7 @@ export class OmnyClient {
     assertValidSegment(programSlug, "programSlug");
     assertValidSegment(clipSlug, "clipSlug");
     const raw = await this.get<RawOmnyClip>(
-      `${this.baseUrl}/programs/${programSlug}/clips/${clipSlug}`
+      `${this.baseUrl}/programs/${programSlug}/clips/${clipSlug}`,
     );
     return this.mapClip(raw);
   }

@@ -4,7 +4,7 @@ export class RateLimiter {
 
   constructor(
     private readonly windowMs: number,
-    private readonly maxAttempts: number
+    private readonly maxAttempts: number,
   ) {
     this.cleanupTimer = setInterval(() => this.cleanup(), windowMs);
     // Allow the timer to not block process exit

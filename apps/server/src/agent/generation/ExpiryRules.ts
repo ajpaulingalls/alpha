@@ -51,7 +51,7 @@ function textContainsAny(text: string, keywords: string[]): boolean {
 
 export function classifyContent(
   query: string,
-  context: string
+  context: string,
 ): ExpiryCategory {
   const combined = `${query} ${context}`.toLowerCase();
 

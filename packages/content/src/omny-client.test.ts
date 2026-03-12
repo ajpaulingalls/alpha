@@ -147,7 +147,7 @@ describe("OmnyClient", () => {
     test("maps PascalCase to camelCase", async () => {
       const client = new OmnyClient("org-123");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ Programs: [MOCK_RAW_PROGRAM] })
+        jsonResponse({ Programs: [MOCK_RAW_PROGRAM] }),
       );
       const programs = await client.getPrograms();
       expect(programs).toEqual([EXPECTED_PROGRAM]);
@@ -165,18 +165,18 @@ describe("OmnyClient", () => {
     test("fetches correct slug-based URL", async () => {
       const client = new OmnyClient("org-123");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ Clips: [], Cursor: null, TotalCount: 0 })
+        jsonResponse({ Clips: [], Cursor: null, TotalCount: 0 }),
       );
       await client.getClips("the-take");
       expect(fetchUrl()).toBe(
-        "https://api.omny.fm/programs/the-take/clips?pageSize=10"
+        "https://api.omny.fm/programs/the-take/clips?pageSize=10",
       );
     });
 
     test("defaults pageSize to 10", async () => {
       const client = new OmnyClient("org-123");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ Clips: [], Cursor: null, TotalCount: 0 })
+        jsonResponse({ Clips: [], Cursor: null, TotalCount: 0 }),
       );
       await client.getClips("the-take");
       expect(fetchUrl()).toContain("pageSize=10");
@@ -185,7 +185,7 @@ describe("OmnyClient", () => {
     test("uses custom pageSize", async () => {
       const client = new OmnyClient("org-123");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ Clips: [], Cursor: null, TotalCount: 0 })
+        jsonResponse({ Clips: [], Cursor: null, TotalCount: 0 }),
       );
       await client.getClips("the-take", { pageSize: 25 });
       expect(fetchUrl()).toContain("pageSize=25");
@@ -194,7 +194,7 @@ describe("OmnyClient", () => {
     test("passes cursor as query parameter", async () => {
       const client = new OmnyClient("org-123");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ Clips: [], Cursor: null, TotalCount: 0 })
+        jsonResponse({ Clips: [], Cursor: null, TotalCount: 0 }),
       );
       await client.getClips("the-take", { cursor: "abc123" });
       expect(fetchUrl()).toContain("cursor=abc123");
@@ -207,7 +207,7 @@ describe("OmnyClient", () => {
           Clips: [MOCK_RAW_CLIP],
           Cursor: "next-page",
           TotalCount: 42,
-        })
+        }),
       );
       const result = await client.getClips("the-take");
       expect(result).toEqual({
@@ -220,7 +220,7 @@ describe("OmnyClient", () => {
     test("returns empty clips with null cursor", async () => {
       const client = new OmnyClient("org-123");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ Clips: [], Cursor: null, TotalCount: 0 })
+        jsonResponse({ Clips: [], Cursor: null, TotalCount: 0 }),
       );
       const result = await client.getClips("the-take");
       expect(result).toEqual({
@@ -237,7 +237,7 @@ describe("OmnyClient", () => {
       fetchMock.mockResolvedValueOnce(jsonResponse(MOCK_RAW_CLIP));
       await client.getClip("the-take", "episode-42");
       expect(fetchUrl()).toBe(
-        "https://api.omny.fm/programs/the-take/clips/episode-42"
+        "https://api.omny.fm/programs/the-take/clips/episode-42",
       );
     });
 
@@ -259,7 +259,7 @@ describe("OmnyClient", () => {
           Episode: null,
           ShareUrl: null,
           Tags: null,
-        })
+        }),
       );
       const clip = await client.getClip("the-take", "episode-42");
       expect(clip.summary).toBeNull();
@@ -287,21 +287,21 @@ describe("OmnyClient", () => {
     test("rejects programSlug with path traversal", async () => {
       const client = new OmnyClient("org-123");
       await expect(client.getClips("../../../admin")).rejects.toThrow(
-        "Invalid programSlug"
+        "Invalid programSlug",
       );
     });
 
     test("rejects clipSlug with path traversal", async () => {
       const client = new OmnyClient("org-123");
       await expect(
-        client.getClip("the-take", "../../../admin")
+        client.getClip("the-take", "../../../admin"),
       ).rejects.toThrow("Invalid clipSlug");
     });
 
     test("allows valid slugs with hyphens and underscores", async () => {
       const client = new OmnyClient("org-123");
       fetchMock.mockResolvedValueOnce(
-        jsonResponse({ Clips: [], Cursor: null, TotalCount: 0 })
+        jsonResponse({ Clips: [], Cursor: null, TotalCount: 0 }),
       );
       await client.getClips("my-podcast_v2");
       expect(fetchUrl()).toContain("/programs/my-podcast_v2/clips");
@@ -315,10 +315,10 @@ describe("OmnyClient", () => {
         new Response("Not Found", {
           status: 404,
           statusText: "Not Found",
-        })
+        }),
       );
       await expect(client.getPrograms()).rejects.toThrow(
-        "HTTP 404: Not Found — Not Found"
+        "HTTP 404: Not Found — Not Found",
       );
     });
 
@@ -328,7 +328,7 @@ describe("OmnyClient", () => {
         new Response("Internal Server Error", {
           status: 500,
           statusText: "Internal Server Error",
-        })
+        }),
       );
       await expect(client.getPrograms()).rejects.toThrow("HTTP 500");
     });
@@ -340,7 +340,7 @@ describe("OmnyClient", () => {
         new Response(longBody, {
           status: 500,
           statusText: "Internal Server Error",
-        })
+        }),
       );
       try {
         await client.getPrograms();

@@ -18,7 +18,7 @@ function createDeps(overrides?: Record<string, any>) {
         duration: 1800,
         createdAt: new Date(),
         updatedAt: new Date(),
-      })
+      }),
     ),
     recordListen: mock(() =>
       Promise.resolve({
@@ -29,7 +29,7 @@ function createDeps(overrides?: Record<string, any>) {
         contentId: "e1e1e1e1-e1e1-e1e1-e1e1-e1e1e1e1e1e1",
         listenedAt: new Date(),
         completedPercent: 0,
-      })
+      }),
     ),
     findTopicsByEpisode: mock(() => Promise.resolve([])),
     updateCompletedPercent: mock(() =>
@@ -41,7 +41,7 @@ function createDeps(overrides?: Record<string, any>) {
         contentId: "e1",
         listenedAt: new Date(),
         completedPercent: 50,
-      })
+      }),
     ),
     cortexClient: {
       rag: mock(() => Promise.resolve({ result: "", sources: [] })),
@@ -88,7 +88,7 @@ describe("playPodcast tool", () => {
       "s1",
       "u1",
       "episode",
-      EPISODE_ID
+      EPISODE_ID,
     );
   });
 

@@ -7,7 +7,7 @@ import {
 import { updateOneOrThrow } from "./helpers";
 
 export async function findPreferencesByUserId(
-  userId: string
+  userId: string,
 ): Promise<UserPreference | null> {
   const result = await db
     .select()
@@ -19,7 +19,7 @@ export async function findPreferencesByUserId(
 export async function createPreferences(
   userId: string,
   timezone?: string,
-  catchUpDepth?: string
+  catchUpDepth?: string,
 ): Promise<UserPreference> {
   const values: Record<string, unknown> = { userId };
   if (timezone !== undefined) values["timezone"] = timezone;
@@ -39,7 +39,7 @@ export async function updatePreferences(
   userId: string,
   updates: Partial<
     Pick<UserPreference, "timezone" | "catchUpDepth" | "preferences">
-  >
+  >,
 ): Promise<UserPreference> {
   return updateOneOrThrow(
     db
@@ -47,13 +47,13 @@ export async function updatePreferences(
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(userPreferences.userId, userId))
       .returning(),
-    `Preferences for user ${userId} not found`
+    `Preferences for user ${userId} not found`,
   );
 }
 
 export async function updatePreferencesJson(
   userId: string,
-  jsonUpdates: Record<string, unknown>
+  jsonUpdates: Record<string, unknown>,
 ): Promise<UserPreference> {
   return updateOneOrThrow(
     db
@@ -66,6 +66,6 @@ export async function updatePreferencesJson(
       })
       .where(eq(userPreferences.userId, userId))
       .returning(),
-    `Preferences for user ${userId} not found`
+    `Preferences for user ${userId} not found`,
   );
 }

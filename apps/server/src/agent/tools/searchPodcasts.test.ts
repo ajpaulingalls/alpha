@@ -22,7 +22,7 @@ const mockFindEpisodesByShow = mock(() =>
       createdAt: new Date(),
       updatedAt: new Date(),
     },
-  ])
+  ]),
 );
 
 const mockSearchTopics = mock(() =>
@@ -40,7 +40,7 @@ const mockSearchTopics = mock(() =>
       createdAt: new Date(),
       updatedAt: new Date(),
     },
-  ])
+  ]),
 );
 
 const mockEmbed = mock(() => Promise.resolve([[0.1, 0.2, 0.3]]));
@@ -89,7 +89,7 @@ describe("searchPodcasts tool", () => {
     const ctx = { userData: { userId: "u1" } } as any;
     const result = await tool.execute(
       { query: "latest news", showName: "The Take" },
-      { ctx, toolCallId: "t1" } as any
+      { ctx, toolCallId: "t1" } as any,
     );
     const parsed = JSON.parse(result as string);
     expect(parsed.episodes).toHaveLength(1);
@@ -103,7 +103,7 @@ describe("searchPodcasts tool", () => {
     const ctx = { userData: { userId: "u1" } } as any;
     const result = await tool.execute(
       { query: "conflict", showName: undefined },
-      { ctx, toolCallId: "t1" } as any
+      { ctx, toolCallId: "t1" } as any,
     );
     const parsed = JSON.parse(result as string);
     expect(parsed.episodes).toHaveLength(0);

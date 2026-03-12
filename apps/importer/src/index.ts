@@ -19,14 +19,22 @@ const IMPORTER_API_KEY = process.env["IMPORTER_API_KEY"];
 if (!IMPORTER_API_KEY) {
   console.error(
     'Environment variable "IMPORTER_API_KEY" is required.\n' +
-      "Please set it in your .env file."
+      "Please set it in your .env file.",
   );
   process.exit(1);
 }
 
 const paths: string[] = [];
 paths.push(
-  path.join(process.cwd(), "..", "..", "node_modules", "@ts-flow", "ai", "dist")
+  path.join(
+    process.cwd(),
+    "..",
+    "..",
+    "node_modules",
+    "@ts-flow",
+    "ai",
+    "dist",
+  ),
 );
 paths.push(
   path.join(
@@ -36,8 +44,8 @@ paths.push(
     "node_modules",
     "@ts-flow",
     "api",
-    "dist"
-  )
+    "dist",
+  ),
 );
 paths.push(
   path.join(
@@ -47,8 +55,8 @@ paths.push(
     "node_modules",
     "@ts-flow",
     "ffmpeg",
-    "dist"
-  )
+    "dist",
+  ),
 );
 paths.push(
   path.join(
@@ -58,8 +66,8 @@ paths.push(
     "node_modules",
     "@ts-flow",
     "transforms",
-    "dist"
-  )
+    "dist",
+  ),
 );
 
 void bootstrap(paths, (container: IContainer) => {
@@ -104,7 +112,7 @@ void bootstrap(paths, (container: IContainer) => {
   container.createInstance(
     podIndexer.id,
     podIndexer.type,
-    podIndexer.config as unknown as JSONObject
+    podIndexer.config as unknown as JSONObject,
   );
 
   webServer.startServer();

@@ -12,7 +12,7 @@ export async function createSession(userId: string): Promise<Session> {
 }
 
 export async function findSessionById(
-  sessionId: string
+  sessionId: string,
 ): Promise<Session | null> {
   const result = await db
     .select()
@@ -23,7 +23,7 @@ export async function findSessionById(
 
 export async function endSession(
   sessionId: string,
-  userId: string
+  userId: string,
 ): Promise<Session> {
   return updateOneOrThrow(
     db
@@ -31,12 +31,12 @@ export async function endSession(
       .set({ endedAt: new Date() })
       .where(and(eq(sessions.id, sessionId), eq(sessions.userId, userId)))
       .returning(),
-    `Session ${sessionId} not found`
+    `Session ${sessionId} not found`,
   );
 }
 
 export async function findLatestSession(
-  userId: string
+  userId: string,
 ): Promise<Session | null> {
   const result = await db
     .select()
@@ -49,7 +49,7 @@ export async function findLatestSession(
 
 export async function findPreviousSession(
   userId: string,
-  currentSessionId: string
+  currentSessionId: string,
 ): Promise<Session | null> {
   const result = await db
     .select()
@@ -62,7 +62,7 @@ export async function findPreviousSession(
 
 export async function markCatchUpDelivered(
   sessionId: string,
-  userId: string
+  userId: string,
 ): Promise<Session> {
   return updateOneOrThrow(
     db
@@ -70,6 +70,6 @@ export async function markCatchUpDelivered(
       .set({ catchUpDelivered: true })
       .where(and(eq(sessions.id, sessionId), eq(sessions.userId, userId)))
       .returning(),
-    `Session ${sessionId} not found`
+    `Session ${sessionId} not found`,
   );
 }

@@ -9,7 +9,7 @@ import {
 import { listenHistory } from "../schema/listen_history";
 
 export async function createEpisode(
-  data: NewPodcastEpisode
+  data: NewPodcastEpisode,
 ): Promise<PodcastEpisode> {
   const result = await db.insert(podcastEpisodes).values(data).returning();
   return result[0];
@@ -17,7 +17,7 @@ export async function createEpisode(
 
 export async function findEpisodesByShow(
   showName: string,
-  limit = 20
+  limit = 20,
 ): Promise<PodcastEpisode[]> {
   return db
     .select()
@@ -28,7 +28,7 @@ export async function findEpisodesByShow(
 }
 
 export async function findLatestEpisode(
-  showName: string
+  showName: string,
 ): Promise<PodcastEpisode | null> {
   const result = await db
     .select()
@@ -40,7 +40,7 @@ export async function findLatestEpisode(
 }
 
 export async function findEpisodeById(
-  id: string
+  id: string,
 ): Promise<PodcastEpisode | null> {
   const result = await db
     .select()
@@ -51,7 +51,7 @@ export async function findEpisodeById(
 
 export async function findRecentEpisodes(
   since: Date,
-  limit = 20
+  limit = 20,
 ): Promise<PodcastEpisode[]> {
   return db
     .select()
@@ -73,7 +73,7 @@ export async function findExistingEpisodeIds(ids: string[]): Promise<string[]> {
 export async function findNewEpisodesForUser(
   userId: string,
   since?: Date,
-  limit = 20
+  limit = 20,
 ): Promise<PodcastEpisode[]> {
   limit = Math.min(limit, 100);
   const conditions = [isNull(listenHistory.id)];
@@ -89,8 +89,8 @@ export async function findNewEpisodesForUser(
       and(
         eq(listenHistory.contentId, podcastEpisodes.id),
         eq(listenHistory.userId, userId),
-        eq(listenHistory.contentType, "episode")
-      )
+        eq(listenHistory.contentType, "episode"),
+      ),
     )
     .where(and(...conditions))
     .orderBy(desc(podcastEpisodes.publishedAt))

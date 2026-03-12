@@ -2,7 +2,7 @@ const envUrl = process.env["DATABASE_URL"];
 if (!envUrl) {
   throw new Error(
     'Environment variable "DATABASE_URL" is required.\n' +
-      "Please set it in your .env file."
+      "Please set it in your .env file.",
   );
 }
 

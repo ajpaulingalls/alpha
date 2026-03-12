@@ -22,7 +22,7 @@ const mockGetRecentArticles = mock(() =>
       categories: ["World"],
       tags: ["news"],
     },
-  ])
+  ]),
 );
 
 const mockFindRecentEpisodes = mock(() =>
@@ -39,7 +39,7 @@ const mockFindRecentEpisodes = mock(() =>
       createdAt: new Date(),
       updatedAt: new Date(),
     },
-  ])
+  ]),
 );
 
 describe("fetchTopStories tool", () => {

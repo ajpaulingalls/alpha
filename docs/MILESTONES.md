@@ -25,34 +25,27 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 **Deliverables:**
 
 1. Update `packages/data/src/schema/users.ts`:
-
    - Rename `phoneNumber` column to `email` (varchar 255, unique, not null)
    - Keep all other columns as-is (verificationCode, validated, validationTimeout, etc.)
 
 2. Update `packages/data/src/schema/podcast_topics.ts`:
-
    - Add `episodeId` column (UUID, nullable, FK → podcast_episodes)
    - Add `startTime` column (integer, nullable — seconds)
    - Add `endTime` column (integer, nullable — seconds)
 
 3. Create `packages/data/src/schema/user_preferences.ts`:
-
    - id (UUID PK), userId (UUID FK → users, unique), timezone (varchar 50, nullable), catchUpDepth (varchar 20, default 'standard'), preferences (JSONB, default {}), timestamps
 
 4. Create `packages/data/src/schema/sessions.ts`:
-
    - id (UUID PK), userId (UUID FK → users), startedAt (timestamp, not null), endedAt (timestamp, nullable), catchUpDelivered (boolean, default false)
 
 5. Create `packages/data/src/schema/listen_history.ts`:
-
    - id (UUID PK), sessionId (UUID FK → sessions), userId (UUID FK → users), contentType (varchar 20, not null — 'podcast_topic' | 'cached_response' | 'episode'), contentId (UUID, not null), listenedAt (timestamp, default now), completedPercent (integer, default 0)
 
 6. Create `packages/data/src/schema/podcast_episodes.ts`:
-
    - id (UUID PK), showName (varchar 255), title (varchar 255), description (text), publishedAt (timestamp), sourceUrl (varchar 500, nullable), audioFilename (varchar 255), duration (integer — seconds), timestamps
 
 7. Create `packages/data/src/schema/cached_responses.ts`:
-
    - id (UUID PK), queryEmbedding (vector 1536, HNSW index with cosine ops), responseText (text), audioFilename (varchar 255), sourceSummary (text, nullable), contentType (varchar 20 — 'catch_up' | 'answer' | 'deep_dive'), expiresAt (timestamp), hitCount (integer, default 0), timestamps
 
 8. Update `packages/data/src/schema/index.ts` to export all schemas.
@@ -94,7 +87,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 **Deliverables:**
 
 1. Update `packages/data/src/crud/users.ts`:
-
    - Rename `findUserByPhoneNumber` → `findUserByEmail` (query by email instead of phoneNumber)
    - Update `createUser` to accept email instead of phoneNumber
    - Update `updateUserVerificationCode` to use email instead of phoneNumber
@@ -102,35 +94,30 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - Keep `findUserById` as-is
 
 2. Create `packages/data/src/crud/preferences.ts`:
-
    - `findPreferencesByUserId(userId)` — returns user preferences or null
    - `createPreferences(userId, timezone?, catchUpDepth?)` — insert with defaults
    - `updatePreferences(userId, updates)` — partial update (timezone, catchUpDepth, preferences JSONB)
    - `updatePreferencesJson(userId, jsonUpdates)` — merge into the JSONB preferences column
 
 3. Create `packages/data/src/crud/sessions.ts`:
-
    - `createSession(userId)` — insert with startedAt = now
    - `endSession(sessionId)` — set endedAt = now
    - `findLatestSession(userId)` — most recent session by startedAt
    - `markCatchUpDelivered(sessionId)` — set catchUpDelivered = true
 
 4. Create `packages/data/src/crud/listen-history.ts`:
-
    - `recordListen(sessionId, userId, contentType, contentId)` — insert with listenedAt = now
    - `updateCompletedPercent(id, percent)` — update completion
    - `findRecentListens(userId, since: Date)` — all listens after a given date, ordered by listenedAt desc
    - `hasUserHeard(userId, contentType, contentId)` — boolean check
 
 5. Create `packages/data/src/crud/episodes.ts`:
-
    - `createEpisode(data: NewPodcastEpisode)` — insert
    - `findEpisodesByShow(showName, limit?)` — ordered by publishedAt desc
    - `findLatestEpisode(showName)` — most recent by publishedAt
    - `findEpisodeById(id)` — by PK
 
 6. Create `packages/data/src/crud/topics.ts`:
-
    - `createTopic(data: NewPodcastTopic)` — insert
    - `createTopics(data: NewPodcastTopic[])` — bulk insert
    - `findTopicsByEpisode(episodeId)` — ordered by startTime
@@ -138,7 +125,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - `searchTopicsByEmbedding(embedding: number[], limit?: number)` — vector similarity search using cosine distance, returns topics ordered by similarity
 
 7. Create `packages/data/src/crud/cached-responses.ts`:
-
    - `createCachedResponse(data: NewCachedResponse)` — insert
    - `searchCachedResponses(queryEmbedding: number[], similarityThreshold: number, limit?: number)` — vector search, filter by expiresAt > now
    - `incrementHitCount(id)` — bump hitCount by 1
@@ -185,7 +171,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 **Deliverables:**
 
 1. Create `packages/data/src/ts-flow/TopicInsertNode.ts`:
-
    - Implements `IQueryEngine` from `@ts-flow/core`
    - Uses `@ContainerNode` decorator for DI registration
    - `execute(payload, completeCallback)`:
@@ -196,26 +181,21 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - **Field name mapping:** The generator uses `title` as the payload field, but the importer uses `topic` (from GPT's topic extraction output). The node must accept either field name and map both to the `title` column. Check the `sqlValuesTemplate` arrays in both workflow JSONs to confirm.
 
 2. Update `packages/data/package.json`:
-
    - Add subpath export: `"./ts-flow/TopicInsertNode"`
    - Add `@ts-flow/core` as a peer dependency
 
 3. Update `apps/generator/src/index.ts`:
-
    - Ensure `TopicInsertNode` from `@alpha/data/ts-flow/TopicInsertNode` is importable and its `@ContainerNode` decorator registers it with the `@ts-flow` DI container. Study how `PodGenEngine` is discovered — it's picked up via compiled JS in the `dist/` directory, not an explicit map. The new node may need to be in a path that `@ts-flow/core` scans on bootstrap, or registered via whatever mechanism the generator uses.
 
 4. Update `apps/generator/src/generate-podcast.json`:
-
    - Change the "Insert Data" node's `engineType` from `PGInsertQueryEngine` to `TopicInsertNode`
    - Remove the `connectionString` and raw SQL from `engineConfig`
    - Keep the field mapping in `engineConfig` so the node knows which payload fields to extract
 
 5. Update `apps/importer/src/index.ts`:
-
    - Same as step 3 — ensure `TopicInsertNode` is discoverable
 
 6. Update `apps/importer/src/index-podcast-topics.json`:
-
    - Same as step 4 — swap `PGInsertQueryEngine` for `TopicInsertNode`
 
 7. Remove `POSTGRES_CONNECTION_STRING` from the generator and importer `.env.example` files (if they exist). These apps now use `DATABASE_URL` via `@alpha/data/client`.
@@ -261,7 +241,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 **Deliverables:**
 
 1. Create `packages/cortex/` as a new workspace package:
-
    - `packages/cortex/package.json` — name: `@alpha/cortex`, dependencies: none (pure fetch-based)
    - `packages/cortex/tsconfig.json` — extend root tsconfig pattern
    - `packages/cortex/src/client.ts` — main client class
@@ -275,13 +254,13 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
      // Call any pathway by name via REST
      callPathway(
        name: string,
-       params: Record<string, unknown>
+       params: Record<string, unknown>,
      ): Promise<string>;
 
      // Stream a pathway response (for LLM → TTS streaming)
      streamPathway(
        name: string,
-       params: Record<string, unknown>
+       params: Record<string, unknown>,
      ): AsyncIterable<string>;
 
      // Call the OpenAI-compatible chat endpoint (for use as LiveKit LLM plugin)
@@ -290,7 +269,7 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
      // Stream chat completion
      streamChatCompletion(
        messages: ChatMessage[],
-       model?: string
+       model?: string,
      ): AsyncIterable<string>;
 
      // Convenience methods for common pathways:
@@ -302,7 +281,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    ```
 
 3. `packages/cortex/src/types.ts` — TypeScript types:
-
    - `ChatMessage` — `{ role: 'system' | 'user' | 'assistant', content: string }`
    - `SearchResult` — `{ title: string, content: string, url?: string, score?: number }`
    - `RagOptions` — `{ indexName?: string, searchBing?: boolean, maxSources?: number }`
@@ -314,7 +292,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 5. Update root `package.json` — workspaces already includes `packages/*`, so this is auto-discovered.
 
 6. Update `packages/cortex/package.json` with subpath exports:
-
    - `".": "./src/index.ts"`
    - `"./client": "./src/client.ts"`
    - `"./types": "./src/types.ts"`
@@ -364,7 +341,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 **Deliverables:**
 
 1. Create `packages/content/` as a new workspace package:
-
    - `packages/content/package.json` — name: `@alpha/content`
    - `packages/content/tsconfig.json`
    - `packages/content/src/client.ts` — main client
@@ -372,7 +348,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - `packages/content/src/types.ts` — response types
 
 2. `packages/content/src/queries.ts` — GraphQL queries as template strings:
-
    - `SEARCH_QUERY` — search articles (from searchQuery.graphql)
    - `SINGLE_ARTICLE_QUERY` — fetch full article by slug (from singleArticleQuery.graphql)
    - `POSTS_QUERY` — list articles with filtering (from postsQuery.graphql)
@@ -383,7 +358,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    Copy the exact GraphQL query strings from the reference files, but simplify the fragments to include only the fields Alpha needs: id, title, excerpt/content, date, slug, link, author name, featured image URL, categories, tags.
 
 3. `packages/content/src/types.ts`:
-
    - `Article` — `{ id, title, excerpt, content, date, slug, link, author, imageUrl, categories, tags }`
    - `SearchResult` — `{ title, snippet, link, imageUrl, publishedAt }`
    - `PodcastSeries` — `{ id, title, description, imageUrl }`
@@ -407,7 +381,7 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
      // Fetch articles in a category
      getArticlesByCategory(
        category: string,
-       limit?: number
+       limit?: number,
      ): Promise<Article[]>;
 
      // List podcast series
@@ -421,13 +395,11 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 5. Update subpath exports in package.json.
 
 6. Write tests: `packages/content/src/client.test.ts`
-
    - Test GraphQL query construction
    - Test response parsing and type mapping
    - Mock fetch responses
 
 7. Add `OmnyClient` for the Omny Studio Consumer API (`api.omny.fm`):
-
    - `packages/content/src/omny-client.ts` — `OmnyClient` class
    - `packages/content/src/omny-client.test.ts` — tests
    - `packages/content/src/http.ts` — shared HTTP utilities (`assertOk`, `DEFAULT_TIMEOUT_MS`) used by both clients
@@ -439,7 +411,7 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
      getPrograms(): Promise<OmnyProgram[]>;
      getClips(
        programSlug: string,
-       options?: { pageSize?: number; cursor?: string }
+       options?: { pageSize?: number; cursor?: string },
      ): Promise<OmnyClipsResult>;
      getClip(programSlug: string, clipSlug: string): Promise<OmnyClip>;
    }
@@ -493,7 +465,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 1. Update `apps/server/src/ApiServer.ts` — add auth routes:
 
    **`POST /api/auth/send-code`**
-
    - Body: `{ email: string }`
    - Validate email format
    - Generate a random 6-digit code
@@ -503,7 +474,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - Response: `{ success: true }`
 
    **`POST /api/auth/verify-code`**
-
    - Body: `{ email: string, code: string }`
    - Look up user by email
    - Check code matches and timeout hasn't expired
@@ -512,14 +482,12 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - If invalid: `401 { error: "Invalid or expired code" }`
 
    **`POST /api/auth/livekit-token`** (placeholder for M8)
-
    - Header: `Authorization: Bearer <jwt>`
    - Validate JWT, extract userId
    - Response: `{ token: "<placeholder>", roomName: "<placeholder>" }`
    - This will be completed in M8 when LiveKit is integrated
 
 2. Create `apps/server/src/middleware/auth.ts`:
-
    - JWT verification middleware for Hono
    - Extracts and verifies the Bearer token
    - Sets `userId` on the Hono context
@@ -566,13 +534,11 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 **Deliverables:**
 
 1. Add LiveKit dependencies to `apps/server/package.json`:
-
    - `@livekit/agents` — Agent framework
    - `@livekit/rtc-node` — LiveKit server SDK
    - Any STT/TTS/LLM plugins needed (check LiveKit docs for exact package names)
 
 2. Create `apps/server/src/agent/index.ts` — agent entry point:
-
    - Define a `WorkerOptions` configuration
    - Create an `entrypoint` function that:
      - Accepts a `JobContext`
@@ -586,14 +552,12 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - Export the agent worker
 
 3. Update `apps/server/src/index.ts`:
-
    - Keep the Hono HTTP server
    - Remove or disable the Socket.io server setup (keep the code commented out for reference)
    - Start the LiveKit agent worker alongside the HTTP server
    - Both should run in the same process
 
 4. Update `apps/server/src/ApiServer.ts`:
-
    - Complete the `POST /api/auth/livekit-token` endpoint:
      - Validate JWT from Authorization header
      - Generate a LiveKit access token using `@livekit/rtc-node` (or the token utility from the SDK)
@@ -602,7 +566,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
      - Response: `{ token: string, roomName: string, livekitUrl: string }`
 
 5. Add environment variables:
-
    - `LIVEKIT_URL` — LiveKit Cloud WebSocket URL
    - `LIVEKIT_API_KEY` — LiveKit API key
    - `LIVEKIT_API_SECRET` — LiveKit API secret
@@ -645,7 +608,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 **Deliverables:**
 
 1. Create `apps/server/src/agent/agents/SetupAgent.ts`:
-
    - A function or class that configures a voice agent for setup
    - System prompt: Collect the user's name, then deliver a brief intro explaining how Alpha works (see PROJECT_OVERVIEW § "First Launch" for the exact script concept)
    - One tool: `recordName` — accepts `{ name: string }`, calls `updateUserName(userId, name)` CRUD (you may need to add this to the users CRUD), creates user preferences with defaults
@@ -653,12 +615,10 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - Pipeline config: STT (Deepgram or OpenAI), LLM (OpenAI for now), TTS (a warm, friendly voice)
 
 2. Create `apps/server/src/agent/agents/CatchUpAgent.ts` (stub):
-
    - Minimal implementation — just accepts handoff and says "Catch-up coming soon"
    - Will be fully implemented in M10
 
 3. Update `apps/server/index.ts` (note: the entry point is at the app root, not inside `src/`):
-
    - On room join, check if the user is new (`isNewUser` flag from auth, or check if name is empty in DB)
    - If new: start SetupAgent
    - If returning: start CatchUpAgent (stub)
@@ -703,7 +663,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 **Deliverables:**
 
 1. Create `apps/server/src/agent/tools/searchContent.ts`:
-
    - LiveKit function tool definition
    - Params: `{ query: string }`
    - Embeds the query via Cortex's `embeddings` pathway (wraps OpenAI text-embedding-3-small and others)
@@ -716,7 +675,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - This is the core content resolution tool used by BrowseAgent
 
 2. Create `apps/server/src/agent/tools/searchPodcasts.ts`:
-
    - LiveKit function tool definition
    - Params: `{ query: string, showName?: string }`
    - Searches podcast episodes by show name and/or keyword
@@ -725,7 +683,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - Returns episode/topic matches with metadata
 
 3. Create `apps/server/src/agent/tools/fetchTopStories.ts`:
-
    - LiveKit function tool definition
    - Params: `{ since?: string }` (ISO date)
    - Fetches recent articles from AJ GraphQL API
@@ -733,14 +690,12 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - Returns a structured list for catch-up assembly
 
 4. Create `apps/server/src/agent/tools/fetchWireHighlights.ts`:
-
    - LiveKit function tool definition
    - Params: `{ since?: string }`
    - Calls Cortex RAG with a "latest wire highlights" query
    - Returns wire service items
 
 5. Create `apps/server/src/agent/tools/fetchNewPodcasts.ts`:
-
    - LiveKit function tool definition
    - Params: `{ since?: string }`
    - Queries `@alpha/data/crud/episodes` for recent episodes, excluding already-heard episodes in a single query (`LEFT JOIN listen_history ... WHERE listen_history.id IS NULL` or `NOT IN` subquery). Do not fetch-then-filter.
@@ -782,7 +737,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 **Deliverables:**
 
 1. Update `apps/server/src/agent/agents/CatchUpAgent.ts`:
-
    - System prompt: You are a news briefing host. Deliver a personalized catch-up covering top stories, wire highlights, and new podcasts. Keep it conversational. The user can interrupt to ask questions or say "next" to skip.
    - Tools: `fetchTopStories`, `fetchWireHighlights`, `fetchNewPodcasts`
    - On entry:
@@ -795,7 +749,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - Record what was delivered in listen_history
 
 2. Create `apps/server/src/agent/agents/BrowseAgent.ts` (stub):
-
    - Minimal — accepts handoff, says "You're now in browse mode. Ask me anything about the news."
    - Will be fully implemented in M13
 
@@ -836,7 +789,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 **Deliverables:**
 
 1. Create `apps/server/src/agent/generation/StreamingGenerator.ts`:
-
    - Class that orchestrates the generation pipeline
    - The pipeline has two distinct stages:
      - **Text generation (Cortex):** Cortex LLM streams text. Cortex has no audio capabilities.
@@ -854,14 +806,12 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
      - Returns the cached response ID
 
 2. Create `apps/server/src/agent/generation/AudioRecorder.ts`:
-
    - Utility that captures TTS audio output as it streams through the agent pipeline
    - Accumulates PCM audio chunks into a buffer
    - `save(filename: string)` — writes accumulated PCM to a WAV file (24kHz 16-bit mono, same format as PodGenEngine)
    - Uses the WAV header construction pattern from `PodGenEngine.ts`
 
 3. Create `apps/server/src/agent/generation/ExpiryRules.ts`:
-
    - Determines `expiresAt` based on content type and topic:
      - Breaking news: 1 hour
      - Current events: 6 hours
@@ -870,7 +820,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - Uses simple keyword/topic classification to choose the right TTL
 
 4. Create `apps/server/src/agent/tools/generateResponse.ts`:
-
    - LiveKit function tool that wraps StreamingGenerator
    - Params: `{ query: string, context: string }`
    - Used by BrowseAgent when no cache hit or clip match exists
@@ -918,14 +867,12 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 **Deliverables:**
 
 1. Create `apps/server/src/agent/plugins/CortexLLM.ts`:
-
    - A custom LLM plugin/adapter for LiveKit Agents that routes through Cortex's OpenAI-compatible endpoint
    - Should work with LiveKit's `VoicePipelineAgent` pipeline configuration
    - Configurable model selection (maps to Cortex model names like `oai-gpt4o`, `gemini-flash-3-vision`, etc.)
    - Supports streaming responses
 
 2. Update agent pipeline configuration in all agents to use CortexLLM instead of direct OpenAI:
-
    - SetupAgent — fast model (e.g., `oai-gpturbo` or equivalent)
    - CatchUpAgent — standard model (e.g., `oai-gpt4o`)
    - BrowseAgent stub — standard model
@@ -970,7 +917,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 **Deliverables:**
 
 1. Update `apps/server/src/agent/agents/BrowseAgent.ts`:
-
    - System prompt: Comprehensive instructions covering:
      - Role: knowledgeable, personable news and podcast host
      - Content resolution: use searchContent tool first, then decide to play clip or generate
@@ -984,7 +930,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
      4. Record what was played/generated in listen_history
 
 2. Create `apps/server/src/agent/agents/PlaybackAgent.ts` (stub):
-
    - Minimal — accepts handoff with a podcast ID, says "Now playing [title]."
    - Will be fully implemented in M14
 
@@ -1018,7 +963,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 **Deliverables:**
 
 1. Update `apps/server/src/agent/agents/PlaybackAgent.ts`:
-
    - System prompt: You are managing podcast playback. The user can pause, resume, skip topics, or ask questions about what's playing.
    - Tools: `pausePlayback`, `resumePlayback`, `skipTopic`, `searchContext`
    - Receives podcast episode or topic ID on handoff
@@ -1027,14 +971,12 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - Mid-listen Q&A: user asks about content → agent pauses, answers using searchContext, offers to resume
 
 2. Create playback control tools:
-
    - `pausePlayback` — pauses audio stream
    - `resumePlayback` — resumes from where it stopped
    - `skipTopic` — jumps to next topic segment (using podcast_topics startTime/endTime)
    - `searchContext` — searches for context about the current topic being played
 
 3. Handle handoff back to BrowseAgent when:
-
    - Playback ends naturally
    - User says "stop" or "I'm done with this"
 
@@ -1069,7 +1011,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 **Deliverables:**
 
 1. Update `apps/server/src/agent/index.ts` — complete session orchestration:
-
    - On room join:
      - Create a session in the database
      - Check if user is new (no name) → SetupAgent
@@ -1080,7 +1021,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
      - Clean up resources
 
 2. Implement conversation awareness behavior:
-
    - Speech detected during playback → pause audio
    - If relevant input → agent responds
    - If not relevant → stay silent
@@ -1089,13 +1029,11 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - This is primarily controlled through agent instructions and LiveKit's VAD/turn detection
 
 3. Implement session end handling:
-
    - User says "I'm done" or "stop" → end session gracefully
    - Disconnection → end session, clean up
    - Extended inactivity → end session
 
 4. Create `apps/server/src/agent/tools/sessionTools.ts`:
-
    - `endSession` — tool the agent can call when the user wants to stop
 
 5. Write integration tests for the full handoff chain.
@@ -1131,7 +1069,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 **Deliverables:**
 
 1. Update `apps/client/package.json`:
-
    - Remove: `socket.io-client`
    - Add: `@livekit/react-native` (LiveKit React Native SDK)
    - Add: `@livekit/react-native-webrtc` (WebRTC transport)
@@ -1139,19 +1076,16 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - Keep: `@react-native-async-storage/async-storage`, `react-native-realtime-audio` (may still be useful)
 
 2. Update `apps/client/app.json`:
-
    - Add LiveKit Expo plugins per their documentation
    - Add background audio mode for iOS (`UIBackgroundModes: ["audio"]`)
    - Add microphone permission strings
 
 3. Create navigation structure (can use simple state-based navigation or Expo Router):
-
    - `AuthScreen` — email input + code verification
    - `HomeScreen` — start button + session teaser
    - `SessionScreen` — active voice session (LiveKit room)
 
 4. Create `apps/client/src/screens/AuthScreen.tsx`:
-
    - Email input field
    - Submit button → calls `POST /api/auth/send-code`
    - Code input field (appears after email submitted)
@@ -1160,14 +1094,12 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - Clean, minimal design
 
 5. Create `apps/client/src/screens/HomeScreen.tsx`:
-
    - Large start button (primary UI element)
    - On tap: call `POST /api/auth/livekit-token` → get token + room → navigate to SessionScreen
    - Show session teaser text (placeholder for now)
    - Account info / logout (minimal, tucked away)
 
 6. Create `apps/client/src/screens/SessionScreen.tsx`:
-
    - Join LiveKit room with the token from HomeScreen
    - Audio I/O handled by LiveKit SDK (microphone + agent audio playback)
    - Status indicator (connecting, listening, speaking)
@@ -1175,7 +1107,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - Minimal visual UI for MVP
 
 7. Update `apps/client/App.tsx`:
-
    - Replace monolithic Socket.io component with navigation between screens
    - Wrap with LiveKit's `LiveKitRoom` provider (or equivalent from RN SDK)
 
@@ -1213,7 +1144,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 **Deliverables:**
 
 1. Define RPC method contracts in `packages/socket/src/RPCContracts.ts`:
-
    - `showTopic(data: { title: string, summary: string, imageUrl?: string })` — display topic card
    - `showPodcast(data: { title: string, show: string, duration: number })` — podcast metadata
    - `showProgress(data: { items: number, current: number })` — catch-up progress
@@ -1222,7 +1152,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - `showTranscript(data: { text: string })` — live transcript of agent speech (for transcript toggle)
 
 2. Update `apps/client/src/screens/SessionScreen.tsx`:
-
    - **Status indicator** — animated visual showing current state (listening, speaking, paused, generating). Pulsing ring or waveform.
    - **Content card** — displays current topic (title, summary, image). Transitions on `showTopic` RPC.
    - **Session history** — scrollable feed of past topic cards. Tapping a card could trigger "tell me more about this."
@@ -1230,7 +1159,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - **Transcript toggle** — shows live agent speech text. Off by default.
 
 3. Register RPC handlers in the LiveKit room:
-
    - `showTopic` → update content card
    - `showPodcast` → update content card with podcast metadata
    - `showProgress` → show/update catch-up progress bar
@@ -1238,7 +1166,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - `showLoading` → show generation spinner
 
 4. Update agent code to send RPC triggers at appropriate points:
-
    - CatchUpAgent: `showProgress` as it moves through briefing items, `showTopic` for each item
    - BrowseAgent: `showTopic` when discussing content, `showLoading` when generating
    - PlaybackAgent: `showPodcast` with episode metadata
@@ -1272,24 +1199,20 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 **Deliverables:**
 
 1. Configure background audio for iOS:
-
    - Add `UIBackgroundModes: ["audio"]` to `app.json` iOS config (if not already from M16)
    - Configure audio session category for playback + recording
 
 2. Configure background audio for Android:
-
    - Add foreground service or equivalent for background audio
    - Add required permissions
 
 3. Implement lock screen media controls:
-
    - Use `expo-av` or a React Native media session library
    - Show: current topic title, image (if available)
    - Controls: play/pause, skip forward (next topic)
    - Wire controls to agent RPC or LiveKit data channel messages
 
 4. Handle app lifecycle:
-
    - App backgrounded → LiveKit connection stays alive, audio continues
    - App foregrounded → UI updates to current state
    - App killed → session ends gracefully (server-side cleanup)
@@ -1329,7 +1252,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 **Deliverables — create these files in `~/src/aj/aj-cortex/pathways/`:**
 
 1. `alpha_catchup_generator.js`:
-
    - Assembles a catch-up briefing script from multiple content inputs
    - Model: standard (e.g., `oai-gpt4o`)
    - Input: `{ topStories: string, wireHighlights: string, newPodcasts: string, timeSinceLastSession: string, catchUpDepth: string }`
@@ -1337,7 +1259,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - Custom resolver that may call `summary` pathway for condensing articles
 
 2. `alpha_response_generator.js`:
-
    - RAG-grounded news response optimized for TTS output
    - Model: standard (e.g., `oai-gpt4o`)
    - Input: `{ query: string, sources: string }` (sources are pre-fetched articles/wire data)
@@ -1382,7 +1303,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
 **Deliverables:**
 
 1. Create help overlay component:
-
    - List of example voice commands organized by mode:
      - Catch-up: "next", "tell me more", "play that podcast"
      - Browse: "what's happening in Sudan?", "play the latest episode of The Take", "I'm done"
@@ -1391,7 +1311,6 @@ Reference the [Project Overview](./PROJECT_OVERVIEW.md) for full context on the 
    - Dismissable with tap or "close"
 
 2. Add account/preferences section to HomeScreen:
-
    - Display user name and email
    - Catch-up depth preference (brief / standard / detailed)
    - Logout button (clears AsyncStorage token)

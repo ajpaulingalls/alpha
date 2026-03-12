@@ -12,7 +12,7 @@ export async function assertOk(response: Response): Promise<void> {
     throw new Error(
       `HTTP ${response.status}: ${response.statusText}${
         body ? ` — ${body}` : ""
-      }`
+      }`,
     );
   }
 }

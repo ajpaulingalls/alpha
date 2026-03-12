@@ -27,7 +27,7 @@ export const listenHistory = pgTable(
   (table) => [
     index("listen_history_user_id_idx").on(table.userId),
     index("listen_history_session_id_idx").on(table.sessionId),
-  ]
+  ],
 );
 
 export type ListenContentType = "episode" | "topic";

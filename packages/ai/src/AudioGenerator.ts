@@ -23,7 +23,7 @@ export async function generateAudioFromTextToFile(
   openai: OpenAI,
   text: string,
   outputFilePath: string,
-  voice: OpenAIVoice = "alloy"
+  voice: OpenAIVoice = "alloy",
 ) {
   try {
     const audioResponse = await openai.audio.speech.create({

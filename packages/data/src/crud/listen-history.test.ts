@@ -72,7 +72,7 @@ describe("listen-history CRUD", () => {
   test("updateCompletedPercent throws when not found", async () => {
     mockUpdateResult = [];
     await expect(updateCompletedPercent("missing", 50)).rejects.toThrow(
-      "not found"
+      "not found",
     );
   });
 

@@ -15,7 +15,7 @@ describe("searchContext tool", () => {
           Promise.resolve({
             result: "The ceasefire was announced on Monday.",
             sources: [{ title: "Source 1" }],
-          })
+          }),
         ),
       } as any,
     };
@@ -23,7 +23,7 @@ describe("searchContext tool", () => {
 
     const result = await tool.execute(
       { query: "What happened with the ceasefire?" },
-      toolCtx
+      toolCtx,
     );
 
     const parsed = JSON.parse(result as string);

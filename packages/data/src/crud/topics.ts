@@ -9,20 +9,20 @@ import {
 } from "../schema/podcast_topics";
 
 export async function createTopic(
-  data: NewPodcastTopic
+  data: NewPodcastTopic,
 ): Promise<PodcastTopic> {
   const result = await db.insert(podcastTopics).values(data).returning();
   return result[0];
 }
 
 export async function createTopics(
-  data: NewPodcastTopic[]
+  data: NewPodcastTopic[],
 ): Promise<PodcastTopic[]> {
   return db.insert(podcastTopics).values(data).returning();
 }
 
 export async function findTopicsByEpisode(
-  episodeId: string
+  episodeId: string,
 ): Promise<PodcastTopic[]> {
   return db
     .select()
@@ -42,12 +42,12 @@ export async function findTopicById(id: string): Promise<PodcastTopic | null> {
 
 export async function searchTopicsByEmbedding(
   embedding: number[],
-  limit = 10
+  limit = 10,
 ): Promise<(PodcastTopic & { distance: number })[]> {
   limit = Math.min(limit, 100);
   const distance = sql<number>`${cosineDistance(
     podcastTopics.embedding,
-    embedding
+    embedding,
   )}`;
   return db
     .select({ ...getTableColumns(podcastTopics), distance })

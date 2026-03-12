@@ -9,11 +9,11 @@ export function createSearchPodcastsTool(deps: {
   cortexClient: CortexClient;
   findEpisodesByShow: (
     showName: string,
-    limit?: number
+    limit?: number,
   ) => Promise<PodcastEpisode[]>;
   searchTopicsByEmbedding: (
     embedding: number[],
-    limit?: number
+    limit?: number,
   ) => Promise<(PodcastTopic & { distance: number })[]>;
 }) {
   return llm.tool({

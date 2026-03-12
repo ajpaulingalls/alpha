@@ -39,9 +39,7 @@ mock.module("../client", () => ({ db: mockDb }));
 const {
   findUserByEmail,
   findUserById,
-  createUser,
   upsertUserWithCode,
-  updateUserVerificationCode,
   updateUserValidation,
   clearVerificationCode,
   incrementFailedAttempts,
@@ -81,36 +79,6 @@ describe("users CRUD", () => {
     expect(result).toBeNull();
   });
 
-  test("createUser returns created user", async () => {
-    const user: any = { id: "1", email: "test@test.com", name: "Test" };
-    mockInsertResult = [user];
-    const result = await createUser(
-      "Test",
-      "test@test.com",
-      "123456",
-      new Date()
-    );
-    expect(result).toEqual(user);
-  });
-
-  test("updateUserVerificationCode returns updated user", async () => {
-    const user: any = { id: "1", email: "test@test.com" };
-    mockUpdateResult = [user];
-    const result = await updateUserVerificationCode(
-      "test@test.com",
-      "654321",
-      new Date()
-    );
-    expect(result).toEqual(user);
-  });
-
-  test("updateUserVerificationCode throws when not found", async () => {
-    mockUpdateResult = [];
-    await expect(
-      updateUserVerificationCode("missing@test.com", "654321", new Date())
-    ).rejects.toThrow("not found");
-  });
-
   test("updateUserValidation returns updated user", async () => {
     const user: any = { id: "1", email: "test@test.com", validated: true };
     mockUpdateResult = [user];
@@ -121,7 +89,7 @@ describe("users CRUD", () => {
   test("updateUserValidation throws when not found", async () => {
     mockUpdateResult = [];
     await expect(
-      updateUserValidation("missing@test.com", true)
+      updateUserValidation("missing@test.com", true),
     ).rejects.toThrow("not found");
   });
 
@@ -131,7 +99,7 @@ describe("users CRUD", () => {
     const result = await upsertUserWithCode(
       "test@test.com",
       "hashed-code",
-      new Date()
+      new Date(),
     );
     expect(result).toEqual(user);
   });
@@ -146,7 +114,7 @@ describe("users CRUD", () => {
   test("clearVerificationCode throws when not found", async () => {
     mockUpdateResult = [];
     await expect(clearVerificationCode("missing@test.com")).rejects.toThrow(
-      "not found"
+      "not found",
     );
   });
 
@@ -160,7 +128,7 @@ describe("users CRUD", () => {
   test("incrementFailedAttempts throws when not found", async () => {
     mockUpdateResult = [];
     await expect(incrementFailedAttempts("missing@test.com")).rejects.toThrow(
-      "not found"
+      "not found",
     );
   });
 
@@ -174,7 +142,7 @@ describe("users CRUD", () => {
   test("updateUserName throws when not found", async () => {
     mockUpdateResult = [];
     await expect(updateUserName("missing", "Name")).rejects.toThrow(
-      "not found"
+      "not found",
     );
   });
 });

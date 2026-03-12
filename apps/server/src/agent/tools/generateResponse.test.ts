@@ -8,7 +8,7 @@ function makeGenerator(text = "Generated response text.") {
       Promise.resolve({
         text,
         cachingPromise: Promise.resolve(),
-      })
+      }),
     ),
   } as any;
 }
@@ -31,13 +31,13 @@ describe("createGenerateResponseTool", () => {
 
     const result = await tool.execute(
       { query: "What happened?", context: "Some context" },
-      { ctx: makeCtx() } as any
+      { ctx: makeCtx() } as any,
     );
 
     expect(generator.generate).toHaveBeenCalledWith(
       "What happened?",
       "Some context",
-      "u1"
+      "u1",
     );
     const parsed = JSON.parse(result);
     expect(parsed.generatedResponse).toBe("Generated response text.");
@@ -57,7 +57,7 @@ describe("createGenerateResponseTool", () => {
 
   test("returns error JSON when generator throws", async () => {
     const consoleSpy = spyOn(console, "error").mockImplementation(
-      () => undefined
+      () => undefined,
     );
     const generator = {
       generate: mock(() => Promise.reject(new Error("LLM unavailable"))),
@@ -85,7 +85,7 @@ describe("createGenerateResponseTool", () => {
               resolve();
             }, 100);
           }),
-        })
+        }),
       ),
     } as any;
     const tool = createGenerateResponseTool({ generator });
@@ -100,14 +100,14 @@ describe("createGenerateResponseTool", () => {
 
   test("catches and logs caching promise errors", async () => {
     const consoleSpy = spyOn(console, "error").mockImplementation(
-      () => undefined
+      () => undefined,
     );
     const generator = {
       generate: mock(() =>
         Promise.resolve({
           text: "response",
           cachingPromise: Promise.reject(new Error("cache failed")),
-        })
+        }),
       ),
     } as any;
     const tool = createGenerateResponseTool({ generator });

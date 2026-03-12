@@ -27,10 +27,10 @@ export const podcastTopics = pgTable(
   (table) => [
     index("embeddingIndex").using(
       "hnsw",
-      table.embedding.op("vector_cosine_ops")
+      table.embedding.op("vector_cosine_ops"),
     ),
     index("podcast_topics_episode_id_idx").on(table.episodeId),
-  ]
+  ],
 );
 
 export type PodcastTopic = typeof podcastTopics.$inferSelect;

@@ -90,7 +90,7 @@ describe("completeBriefing tool", () => {
           "e2e2e2e2-e2e2-e2e2-e2e2-e2e2e2e2e2e2",
         ],
       },
-      { ctx, toolCallId: "t1" } as any
+      { ctx, toolCallId: "t1" } as any,
     );
 
     expect(deps.recordListen).toHaveBeenCalledTimes(2);
@@ -98,13 +98,13 @@ describe("completeBriefing tool", () => {
       "s1",
       "u1",
       "episode",
-      "e1e1e1e1-e1e1-e1e1-e1e1-e1e1e1e1e1e1"
+      "e1e1e1e1-e1e1-e1e1-e1e1-e1e1e1e1e1e1",
     );
     expect(deps.recordListen).toHaveBeenCalledWith(
       "s1",
       "u1",
       "episode",
-      "e2e2e2e2-e2e2-e2e2-e2e2-e2e2e2e2e2e2"
+      "e2e2e2e2-e2e2-e2e2-e2e2-e2e2e2e2e2e2",
     );
   });
 
@@ -142,7 +142,7 @@ describe("completeBriefing tool", () => {
       "s1",
       "u1",
       "episode",
-      validId
+      validId,
     );
   });
 

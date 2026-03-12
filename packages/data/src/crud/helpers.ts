@@ -4,7 +4,7 @@
  */
 export async function updateOneOrThrow<T>(
   query: Promise<T[]>,
-  errorMessage: string
+  errorMessage: string,
 ): Promise<T> {
   const result = await query;
   if (!result[0]) {

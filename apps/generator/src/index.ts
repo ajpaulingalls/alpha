@@ -13,7 +13,15 @@ import "@alpha/data/ts-flow/TopicInsertNode";
 
 const paths: string[] = [];
 paths.push(
-  path.join(process.cwd(), "..", "..", "node_modules", "@ts-flow", "ai", "dist")
+  path.join(
+    process.cwd(),
+    "..",
+    "..",
+    "node_modules",
+    "@ts-flow",
+    "ai",
+    "dist",
+  ),
 );
 paths.push(
   path.join(
@@ -23,8 +31,8 @@ paths.push(
     "node_modules",
     "@ts-flow",
     "cron",
-    "dist"
-  )
+    "dist",
+  ),
 );
 paths.push(
   path.join(
@@ -34,8 +42,8 @@ paths.push(
     "node_modules",
     "@ts-flow",
     "api",
-    "dist"
-  )
+    "dist",
+  ),
 );
 
 void bootstrap(paths, (container: IContainer) => {
@@ -45,13 +53,13 @@ void bootstrap(paths, (container: IContainer) => {
       container
         .getInstances()
         .map((instance) => instance.getId())
-        .reduce((prev, cur) => prev + "\n" + cur)
+        .reduce((prev, cur) => prev + "\n" + cur),
     );
   });
   container.createInstance(
     generatePodcast.id,
     generatePodcast.type,
-    generatePodcast.config as unknown as JSONObject
+    generatePodcast.config as unknown as JSONObject,
   );
 
   webServer.startServer();

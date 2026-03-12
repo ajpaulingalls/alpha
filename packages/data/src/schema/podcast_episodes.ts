@@ -25,7 +25,7 @@ export const podcastEpisodes = pgTable(
   (table) => [
     index("podcast_episodes_show_name_idx").on(table.showName),
     index("podcast_episodes_published_at_idx").on(table.publishedAt),
-  ]
+  ],
 );
 
 export type PodcastEpisode = typeof podcastEpisodes.$inferSelect;
