@@ -15,6 +15,11 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.anonymous.alpha",
+    infoPlist: {
+      NSMicrophoneUsageDescription:
+        "Alpha needs microphone access for voice conversations",
+      UIBackgroundModes: ["audio"],
+    },
   },
   android: {
     adaptiveIcon: {
@@ -22,13 +27,18 @@ const config: ExpoConfig = {
       backgroundColor: "#ffffff",
     },
     package: "com.anonymous.alpha",
+    permissions: ["RECORD_AUDIO", "MODIFY_AUDIO_SETTINGS"],
   },
   web: {
     favicon: "./assets/favicon.png",
   },
-  plugins: ["react-native-realtime-audio"],
+  plugins: [
+    "@livekit/react-native-expo-plugin",
+    "@config-plugins/react-native-webrtc",
+  ],
   extra: {
-    socketUrl: process.env.EXPO_PUBLIC_SOCKET_URL ?? "http://localhost:8082",
+    apiUrl: process.env.EXPO_PUBLIC_API_URL ?? "http://localhost:8081",
+    livekitUrl: process.env.EXPO_PUBLIC_LIVEKIT_URL ?? "ws://localhost:7880",
   },
 };
 

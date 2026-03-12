@@ -9,11 +9,12 @@ export interface AuthEnv {
   Variables: {
     jwtSecret: string;
     userId: string;
+    sessionId: string;
   };
 }
 
 export function createAuthMiddleware(
-  findSessionById: (id: string) => Promise<Session | null>
+  findSessionById: (id: string) => Promise<Session | null>,
 ) {
   return createMiddleware<AuthEnv>(async (c, next) => {
     const authHeader = c.req.header("Authorization");
@@ -51,6 +52,7 @@ export function createAuthMiddleware(
       }
 
       c.set("userId", userId);
+      c.set("sessionId", sessionId);
     } catch {
       return c.json({ error: "Invalid or expired token" }, 401);
     }

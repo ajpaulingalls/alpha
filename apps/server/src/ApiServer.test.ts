@@ -14,7 +14,7 @@ const TEST_LK_CONFIG = {
 };
 
 const mockFindUserByEmail = mock<(email: string) => Promise<User | null>>(() =>
-  Promise.resolve(null)
+  Promise.resolve(null),
 );
 const mockUpsertUserWithCode = mock<
   (email: string, code: string, timeout: Date) => Promise<User>
@@ -23,17 +23,20 @@ const mockUpdateUserValidation = mock<
   (email: string, validated: boolean) => Promise<User>
 >(() => Promise.resolve({} as User));
 const mockClearVerificationCode = mock<(email: string) => Promise<User>>(() =>
-  Promise.resolve({} as User)
+  Promise.resolve({} as User),
 );
 const mockIncrementFailedAttempts = mock<(email: string) => Promise<User>>(() =>
-  Promise.resolve({} as User)
+  Promise.resolve({} as User),
 );
 const mockCreateSession = mock<(userId: string) => Promise<Session>>(() =>
-  Promise.resolve({} as Session)
+  Promise.resolve({} as Session),
 );
 const mockFindSessionById = mock<(id: string) => Promise<Session | null>>(() =>
-  Promise.resolve(null)
+  Promise.resolve(null),
 );
+const mockEndSession = mock<
+  (sessionId: string, userId: string) => Promise<Session>
+>(() => Promise.resolve({} as Session));
 
 function makeUser(overrides: Record<string, unknown> = {}) {
   return {
@@ -71,6 +74,7 @@ function mockDeps(): AuthDeps {
     incrementFailedAttempts: mockIncrementFailedAttempts,
     createSession: mockCreateSession,
     findSessionById: mockFindSessionById,
+    endSession: mockEndSession,
   };
 }
 
@@ -84,7 +88,7 @@ function postJson(
   app: ReturnType<typeof createTestApp>,
   path: string,
   body: unknown,
-  headers?: Record<string, string>
+  headers?: Record<string, string>,
 ) {
   return app.request(path, {
     method: "POST",
@@ -95,7 +99,7 @@ function postJson(
 
 function signTestToken(
   payload: Record<string, unknown>,
-  options?: jwt.SignOptions
+  options?: jwt.SignOptions,
 ) {
   return jwt.sign(payload, TEST_SECRET, {
     expiresIn: "30d",
@@ -114,8 +118,10 @@ describe("ApiServer", () => {
     mockIncrementFailedAttempts.mockReset();
     mockCreateSession.mockReset();
     mockFindSessionById.mockReset();
+    mockEndSession.mockReset();
 
     mockFindUserByEmail.mockResolvedValue(null);
+    mockEndSession.mockResolvedValue(makeSession({ endedAt: new Date() }));
     mockUpsertUserWithCode.mockResolvedValue(makeUser());
     mockUpdateUserValidation.mockResolvedValue(makeUser());
     mockClearVerificationCode.mockResolvedValue(makeUser());
@@ -209,7 +215,7 @@ describe("ApiServer", () => {
 
     test("returns 401 for expired code", async () => {
       mockFindUserByEmail.mockResolvedValue(
-        makeUser({ validationTimeout: new Date(Date.now() - 1000) })
+        makeUser({ validationTimeout: new Date(Date.now() - 1000) }),
       );
       const app = createTestApp();
       const res = await postJson(app, "/api/auth/verify-code", {
@@ -225,7 +231,7 @@ describe("ApiServer", () => {
         .update("654321")
         .digest("hex");
       mockFindUserByEmail.mockResolvedValue(
-        makeUser({ verificationCode: wrongHash })
+        makeUser({ verificationCode: wrongHash }),
       );
       const app = createTestApp();
       const res = await postJson(app, "/api/auth/verify-code", {
@@ -234,7 +240,7 @@ describe("ApiServer", () => {
       });
       expect(res.status).toBe(401);
       expect(mockIncrementFailedAttempts).toHaveBeenCalledWith(
-        "test@example.com"
+        "test@example.com",
       );
     });
 
@@ -247,7 +253,7 @@ describe("ApiServer", () => {
       });
       expect(res.status).toBe(401);
       expect(mockClearVerificationCode).toHaveBeenCalledWith(
-        "test@example.com"
+        "test@example.com",
       );
     });
 
@@ -257,7 +263,7 @@ describe("ApiServer", () => {
         .update("123456")
         .digest("hex");
       mockFindUserByEmail.mockResolvedValue(
-        makeUser({ name: "Alice", verificationCode: hashedCode })
+        makeUser({ name: "Alice", verificationCode: hashedCode }),
       );
       const app = createTestApp();
       const res = await postJson(app, "/api/auth/verify-code", {
@@ -276,7 +282,7 @@ describe("ApiServer", () => {
         .update("123456")
         .digest("hex");
       mockFindUserByEmail.mockResolvedValue(
-        makeUser({ name: "", verificationCode: hashedCode })
+        makeUser({ name: "", verificationCode: hashedCode }),
       );
       const app = createTestApp();
       const res = await postJson(app, "/api/auth/verify-code", {
@@ -294,7 +300,7 @@ describe("ApiServer", () => {
         .update("123456")
         .digest("hex");
       mockFindUserByEmail.mockResolvedValue(
-        makeUser({ verificationCode: hashedCode })
+        makeUser({ verificationCode: hashedCode }),
       );
       const app = createTestApp();
       await postJson(app, "/api/auth/verify-code", {
@@ -310,7 +316,7 @@ describe("ApiServer", () => {
         .update("123456")
         .digest("hex");
       mockFindUserByEmail.mockResolvedValue(
-        makeUser({ verificationCode: hashedCode })
+        makeUser({ verificationCode: hashedCode }),
       );
       const app = createTestApp();
       const res = await postJson(app, "/api/auth/verify-code", {
@@ -389,7 +395,7 @@ describe("ApiServer", () => {
 
     test("returns 401 for ended session", async () => {
       mockFindSessionById.mockResolvedValue(
-        makeSession({ endedAt: new Date() })
+        makeSession({ endedAt: new Date() }),
       );
       const app = createTestApp();
       const token = signTestToken({
@@ -448,6 +454,50 @@ describe("ApiServer", () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       expect(res.status).not.toBe(429);
+    });
+  });
+
+  describe("POST /api/auth/logout", () => {
+    test("returns 401 with no auth header", async () => {
+      const app = createTestApp();
+      const res = await app.request("/api/auth/logout", { method: "POST" });
+      expect(res.status).toBe(401);
+    });
+
+    test("ends the session and returns success", async () => {
+      mockFindSessionById.mockResolvedValue(makeSession());
+      const app = createTestApp();
+      const token = signTestToken({
+        userId: "user-uuid-123",
+        sessionId: "session-uuid",
+      });
+      const res = await app.request("/api/auth/logout", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      expect(res.status).toBe(200);
+      const body = await res.json();
+      expect(body).toEqual({ success: true });
+      expect(mockEndSession).toHaveBeenCalledWith(
+        "session-uuid",
+        "user-uuid-123",
+      );
+    });
+
+    test("returns 401 for already-ended session", async () => {
+      mockFindSessionById.mockResolvedValue(
+        makeSession({ endedAt: new Date() }),
+      );
+      const app = createTestApp();
+      const token = signTestToken({
+        userId: "user-uuid-123",
+        sessionId: "session-uuid",
+      });
+      const res = await app.request("/api/auth/logout", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      expect(res.status).toBe(401);
     });
   });
 });

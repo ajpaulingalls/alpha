@@ -29,13 +29,14 @@ export interface AuthDeps {
   upsertUserWithCode: (
     email: string,
     code: string,
-    timeout: Date
+    timeout: Date,
   ) => Promise<User>;
   updateUserValidation: (email: string, validated: boolean) => Promise<User>;
   clearVerificationCode: (email: string) => Promise<User>;
   incrementFailedAttempts: (email: string) => Promise<User>;
   createSession: (userId: string) => Promise<Session>;
   findSessionById: (id: string) => Promise<Session | null>;
+  endSession: (sessionId: string, userId: string) => Promise<Session>;
 }
 
 const MAX_FAILED_ATTEMPTS = 5;
@@ -63,7 +64,7 @@ export function createAuthRoutes(
   livekitConfig: Pick<
     import("../ApiServer").LiveKitConfig,
     "apiKey" | "apiSecret"
-  >
+  >,
 ) {
   const app = new Hono<AuthEnv>();
   const authMiddleware = createAuthMiddleware(deps.findSessionById);
@@ -131,7 +132,7 @@ export function createAuthRoutes(
       await deps.clearVerificationCode(email);
       return c.json(
         { error: "Too many failed attempts, request a new code" },
-        401
+        401,
       );
     }
 
@@ -186,6 +187,13 @@ export function createAuthRoutes(
     at.roomConfig = new RoomConfiguration({ agents: [dispatch] });
 
     return c.json({ token: await at.toJwt(), roomName });
+  });
+
+  app.post("/logout", authMiddleware, async (c) => {
+    const userId = c.get("userId");
+    const sessionId = c.get("sessionId");
+    await deps.endSession(sessionId, userId);
+    return c.json({ success: true });
   });
 
   return app;
