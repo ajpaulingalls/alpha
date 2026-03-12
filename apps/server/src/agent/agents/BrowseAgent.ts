@@ -14,8 +14,12 @@ import { createSearchContentTool } from "../tools/searchContent";
 import { createSearchPodcastsTool } from "../tools/searchPodcasts";
 import { createGenerateResponseTool } from "../tools/generateResponse";
 import { createPlayPodcastTool } from "../tools/playPodcast";
+import {
+  createEndSessionTool,
+  type EndSessionDeps,
+} from "../tools/sessionTools";
 
-export interface BrowseAgentDeps {
+export interface BrowseAgentDeps extends EndSessionDeps {
   cortexClient: CortexClient;
   contentClient: ContentClient;
   searchCachedResponses: (
@@ -71,6 +75,9 @@ const BROWSE_INSTRUCTIONS =
   "- **Empathetic redirect** (personal questions, off-topic): Acknowledge warmly, then suggest a related news angle.\n" +
   "- **Sustained drift** (repeated off-topic): Gently remind the user you're a news assistant and suggest topics.\n" +
   "\n\n" +
+  "## Ending the Session\n" +
+  "If the user says 'I'm done', 'stop', 'goodbye', or otherwise wants to leave, " +
+  "call the endSession tool before saying your final goodbye.\n\n" +
   "## Tone\n" +
   "Warm, confident, and conversational — like a knowledgeable friend who happens to be a journalist. " +
   "Never fall into a generic knowledge assistant mode. Always ground responses in real content.";
@@ -103,6 +110,10 @@ export class BrowseAgent extends voice.Agent<AlphaSessionData> {
           cortexClient: deps.cortexClient,
           audioDir: deps.audioDir,
           browseDeps: deps,
+        }),
+        endSession: createEndSessionTool({
+          endDbSession: deps.endDbSession,
+          shutdownSession: deps.shutdownSession,
         }),
       },
     });

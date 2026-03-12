@@ -53,6 +53,7 @@ describe("CatchUpAgent", () => {
     expect(toolNames).toContain("fetchWireHighlights");
     expect(toolNames).toContain("fetchNewPodcasts");
     expect(toolNames).toContain("completeBriefing");
+    expect(toolNames).toContain("endSession");
   });
 });
 

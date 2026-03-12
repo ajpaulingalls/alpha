@@ -15,7 +15,8 @@ describe("BrowseAgent", () => {
     expect(toolNames).toContain("searchPodcasts");
     expect(toolNames).toContain("generateResponse");
     expect(toolNames).toContain("playPodcast");
-    expect(toolNames).toHaveLength(4);
+    expect(toolNames).toContain("endSession");
+    expect(toolNames).toHaveLength(5);
   });
 
   test("system prompt contains content resolution guidance", () => {
@@ -34,5 +35,12 @@ describe("BrowseAgent", () => {
     const agent = BrowseAgent.create(mockBrowseDeps());
     const instructions = agent.instructions;
     expect(instructions).toContain("Warm, confident, and conversational");
+  });
+
+  test("system prompt contains session ending guidance", () => {
+    const agent = BrowseAgent.create(mockBrowseDeps());
+    const instructions = agent.instructions;
+    expect(instructions).toContain("Ending the Session");
+    expect(instructions).toContain("endSession");
   });
 });

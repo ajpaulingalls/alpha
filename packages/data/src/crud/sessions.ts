@@ -21,12 +21,15 @@ export async function findSessionById(
   return result[0] || null;
 }
 
-export async function endSession(sessionId: string): Promise<Session> {
+export async function endSession(
+  sessionId: string,
+  userId: string
+): Promise<Session> {
   return updateOneOrThrow(
     db
       .update(sessions)
       .set({ endedAt: new Date() })
-      .where(eq(sessions.id, sessionId))
+      .where(and(eq(sessions.id, sessionId), eq(sessions.userId, userId)))
       .returning(),
     `Session ${sessionId} not found`
   );

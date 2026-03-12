@@ -14,6 +14,7 @@ import type { AlphaSessionData } from "../types";
 import { createFetchTopStoriesTool } from "../tools/fetchTopStories";
 import { createFetchWireHighlightsTool } from "../tools/fetchWireHighlights";
 import { createFetchNewPodcastsTool } from "../tools/fetchNewPodcasts";
+import { createEndSessionTool } from "../tools/sessionTools";
 import { BrowseAgent, type BrowseAgentDeps } from "./BrowseAgent";
 
 export interface CatchUpAgentDeps {
@@ -131,6 +132,7 @@ export class CatchUpAgent extends voice.Agent<AlphaSessionData> {
           "Use a warm, conversational tone — like a knowledgeable friend filling them in. " +
           "If the user interrupts with 'tell me more', expand on the current topic. " +
           "If they say 'next' or 'skip', move to the next item. " +
+          "If the user says 'I'm done', 'stop', or 'goodbye', call the endSession tool. " +
           "When the briefing is complete, call the completeBriefing tool.",
         tools: {
           fetchTopStories: createFetchTopStoriesTool({
@@ -144,6 +146,10 @@ export class CatchUpAgent extends voice.Agent<AlphaSessionData> {
             findNewEpisodesForUser: deps.findNewEpisodesForUser,
           }),
           completeBriefing: createCompleteBriefingTool(deps),
+          endSession: createEndSessionTool({
+            endDbSession: deps.browseDeps.endDbSession,
+            shutdownSession: deps.browseDeps.shutdownSession,
+          }),
         },
       },
       deps

@@ -74,13 +74,13 @@ describe("sessions CRUD", () => {
   test("endSession returns ended session", async () => {
     const session: any = { id: "s1", userId: "u1", endedAt: new Date() };
     mockUpdateResult = [session];
-    const result = await endSession("s1");
+    const result = await endSession("s1", "u1");
     expect(result).toEqual(session);
   });
 
   test("endSession throws when not found", async () => {
     mockUpdateResult = [];
-    await expect(endSession("missing")).rejects.toThrow("not found");
+    await expect(endSession("missing", "u1")).rejects.toThrow("not found");
   });
 
   test("findLatestSession returns session when found", async () => {

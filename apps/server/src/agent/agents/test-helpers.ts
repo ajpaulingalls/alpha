@@ -65,6 +65,8 @@ export function mockBrowseDeps(
       })
     ),
     audioDir: "/tmp/test-audio",
+    endDbSession: mock((_sid: string, _uid: string) => Promise.resolve()),
+    shutdownSession: mock(() => undefined),
     ...overrides,
   };
 }

@@ -20,6 +20,7 @@ import {
 } from "./plugins/cortexLLM";
 import {
   createSession,
+  endSession,
   findPreviousSession,
   markCatchUpDelivered,
 } from "@alpha/data/crud/sessions";
@@ -55,6 +56,7 @@ import { AudioRecorder } from "./generation/AudioRecorder";
 import { StreamingGenerator } from "./generation/StreamingGenerator";
 import { computeExpiry } from "./generation/ExpiryRules";
 import { embedQuery } from "./tools/types";
+import { createInactivityHandler } from "./inactivity";
 
 export default defineAgent({
   prewarm: async (proc: JobProcess) => {
@@ -121,6 +123,11 @@ export default defineAgent({
       audioDir: path.join(process.cwd(), "audio", "cache"),
     });
 
+    // Mutable ref wired to session.shutdown() after session creation
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    let shutdownSession = () => {};
+    let sessionEnded = false;
+
     const browseDeps: BrowseAgentDeps = {
       cortexClient,
       contentClient,
@@ -134,6 +141,12 @@ export default defineAgent({
       findTopicsByEpisode,
       updateCompletedPercent,
       audioDir: path.join(process.cwd(), "audio", "topics"),
+      endDbSession: async (sessionId: string, uid: string) => {
+        if (sessionEnded) return;
+        sessionEnded = true;
+        await endSession(sessionId, uid);
+      },
+      shutdownSession: () => shutdownSession(),
     };
 
     const catchUpDeps: CatchUpAgentDeps = {
@@ -166,7 +179,43 @@ export default defineAgent({
       tts: "cartesia/sonic-3:9626c31c-bec5-4cca-baa8-f8ba9e84c8bc",
       turnDetection: new livekit.turnDetector.MultilingualModel(),
       userData,
+      voiceOptions: { userAwayTimeout: 120 },
     });
+
+    // Wire session shutdown to endSession tool
+    shutdownSession = () =>
+      session.shutdown({ drain: true, reason: "user-ended" });
+
+    // End DB session on disconnect/shutdown (skips if tool already ended it)
+    ctx.addShutdownCallback(async () => {
+      if (sessionEnded) return;
+      sessionEnded = true;
+      await endSession(dbSession.id, userId).catch((err) =>
+        console.error("Failed to end session on shutdown:", err)
+      );
+    });
+
+    // Log session close reason
+    session.on(voice.AgentSessionEventTypes.Close, ({ reason }) => {
+      console.log(
+        `Session ${dbSession.id} closed (user: ${userId}, reason: ${reason})`
+      );
+    });
+
+    // Handle user inactivity
+    session.on(
+      voice.AgentSessionEventTypes.UserStateChanged,
+      createInactivityHandler({
+        onCheckIn: () =>
+          session.generateReply({
+            instructions:
+              "The user has been silent for a while. " +
+              "Briefly ask if they're still there.",
+          }),
+        onTimeout: () =>
+          session.shutdown({ drain: true, reason: "inactivity" }),
+      })
+    );
 
     await session.start({ agent, room: ctx.room });
   },
