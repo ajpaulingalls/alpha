@@ -24,7 +24,7 @@ async function assertOk(response: Response): Promise<void> {
     throw new Error(
       `HTTP ${response.status}: ${response.statusText}${
         body ? ` — ${body}` : ""
-      }`
+      }`,
     );
   }
 }
@@ -48,7 +48,7 @@ function inferGraphQLType(value: unknown): string {
 }
 
 async function* parseSSEStream(
-  body: ReadableStream<Uint8Array>
+  body: ReadableStream<Uint8Array>,
 ): AsyncGenerator<string> {
   const reader = body.getReader();
   const decoder = new TextDecoder();
@@ -73,8 +73,8 @@ async function* parseSSEStream(
             const chunk = JSON.parse(data) as ChatCompletionChunk;
             const content = chunk.choices?.[0]?.delta?.content;
             if (content) yield content;
-          } catch {
-            // skip malformed JSON lines
+          } catch (err) {
+            console.warn("Skipping malformed SSE JSON line:", data, err);
           }
         }
       }
@@ -116,11 +116,11 @@ export class CortexClient {
 
   async callPathway(
     name: string,
-    params: Record<string, unknown> = {}
+    params: Record<string, unknown> = {},
   ): Promise<PathwayResponse> {
     if (!VALID_NAME.test(name)) {
       throw new Error(
-        `Invalid pathway name "${name}": must match /^[a-zA-Z_]\\w*$/`
+        `Invalid pathway name "${name}": must match /^[a-zA-Z_]\\w*$/`,
       );
     }
 
@@ -158,16 +158,16 @@ export class CortexClient {
 
   async *streamPathway(
     name: string,
-    params: Record<string, unknown> = {}
+    params: Record<string, unknown> = {},
   ): AsyncGenerator<string> {
     if (!VALID_NAME.test(name)) {
       throw new Error(
-        `Invalid pathway name "${name}": must match /^[a-zA-Z_]\\w*$/`
+        `Invalid pathway name "${name}": must match /^[a-zA-Z_]\\w*$/`,
       );
     }
 
     const systemContent = `Use the ${name} pathway. Parameters: ${JSON.stringify(
-      params
+      params,
     )}`;
     const messages: ChatMessage[] = [
       { role: "system", content: systemContent },
@@ -183,7 +183,7 @@ export class CortexClient {
   private async fetchChatCompletions(
     messages: ChatMessage[],
     model?: string,
-    stream?: boolean
+    stream?: boolean,
   ): Promise<Response> {
     const response = await fetch(`${this.baseUrl}/v1/chat/completions`, {
       method: "POST",
@@ -201,7 +201,7 @@ export class CortexClient {
 
   async chatCompletion(
     messages: ChatMessage[],
-    model?: string
+    model?: string,
   ): Promise<string> {
     const response = await this.fetchChatCompletions(messages, model);
     const json = (await response.json()) as ChatCompletionResponse;
@@ -210,7 +210,7 @@ export class CortexClient {
 
   async *streamChatCompletion(
     messages: ChatMessage[],
-    model?: string
+    model?: string,
   ): AsyncGenerator<string> {
     const response = await this.fetchChatCompletions(messages, model, true);
 
@@ -237,7 +237,8 @@ export class CortexClient {
     try {
       const parsed = JSON.parse(res.result);
       return (parsed.value ?? []) as SearchResult[];
-    } catch {
+    } catch (err) {
+      console.warn("Failed to parse search results:", err);
       return [];
     }
   }
@@ -250,9 +251,10 @@ export class CortexClient {
     try {
       const parsed = JSON.parse(res.result);
       return (parsed.data ?? []).map(
-        (item: { embedding: number[] }) => item.embedding
+        (item: { embedding: number[] }) => item.embedding,
       );
-    } catch {
+    } catch (err) {
+      console.warn("Failed to parse embeddings:", err);
       return [];
     }
   }
@@ -271,8 +273,8 @@ export class CortexClient {
       try {
         const toolData = JSON.parse(res.tool);
         sources = (toolData.citations ?? []) as SearchResult[];
-      } catch {
-        // no citations available
+      } catch (err) {
+        console.warn("Failed to parse RAG citations:", err);
       }
     }
 

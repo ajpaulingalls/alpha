@@ -49,7 +49,8 @@ export default function App() {
     await SecureStore.deleteItemAsync(USER_TOKEN_KEY);
     setScreen({ name: "auth" });
     // Fire-and-forget; server may already have invalidated the session
-    if (token) void logout(token);
+    if (token)
+      logout(token).catch((err) => console.error("Logout failed:", err));
   }, []);
 
   const handleStartSession = useCallback((livekitToken: string) => {
