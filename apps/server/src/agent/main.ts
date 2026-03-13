@@ -52,7 +52,11 @@ import { ContentClient } from "@alpha/content";
 import { CortexClient } from "@alpha/cortex";
 import { AGENT_NAME } from "./constants";
 import { type AlphaSessionData, isNewUser } from "./types";
-import { createNotifyClient } from "./rpc";
+import {
+  createNotifyClient,
+  registerRemoteControls,
+  type RemoteControls,
+} from "./rpc";
 import { SetupAgent, type SetupAgentDeps } from "./agents/SetupAgent";
 import { CatchUpAgent, type CatchUpAgentDeps } from "./agents/CatchUpAgent";
 import type { BrowseAgentDeps } from "./agents/BrowseAgent";
@@ -112,6 +116,15 @@ export default defineAgent({
     const userId = participant.identity;
     const notifyClient = createNotifyClient(ctx.room, userId);
 
+    // Mutable remote control handlers — PlaybackAgent sets real callbacks on enter
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    const noop = () => {};
+    const remoteControls: RemoteControls = {
+      onTogglePlayback: noop,
+      onSkipForward: noop,
+    };
+    registerRemoteControls(ctx.room, userId, remoteControls);
+
     const [user, dbSession] = await Promise.all([
       findUserById(userId),
       createSession(userId),
@@ -146,6 +159,7 @@ export default defineAgent({
       incrementHitCount,
       findTopicsByEpisode,
       updateCompletedPercent,
+      remoteControls,
       audioDir: path.join(process.cwd(), "audio", "topics"),
       endDbSession: async (sessionId: string, uid: string) => {
         if (sessionEnded) return;

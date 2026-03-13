@@ -6,9 +6,11 @@ import {
   RPC_SHOW_MODE,
   RPC_SHOW_LOADING,
   RPC_SHOW_TRANSCRIPT,
+  RPC_TOGGLE_PLAYBACK,
+  RPC_SKIP_FORWARD,
 } from "./RPCMethods";
 
-const ALL_METHODS = [
+const CLIENT_METHODS = [
   RPC_SHOW_TOPIC,
   RPC_SHOW_PODCAST,
   RPC_SHOW_PROGRESS,
@@ -16,6 +18,10 @@ const ALL_METHODS = [
   RPC_SHOW_LOADING,
   RPC_SHOW_TRANSCRIPT,
 ];
+
+const AGENT_METHODS = [RPC_TOGGLE_PLAYBACK, RPC_SKIP_FORWARD];
+
+const ALL_METHODS = [...CLIENT_METHODS, ...AGENT_METHODS];
 
 describe("RPCMethods", () => {
   test("all method constants are non-empty strings", () => {
@@ -25,9 +31,15 @@ describe("RPCMethods", () => {
     }
   });
 
-  test("all method constants use the client. prefix", () => {
-    for (const method of ALL_METHODS) {
+  test("client methods use the client. prefix", () => {
+    for (const method of CLIENT_METHODS) {
       expect(method.startsWith("client.")).toBe(true);
+    }
+  });
+
+  test("agent methods use the agent. prefix", () => {
+    for (const method of AGENT_METHODS) {
+      expect(method.startsWith("agent.")).toBe(true);
     }
   });
 

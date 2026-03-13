@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef } from "react";
+import { useCallback, useEffect, useReducer, useRef } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -23,6 +23,8 @@ import {
   RPC_SHOW_MODE,
   RPC_SHOW_LOADING,
   RPC_SHOW_TRANSCRIPT,
+  RPC_TOGGLE_PLAYBACK,
+  RPC_SKIP_FORWARD,
   type SessionMode,
   type ShowTopicPayload,
   type ShowPodcastPayload,
@@ -31,6 +33,7 @@ import {
   type ShowLoadingPayload,
   type ShowTranscriptPayload,
 } from "@alpha/socket/RPCMethods";
+import { useMediaSession } from "./useMediaSession";
 
 interface SessionScreenProps {
   livekitToken: string;
@@ -177,12 +180,33 @@ const MODE_COLORS: Record<SessionMode, string> = {
 // --- Components ---
 
 function SessionContent({ onLeave }: { onLeave: () => void }) {
-  const { state: agentState, audioTrack } = useVoiceAssistant();
+  const { state: agentState, audioTrack, agent } = useVoiceAssistant();
   const connectionState = useConnectionState();
   const room = useRoomContext();
   const [sessionState, dispatch] = useReducer(sessionReducer, initialState);
   const historyRef = useRef<ScrollView>(null);
   const rpcRegistered = useRef(false);
+
+  // Send RPCs to the agent for lock screen remote controls
+  const sendAgentRpc = useCallback(
+    (method: typeof RPC_TOGGLE_PLAYBACK | typeof RPC_SKIP_FORWARD) => {
+      const identity = agent?.identity;
+      if (!identity) return;
+      room.localParticipant
+        .performRpc({
+          destinationIdentity: identity,
+          method,
+          payload: "",
+        })
+        .catch((err: unknown) => console.error(`RPC ${method} failed:`, err));
+    },
+    [room, agent],
+  );
+
+  const { updateNowPlaying } = useMediaSession({
+    onTogglePlayback: () => sendAgentRpc(RPC_TOGGLE_PLAYBACK),
+    onSkipForward: () => sendAgentRpc(RPC_SKIP_FORWARD),
+  });
 
   // Register RPC handlers
   useEffect(() => {
@@ -192,19 +216,19 @@ function SessionContent({ onLeave }: { onLeave: () => void }) {
     const handlers: [string, (payload: string) => void][] = [
       [
         RPC_SHOW_TOPIC,
-        (p) =>
-          dispatch({
-            type: "SHOW_TOPIC",
-            payload: JSON.parse(p) as ShowTopicPayload,
-          }),
+        (p) => {
+          const payload = JSON.parse(p) as ShowTopicPayload;
+          dispatch({ type: "SHOW_TOPIC", payload });
+          updateNowPlaying(payload.title, "Alpha");
+        },
       ],
       [
         RPC_SHOW_PODCAST,
-        (p) =>
-          dispatch({
-            type: "SHOW_PODCAST",
-            payload: JSON.parse(p) as ShowPodcastPayload,
-          }),
+        (p) => {
+          const payload = JSON.parse(p) as ShowPodcastPayload;
+          dispatch({ type: "SHOW_PODCAST", payload });
+          updateNowPlaying(payload.title, payload.show);
+        },
       ],
       [
         RPC_SHOW_PROGRESS,
@@ -216,11 +240,11 @@ function SessionContent({ onLeave }: { onLeave: () => void }) {
       ],
       [
         RPC_SHOW_MODE,
-        (p) =>
-          dispatch({
-            type: "SHOW_MODE",
-            payload: JSON.parse(p) as ShowModePayload,
-          }),
+        (p) => {
+          const payload = JSON.parse(p) as ShowModePayload;
+          dispatch({ type: "SHOW_MODE", payload });
+          updateNowPlaying("Alpha", "Alpha - " + MODE_LABELS[payload.mode]);
+        },
       ],
       [
         RPC_SHOW_LOADING,
@@ -259,7 +283,7 @@ function SessionContent({ onLeave }: { onLeave: () => void }) {
       }
       rpcRegistered.current = false;
     };
-  }, [room, connectionState]);
+  }, [room, connectionState, updateNowPlaying]);
 
   const statusText =
     connectionState !== ConnectionState.Connected

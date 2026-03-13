@@ -10,7 +10,7 @@ import type {
 } from "@alpha/data/schema/listen_history";
 import type { AlphaSessionData } from "../types";
 import type { StreamingGenerator } from "../generation/StreamingGenerator";
-import type { NotifyClient } from "../rpc";
+import type { NotifyClient, RemoteControls } from "../rpc";
 import { RPC_SHOW_LOADING, RPC_SHOW_TOPIC } from "@alpha/socket/RPCMethods";
 import { createSearchContentTool } from "../tools/searchContent";
 import { createSearchPodcastsTool } from "../tools/searchPodcasts";
@@ -23,6 +23,7 @@ import {
 
 export interface BrowseAgentDeps extends EndSessionDeps {
   notifyClient: NotifyClient;
+  remoteControls: RemoteControls;
   cortexClient: CortexClient;
   contentClient: ContentClient;
   searchCachedResponses: (

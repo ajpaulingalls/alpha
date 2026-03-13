@@ -27,7 +27,12 @@ const config: ExpoConfig = {
       backgroundColor: "#ffffff",
     },
     package: "com.anonymous.alpha",
-    permissions: ["RECORD_AUDIO", "MODIFY_AUDIO_SETTINGS"],
+    permissions: [
+      "RECORD_AUDIO",
+      "MODIFY_AUDIO_SETTINGS",
+      "FOREGROUND_SERVICE",
+      "FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+    ],
   },
   web: {
     favicon: "./assets/favicon.png",

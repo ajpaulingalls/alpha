@@ -6,7 +6,7 @@ import type { ListenHistory } from "@alpha/data/schema/listen_history";
 import type { CortexClient } from "@alpha/cortex";
 import { RPC_SHOW_MODE, RPC_SHOW_PODCAST } from "@alpha/socket/RPCMethods";
 import type { AlphaSessionData } from "../types";
-import type { NotifyClient } from "../rpc";
+import type { NotifyClient, RemoteControls } from "../rpc";
 import { BrowseAgent, type BrowseAgentDeps } from "./BrowseAgent";
 import {
   createPausePlaybackTool,
@@ -17,6 +17,7 @@ import { createSearchContextTool } from "../tools/searchContext";
 
 export interface PlaybackAgentDeps {
   notifyClient: NotifyClient;
+  remoteControls: RemoteControls;
   episodeId: string;
   episodeTitle: string;
   listenHistoryId: string;
@@ -91,6 +92,40 @@ export class PlaybackAgent extends voice.Agent<AlphaSessionData> {
       show: this.episodeTitle,
       duration: 0,
     });
+
+    // Wire lock screen remote controls to playback state
+    this.deps.remoteControls.onTogglePlayback = () => {
+      if (this.state.paused) {
+        this.state.paused = false;
+        this.state.continuePlayback?.();
+      } else {
+        this.state.paused = true;
+      }
+    };
+    this.deps.remoteControls.onSkipForward = () => {
+      this.state.currentTopicIndex = Math.min(
+        this.state.currentTopicIndex + 1,
+        this.state.topics.length,
+      );
+
+      const percent = calculatePlaybackPercent(
+        this.state.currentTopicIndex,
+        this.state.topics.length,
+      );
+      if (percent !== this.state.lastSentPercent) {
+        this.state.lastSentPercent = percent;
+        this.deps
+          .updateCompletedPercent(this.deps.listenHistoryId, percent)
+          .catch((err) => console.error("updateCompletedPercent error:", err));
+      }
+
+      if (this.state.currentTopicIndex >= this.state.topics.length) {
+        this.state.stopped = true;
+      } else {
+        this.state.paused = false;
+        this.state.continuePlayback?.();
+      }
+    };
 
     try {
       this.state.topics = await this.deps.findTopicsByEpisode(
@@ -237,6 +272,11 @@ function createEndPlaybackTool(deps: PlaybackAgentDeps) {
       "Call this when the user says 'stop', 'go back', or wants to do something else.",
     parameters: z.object({}),
     execute: async () => {
+      // Reset remote controls so lock screen buttons are no-ops outside playback
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      const noop = () => {};
+      deps.remoteControls.onTogglePlayback = noop;
+      deps.remoteControls.onSkipForward = noop;
       deps.notifyClient(RPC_SHOW_MODE, { mode: "browse" });
       return llm.handoff({
         agent: BrowseAgent.create(deps.browseDeps),

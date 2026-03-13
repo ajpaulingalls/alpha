@@ -4,11 +4,15 @@ import type { CatchUpAgentDeps } from "./CatchUpAgent";
 import type { BrowseAgentDeps } from "./BrowseAgent";
 import type { PlaybackAgentDeps } from "./PlaybackAgent";
 
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+const noop = () => {};
+
 export function mockBrowseDeps(
   overrides?: Partial<BrowseAgentDeps>,
 ): BrowseAgentDeps {
   return {
     notifyClient: mock(() => undefined),
+    remoteControls: { onTogglePlayback: noop, onSkipForward: noop },
     cortexClient: {
       embed: mock(() => Promise.resolve([[0.1, 0.2, 0.3]])),
       rag: mock(() => Promise.resolve({ result: "", sources: [] })),
@@ -77,6 +81,7 @@ export function mockPlaybackDeps(
 ): PlaybackAgentDeps {
   return {
     notifyClient: mock(() => undefined),
+    remoteControls: { onTogglePlayback: noop, onSkipForward: noop },
     episodeId: "e1e1e1e1-e1e1-e1e1-e1e1-e1e1e1e1e1e1",
     episodeTitle: "Test Episode",
     listenHistoryId: "lh1",

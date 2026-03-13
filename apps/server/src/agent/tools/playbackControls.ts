@@ -49,7 +49,10 @@ export function createSkipTopicTool(
       "Call this when the user says 'skip', 'next topic', or 'skip ahead'.",
     parameters: z.object({}),
     execute: async () => {
-      state.currentTopicIndex++;
+      state.currentTopicIndex = Math.min(
+        state.currentTopicIndex + 1,
+        state.topics.length,
+      );
 
       const percent = calculatePlaybackPercent(
         state.currentTopicIndex,

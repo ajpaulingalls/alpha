@@ -6,6 +6,10 @@ export const RPC_SHOW_MODE = "client.showMode";
 export const RPC_SHOW_LOADING = "client.showLoading";
 export const RPC_SHOW_TRANSCRIPT = "client.showTranscript";
 
+// RPC method name constants (client → agent)
+export const RPC_TOGGLE_PLAYBACK = "agent.togglePlayback";
+export const RPC_SKIP_FORWARD = "agent.skipForward";
+
 // Payload interfaces
 
 export interface ShowTopicPayload {
@@ -47,4 +51,6 @@ export interface RPCMethodMap {
   "client.showMode": ShowModePayload;
   "client.showLoading": ShowLoadingPayload;
   "client.showTranscript": ShowTranscriptPayload;
+  "agent.togglePlayback": Record<string, never>;
+  "agent.skipForward": Record<string, never>;
 }

@@ -64,6 +64,7 @@ export function createPlayPodcastTool(deps: PlayPodcastDeps) {
         const episodeTitle = sanitizeTitle(episode.title ?? "Untitled Episode");
         const playbackDeps: PlaybackAgentDeps = {
           notifyClient: deps.browseDeps.notifyClient,
+          remoteControls: deps.browseDeps.remoteControls,
           episodeId,
           episodeTitle,
           listenHistoryId: listenRecord.id,
