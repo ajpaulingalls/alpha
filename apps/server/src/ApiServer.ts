@@ -1,6 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { createAuthRoutes, type AuthDeps } from "./routes/auth";
+import { createUserRoutes, type UserDeps } from "./routes/user";
 import type { AuthEnv } from "./middleware/auth";
 import { securityHeaders } from "./middleware/securityHeaders";
 
@@ -32,7 +33,7 @@ export class ApiServer {
     return this.app;
   }
 
-  initServer(authDeps: AuthDeps) {
+  initServer(authDeps: AuthDeps, userDeps: UserDeps) {
     this.app.use("/api/*", securityHeaders);
     this.app.use(
       "/api/*",
@@ -45,6 +46,7 @@ export class ApiServer {
       await next();
     });
     this.app.route("/api/auth", createAuthRoutes(authDeps, this.livekitConfig));
+    this.app.route("/api/user", createUserRoutes(userDeps));
     this.app.get("/api/health", (c) => {
       return c.json({ status: "ok" });
     });

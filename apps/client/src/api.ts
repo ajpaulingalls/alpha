@@ -69,6 +69,46 @@ export async function fetchLiveKitToken(
   return (await res.json()) as { token: string; roomName: string };
 }
 
+export type CatchUpDepth = "brief" | "standard" | "detailed";
+
+export interface UserPreferencesResponse {
+  user: { name: string; email: string };
+  preferences: {
+    timezone: string | null;
+    catchUpDepth: CatchUpDepth;
+    preferences: Record<string, unknown>;
+  };
+}
+
+export async function fetchPreferences(
+  userToken: string,
+): Promise<UserPreferencesResponse> {
+  const res = await fetch(`${API_URL}/api/user/preferences`, {
+    headers: { Authorization: `Bearer ${userToken}` },
+  });
+  await throwIfNotOk(res, "Failed to fetch preferences");
+  return (await res.json()) as UserPreferencesResponse;
+}
+
+export async function updatePreferences(
+  userToken: string,
+  updates: {
+    timezone?: string;
+    catchUpDepth?: CatchUpDepth;
+    preferences?: Record<string, unknown>;
+  },
+): Promise<void> {
+  const res = await fetch(`${API_URL}/api/user/preferences`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${userToken}`,
+    },
+    body: JSON.stringify(updates),
+  });
+  await throwIfNotOk(res, "Failed to update preferences");
+}
+
 export async function logout(userToken: string): Promise<void> {
   const res = await fetch(`${API_URL}/api/auth/logout`, {
     method: "POST",

@@ -5,6 +5,7 @@ import type { User } from "@alpha/data/schema/users";
 import type { Session } from "@alpha/data/schema/sessions";
 import { ApiServer } from "./ApiServer";
 import { JWT_ISSUER, JWT_AUDIENCE, type AuthDeps } from "./routes/auth";
+import type { UserDeps } from "./routes/user";
 
 const TEST_SECRET = "test-secret-that-is-at-least-32-chars-long";
 const TEST_LK_CONFIG = {
@@ -65,7 +66,7 @@ function makeSession(overrides: Record<string, unknown> = {}): Session {
   } as Session;
 }
 
-function mockDeps(): AuthDeps {
+function mockAuthDeps(): AuthDeps {
   return {
     findUserByEmail: mockFindUserByEmail,
     upsertUserWithCode: mockUpsertUserWithCode,
@@ -78,9 +79,19 @@ function mockDeps(): AuthDeps {
   };
 }
 
+function mockUserDeps(): UserDeps {
+  return {
+    findSessionById: mockFindSessionById,
+    findUserById: mock(() => Promise.resolve(null)),
+    findPreferencesByUserId: mock(() => Promise.resolve(null)),
+    updatePreferences: mock(() => Promise.resolve({}) as never),
+    createPreferences: mock(() => Promise.resolve({}) as never),
+  };
+}
+
 function createTestApp() {
   const server = new ApiServer("test-key", "*", TEST_SECRET, TEST_LK_CONFIG);
-  server.initServer(mockDeps());
+  server.initServer(mockAuthDeps(), mockUserDeps());
   return server.getServer();
 }
 

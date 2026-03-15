@@ -2,6 +2,7 @@ import { serve } from "@hono/node-server";
 import { ApiServer } from "./src/ApiServer";
 import {
   findUserByEmail,
+  findUserById,
   upsertUserWithCode,
   updateUserValidation,
   clearVerificationCode,
@@ -12,6 +13,11 @@ import {
   findSessionById,
   endSession,
 } from "@alpha/data/crud/sessions";
+import {
+  findPreferencesByUserId,
+  updatePreferences,
+  createPreferences,
+} from "@alpha/data/crud/preferences";
 import { logger } from "./src/utils/logger";
 
 const OPENAI_API_KEY = process.env["OPENAI_API_KEY"];
@@ -63,16 +69,25 @@ const apiServer = new ApiServer(OPENAI_API_KEY, CORS_HOSTS, JWT_SECRET, {
   apiSecret: LIVEKIT_API_SECRET,
   url: LIVEKIT_URL,
 });
-apiServer.initServer({
-  findUserByEmail,
-  upsertUserWithCode,
-  updateUserValidation,
-  clearVerificationCode,
-  incrementFailedAttempts,
-  createSession,
-  findSessionById,
-  endSession,
-});
+apiServer.initServer(
+  {
+    findUserByEmail,
+    upsertUserWithCode,
+    updateUserValidation,
+    clearVerificationCode,
+    incrementFailedAttempts,
+    createSession,
+    findSessionById,
+    endSession,
+  },
+  {
+    findSessionById,
+    findUserById,
+    findPreferencesByUserId,
+    updatePreferences,
+    createPreferences,
+  },
+);
 
 serve({ fetch: apiServer.getServer().fetch, port: PORT });
 logger.log(`Listening on http://localhost:${PORT}`);

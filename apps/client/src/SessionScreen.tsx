@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useReducer, useRef } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -34,6 +34,7 @@ import {
   type ShowTranscriptPayload,
 } from "@alpha/socket/RPCMethods";
 import { useMediaSession } from "./useMediaSession";
+import { HelpOverlay } from "./HelpOverlay";
 
 interface SessionScreenProps {
   livekitToken: string;
@@ -184,6 +185,7 @@ function SessionContent({ onLeave }: { onLeave: () => void }) {
   const connectionState = useConnectionState();
   const room = useRoomContext();
   const [sessionState, dispatch] = useReducer(sessionReducer, initialState);
+  const [helpVisible, setHelpVisible] = useState(false);
   const historyRef = useRef<ScrollView>(null);
   const rpcRegistered = useRef(false);
 
@@ -388,7 +390,19 @@ function SessionContent({ onLeave }: { onLeave: () => void }) {
         <TouchableOpacity style={styles.stopButton} onPress={onLeave}>
           <Text style={styles.stopButtonText}>Stop</Text>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.helpToggle}
+          onPress={() => setHelpVisible(true)}
+        >
+          <Text style={styles.helpToggleText}>?</Text>
+        </TouchableOpacity>
       </View>
+
+      <HelpOverlay
+        visible={helpVisible}
+        onClose={() => setHelpVisible(false)}
+      />
     </View>
   );
 }
@@ -586,6 +600,19 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   stopButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
+  },
+  helpToggle: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#333",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  helpToggleText: {
     color: "#fff",
     fontSize: 14,
     fontWeight: "bold",

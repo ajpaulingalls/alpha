@@ -7,4 +7,5 @@ export const securityHeaders = createMiddleware(async (c, next) => {
   c.header("X-XSS-Protection", "0");
   c.header("Referrer-Policy", "strict-origin-when-cross-origin");
   c.header("Content-Security-Policy", "default-src 'self'");
+  c.header("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
 });
