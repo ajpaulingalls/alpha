@@ -24,51 +24,17 @@ if (!IMPORTER_API_KEY) {
   process.exit(1);
 }
 
-const paths: string[] = [];
-paths.push(
-  path.join(
-    process.cwd(),
-    "..",
-    "..",
-    "node_modules",
-    "@ts-flow",
-    "ai",
-    "dist",
-  ),
-);
-paths.push(
-  path.join(
-    process.cwd(),
-    "..",
-    "..",
-    "node_modules",
-    "@ts-flow",
-    "api",
-    "dist",
-  ),
-);
-paths.push(
-  path.join(
-    process.cwd(),
-    "..",
-    "..",
-    "node_modules",
-    "@ts-flow",
-    "ffmpeg",
-    "dist",
-  ),
-);
-paths.push(
-  path.join(
-    process.cwd(),
-    "..",
-    "..",
-    "node_modules",
-    "@ts-flow",
-    "transforms",
-    "dist",
-  ),
-);
+function resolveDistDir(pkg: string): string {
+  const entry = require.resolve(pkg);
+  return path.dirname(entry);
+}
+
+const paths: string[] = [
+  resolveDistDir("@ts-flow/ai"),
+  resolveDistDir("@ts-flow/api"),
+  resolveDistDir("@ts-flow/ffmpeg"),
+  resolveDistDir("@ts-flow/transforms"),
+];
 
 void bootstrap(paths, (container: IContainer) => {
   const eventBus: EventBus = container.getInstance("EventBus") as EventBus;

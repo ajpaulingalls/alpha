@@ -11,40 +11,16 @@ import type { Request, Response } from "express";
 import "./nodes/PodGenEngine.ts";
 import "@alpha/data/ts-flow/TopicInsertNode";
 
-const paths: string[] = [];
-paths.push(
-  path.join(
-    process.cwd(),
-    "..",
-    "..",
-    "node_modules",
-    "@ts-flow",
-    "ai",
-    "dist",
-  ),
-);
-paths.push(
-  path.join(
-    process.cwd(),
-    "..",
-    "..",
-    "node_modules",
-    "@ts-flow",
-    "cron",
-    "dist",
-  ),
-);
-paths.push(
-  path.join(
-    process.cwd(),
-    "..",
-    "..",
-    "node_modules",
-    "@ts-flow",
-    "api",
-    "dist",
-  ),
-);
+function resolveDistDir(pkg: string): string {
+  const entry = require.resolve(pkg);
+  return path.dirname(entry);
+}
+
+const paths: string[] = [
+  resolveDistDir("@ts-flow/ai"),
+  resolveDistDir("@ts-flow/cron"),
+  resolveDistDir("@ts-flow/api"),
+];
 
 void bootstrap(paths, (container: IContainer) => {
   const webServer = container.getInstance("WebServer") as WebServer;
