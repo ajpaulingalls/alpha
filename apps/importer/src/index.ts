@@ -9,11 +9,7 @@ import {
 import express, { type Request, type Response } from "express";
 import path from "path";
 import podIndexer from "./index-podcast-topics.json";
-import dotenv from "dotenv";
-
 import "@alpha/data/ts-flow/TopicInsertNode";
-
-dotenv.config();
 
 const IMPORTER_API_KEY = process.env["IMPORTER_API_KEY"];
 if (!IMPORTER_API_KEY) {
